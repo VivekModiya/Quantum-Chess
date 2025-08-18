@@ -4,7 +4,6 @@ import StartButton from './UI/StartButton';
 import Instructions from './UI/Instructions';
 import Crosshair from './UI/Crosshair';
 import Room from './Scene/Room';
-import Objects from './Scene/Objects';
 import ChessBoard from './Scene/ChessBoard';
 import PointerLockControls from '../utils/PointerLockControls';
 import useMovement from '../hooks/useMovement';
@@ -38,11 +37,11 @@ export const CylindricalRoom = () => {
 
         // 2. Primary chess board spotlight (strong focused light)
         const primarySpotlight = new THREE.SpotLight(0xffffff, 2.5);
-        primarySpotlight.position.set(0, 12, 0);
+        primarySpotlight.position.set(0, 100, 0);
         primarySpotlight.target.position.set(0, 0, 0);
         primarySpotlight.angle = Math.PI / 4; // Wider cone for better coverage
         primarySpotlight.penumbra = 0.2; // Sharp focus
-        primarySpotlight.distance = 25;
+        primarySpotlight.distance = 150;
         primarySpotlight.decay = 1.5; // Less aggressive falloff
         primarySpotlight.castShadow = true;
 
@@ -144,7 +143,6 @@ export const CylindricalRoom = () => {
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.1; // Brighter exposure for better visibility
-        renderer.physicallyCorrectLights = true; // Enable physically correct lighting
 
         mountRef.current.appendChild(renderer.domElement);
         controlsRef.current?.updateElement(renderer.domElement);

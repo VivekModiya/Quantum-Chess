@@ -114,11 +114,6 @@ class PointerLockControls {
 
     private isDomElementValid(): boolean {
         // Check if element exists and is connected to the DOM
-        console.log({
-            dom: this.domElement,
-            con: this.domElement.isConnected,
-            with: document.contains(this.domElement),
-        });
         return (
             this.domElement &&
             this.domElement.isConnected &&
