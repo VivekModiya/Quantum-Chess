@@ -1,0 +1,91 @@
+{
+    "extends": ["eslint:recommended"],
+    "plugins": ["prettier"],
+    "rules": {
+        "prettier/prettier": [
+            "warn",
+            {
+                "tabWidth": 2,
+                "printWidth": 80,
+                "useTabs": false,
+                "semi": false,
+                "singleQuote": true,
+                "trailingComma": "es5",
+                "bracketSpacing": true,
+                "arrowParens": "avoid",
+                "endOfLine": "auto"
+            }
+        ]
+    },
+    "overrides": [
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "extends": [
+                "eslint:recommended",
+                "plugin:react/recommended",
+                "plugin:react/jsx-runtime",
+                "plugin:jsx-a11y/recommended",
+                "plugin:@typescript-eslint/recommended",
+                "plugin:import/typescript"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "ecmaFeatures": {
+                    "jsx": true
+                },
+                "ecmaVersion": "latest",
+                "sourceType": "module"
+            },
+            "plugins": [
+                "react",
+                "@typescript-eslint",
+                "import",
+                "jsx-a11y",
+                "react-hooks",
+                "prettier"
+            ],
+            "settings": {
+                "react": {
+                    "version": "detect"
+                }
+            },
+            "rules": {
+                "no-extra-semi": "off",
+                "react/no-unescaped-entities": "off",
+                "@typescript-eslint/no-extra-semi": "off",
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/no-non-null-assertion": "off",
+                "@typescript-eslint/no-unused-vars": [
+                    "warn",
+                    {
+                        "argsIgnorePattern": "^_",
+                        "varsIgnorePattern": "^_",
+                        "caughtErrorsIgnorePattern": "^_"
+                    }
+                ],
+                "@typescript-eslint/ban-types": "off",
+                "@typescript-eslint/ban-ts-comment": "off",
+                "react-hooks/rules-of-hooks": "error",
+                "react-hooks/exhaustive-deps": "warn",
+                "react/jsx-no-target-blank": "off",
+                "react/prop-types": "off",
+                "react/no-deprecated": "off",
+                "prettier/prettier": [
+                    "warn",
+                    {
+                        "tabWidth": 2,
+                        "printWidth": 80,
+                        "useTabs": false,
+                        "semi": false,
+                        "singleQuote": true,
+                        "trailingComma": "es5",
+                        "bracketSpacing": true,
+                        "arrowParens": "avoid",
+                        "endOfLine": "auto"
+                    }
+                ],
+                "react/prop-types": "off"
+            }
+        }
+    ]
+}
