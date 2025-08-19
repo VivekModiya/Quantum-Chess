@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 export default class ChessPieceLoader {
     private loader: GLTFLoader;
 
-    private readonly blackPieceColor: number = 0x6b3e1c;
+    private readonly blackPieceColor: number = 0x662700;
     private readonly whitePieceColor: number = 0xf0d9b5;
 
     constructor() {
@@ -29,8 +29,9 @@ export default class ChessPieceLoader {
                         const mesh = child as THREE.Mesh;
                         mesh.material = new THREE.MeshPhysicalMaterial({
                             color: new THREE.Color(color),
-                            roughness: 0.1,
-                            metalness: 0.1,
+                            roughness: 0,
+                            metalness: 0,
+                            
                         });
                     }
                 });
@@ -57,7 +58,7 @@ export default class ChessPieceLoader {
                 // Position the group at the desired world position
                 pieceGroup.position.set(
                     position[0],
-                    position[1] + yOffset, // Lift to sit on floor
+                    position[1] + yOffset + 2.55, // Lift to sit on floor
                     position[2]
                 );
 

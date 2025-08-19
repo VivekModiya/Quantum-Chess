@@ -9,6 +9,7 @@ import PointerLockControls from '../utils/PointerLockControls';
 import useMovement from '../hooks/useMovement';
 import usePointerLock from '../hooks/usePointerLock';
 import ChessPieceLoader from './Scene/ChessPieceLoader';
+import PointerPosition from './UI/PointerPosition';
 
 export const CylindricalRoom = () => {
     const mountRef = useRef<HTMLDivElement>(null);
@@ -36,7 +37,7 @@ export const CylindricalRoom = () => {
         lightsRef.current.push(ambientLight);
 
         // 2. Primary chess board spotlight (strong focused light)
-        const primarySpotlight = new THREE.SpotLight(0xffffff, 2.5);
+        const primarySpotlight = new THREE.SpotLight(0xffffff, 10);
         primarySpotlight.position.set(0, 100, 0);
         primarySpotlight.target.position.set(0, 0, 0);
         primarySpotlight.angle = Math.PI / 4; // Wider cone for better coverage
@@ -57,8 +58,8 @@ export const CylindricalRoom = () => {
         lightsRef.current.push(primarySpotlight);
 
         // 3. Chess board directional light (focused beam from above)
-        const chessBoardLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        chessBoardLight.position.set(2, 15, 2);
+        const chessBoardLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        chessBoardLight.position.set(0, 100, 0);
         chessBoardLight.target.position.set(0, 0, 0);
         chessBoardLight.castShadow = true;
         chessBoardLight.shadow.mapSize.width = 2048;
@@ -175,17 +176,6 @@ export const CylindricalRoom = () => {
             scene.add(mesh);
         });
 
-        // // Create objects (commented out as in original)
-        // const objects = new Objects();
-        // const objectMeshes = objects.create();
-        // objectMeshes.forEach((mesh) => {
-        //     mesh.castShadow = true;
-        //     mesh.receiveShadow = true;
-        //     scene.add(mesh);
-        //     roomObjectsRef.current.push(mesh);
-        // });
-
-        // Create chess board
         const chessBoard = new ChessBoard();
         chessBoard.create().then((mesh) => {
             mesh.castShadow = true;
@@ -218,27 +208,28 @@ export const CylindricalRoom = () => {
         const animate = (): void => {
             animationIdRef.current = requestAnimationFrame(animate);
 
-            const time = Date.now() * 0.001;
-
-            // Very subtle light flickering for realism (candle-like effect on accent lights)
-            if (lightsRef.current.length >= 7) {
-                // Gentle variation on accent lights only
-                if (lightsRef.current[5]) {
-                    // First accent light
-                    const baseIntensity = 0.3;
-                    lightsRef.current[5].intensity =
-                        baseIntensity + Math.sin(time * 3) * 0.03;
-                }
-                if (lightsRef.current[6]) {
-                    // Second accent light
-                    const baseIntensity = 0.28;
-                    lightsRef.current[6].intensity =
-                        baseIntensity + Math.cos(time * 2.5) * 0.03;
-                }
-            }
-
             if (controlsRef.current?.isLocked && controlsRef.current) {
                 updateMovement();
+            }
+
+            // Cast a ray from the camera forward
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(
+                scene.children,
+                false
+            );
+
+            const tooltip = document.getElementById('tooltip');
+
+            if (intersects.length > 0 && tooltip) {
+                const point = intersects[0].point;
+                tooltip.style.display = 'block';
+                tooltip.innerHTML = `x: ${point.x.toFixed(
+                    2
+                )}<br/>y: ${point.y.toFixed(2)}<br/>z: ${point.z.toFixed(2)}`;
+            } else {
+                // tooltip.style.display = 'none';
             }
 
             renderer.render(scene, cameraRef.current || camera);
@@ -257,6 +248,7 @@ export const CylindricalRoom = () => {
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
             <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
+            <PointerPosition isVisible={isLocked} />
             <StartButton isLocked={isLocked} onStart={handleStart} />
             <Instructions isVisible={isLocked} />
             <Crosshair isVisible={isLocked} />
