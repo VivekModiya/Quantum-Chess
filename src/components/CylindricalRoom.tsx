@@ -32,7 +32,7 @@ export const CylindricalRoom = () => {
         lightsRef.current = [];
 
         // 1. Brighter ambient light for general visibility
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.25);
+        const ambientLight = new THREE.AmbientLight(0x404040, 1);
         scene.add(ambientLight);
         lightsRef.current.push(ambientLight);
 
@@ -58,8 +58,8 @@ export const CylindricalRoom = () => {
         lightsRef.current.push(primarySpotlight);
 
         // 3. Chess board directional light (focused beam from above)
-        const chessBoardLight = new THREE.DirectionalLight(0xffffff, 2.0);
-        chessBoardLight.position.set(0, 100, 0);
+        const chessBoardLight = new THREE.DirectionalLight(0xffffff, 5.0);
+        chessBoardLight.position.set(0, 50, 0);
         chessBoardLight.target.position.set(0, 0, 0);
         chessBoardLight.castShadow = true;
         chessBoardLight.shadow.mapSize.width = 2048;
@@ -125,7 +125,7 @@ export const CylindricalRoom = () => {
         // Initialize Three.js scene
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(
-            45,
+            40,
             window.innerWidth / window.innerHeight,
             0.1,
             1000
@@ -166,15 +166,7 @@ export const CylindricalRoom = () => {
 
         // Create room components
         const room = new Room();
-        const roomMeshes = room.create();
-        roomMeshes.forEach((mesh) => {
-            // Enable shadow receiving for room surfaces
-            mesh.receiveShadow = true;
-            if (mesh.userData.isWall) {
-                mesh.castShadow = false; // Walls don't cast shadows onto themselves
-            }
-            scene.add(mesh);
-        });
+        const roomMeshe = room.create(scene, roomObjectsRef);
 
         const chessBoard = new ChessBoard();
         chessBoard.create().then((mesh) => {
@@ -185,12 +177,7 @@ export const CylindricalRoom = () => {
         });
 
         const piecesLoader = new ChessPieceLoader();
-        piecesLoader.loadPieceToScene(scene);
-
-        // Add walls to collision detection
-        roomObjectsRef.current.push(
-            ...roomMeshes.filter((mesh) => mesh.userData.isWall)
-        );
+        piecesLoader.loadPieceToScene(scene, roomObjectsRef);
 
         // Handle window resize
         const handleResize = (): void => {

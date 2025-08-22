@@ -1,62 +1,50 @@
 import * as THREE from 'three';
-import {
-    createGridTexture,
-    createColorfulWallTexture,
-} from '../../utils/TextureGenerator';
+
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 class Room {
-    private readonly roomRadius: number = 150;
-    private readonly roomHeight: number = 120;
+    private loader: GLTFLoader;
 
-    public create(): THREE.Mesh[] {
-        const meshes: THREE.Mesh[] = [];
+    constructor() {
+        this.loader = new GLTFLoader();
+    }
 
-        // Floor (circular)
-        const floorGeometry = new THREE.CircleGeometry(this.roomRadius, 32);
-        const floorTexture = createGridTexture();
-        const floorMaterial = new THREE.MeshLambertMaterial({
-            map: floorTexture,
-            side: THREE.DoubleSide,
-        });
+    public create(
+        scene: THREE.Scene,
+        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>
+    ) {
+        this.loader.load(
+            `src/assets/room/round_room.glb`,
+            (gltf) => {
+                const model = gltf.scene.clone();
+                const group = new THREE.Group();
+                model.scale.set(10, 10, 10);
 
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-        floor.rotation.x = -Math.PI / 2;
-        floor.userData.isFloor = true;
-        meshes.push(floor);
+                // Enable shadow receiving for room surfaces
+                model.receiveShadow = true;
+                if (model.userData.isWall) {
+                    model.castShadow = false; // Walls don't cast shadows onto themselves
+                }
+                scene.add(model);
 
-        console.log(floor.position); // Mesh position
-        floor.geometry.computeBoundingBox();
-        console.log(floor.geometry.boundingBox); // Geometry's actual extents
+                group.add(model);
+                const box = new THREE.Box3().setFromObject(model);
 
-        // Ceiling (circular)
-        const ceiling = new THREE.Mesh(floorGeometry, floorMaterial);
-        ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.y = this.roomHeight;
-        ceiling.userData.isCeiling = true;
-        meshes.push(ceiling);
+                const size = new THREE.Vector3(0, 0, 0);
+                box.getSize(size);
 
-        // Cylindrical walls
-        const wallGeometry = new THREE.CylinderGeometry(
-            this.roomRadius,
-            this.roomRadius,
-            this.roomHeight,
-            32,
-            1,
-            true
+                group.position.set(0, 50, 0);
+
+                scene.add(group);
+                ref.current.push(group);
+            },
+            undefined,
+            (error) =>
+                console.error(
+                    `Error loading src/assets/room/round_room.glb:`,
+                    error
+                )
         );
-
-        const wallTexture = createColorfulWallTexture();
-        const wallMaterial = new THREE.MeshLambertMaterial({
-            map: wallTexture,
-            side: THREE.DoubleSide,
-        });
-
-        const walls = new THREE.Mesh(wallGeometry, wallMaterial);
-        walls.position.y = this.roomHeight / 2;
-        walls.userData.isWall = true;
-        meshes.push(walls);
-
-        return meshes;
     }
 }
 

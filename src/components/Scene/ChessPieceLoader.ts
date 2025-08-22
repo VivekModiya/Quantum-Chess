@@ -5,36 +5,48 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 export default class ChessPieceLoader {
     private loader: GLTFLoader;
 
-    private readonly blackPieceColor: number = 0x662700;
-    private readonly whitePieceColor: number = 0xf0d9b5;
+    private readonly blackPieceColor: number = 0x572a00;
+    private readonly whitePieceColor: number = 0xffd092;
 
     constructor() {
         this.loader = new GLTFLoader();
     }
 
-    private loadPiece(
+    private async loadPiece(
         scene: THREE.Scene,
+        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>,
         piece: PieceType,
         color: number,
-        position: [x: number, y: number, z: number]
-    ): void {
+        position: [x: number, y: number, z: number],
+        scale: number = 1
+    ) {
         this.loader.load(
             `src/assets/pieces/${piece}.glb`,
             (gltf) => {
                 const model = gltf.scene.clone();
-
-                // Apply material first
+                model.scale.set(
+                    0.2 + scale * 0.8,
+                    0.2 + scale,
+                    0.2 + scale * 0.8
+                );
                 model.traverse((child) => {
                     if ((child as THREE.Mesh).isMesh) {
                         const mesh = child as THREE.Mesh;
-                        mesh.material = new THREE.MeshPhysicalMaterial({
+                        mesh.material = new THREE.MeshStandardMaterial({
                             color: new THREE.Color(color),
-                            roughness: 0,
-                            metalness: 0,
-                            
+                            roughness: 0.2,
+                            metalness: 0.1,
                         });
+                        if (
+                            mesh.material instanceof THREE.MeshStandardMaterial
+                        ) {
+                            mesh.material.emissive.set(0xff0000);
+                            mesh.material.emissiveIntensity = 0.1;
+                        }
                     }
                 });
+
+                // Apply material first
 
                 // Get the bounding box in local space
                 const box = new THREE.Box3().setFromObject(model);
@@ -62,7 +74,11 @@ export default class ChessPieceLoader {
                     position[2]
                 );
 
+                pieceGroup.castShadow = true;
+                pieceGroup.receiveShadow = true;
+
                 scene.add(pieceGroup);
+                ref.current.push(pieceGroup);
             },
             undefined,
             (error) =>
@@ -70,7 +86,10 @@ export default class ChessPieceLoader {
         );
     }
 
-    public loadPieceToScene(scene: THREE.Scene): void {
+    public async loadPieceToScene(
+        scene: THREE.Scene,
+        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>
+    ): Promise<void> {
         const pieceOrder: PieceType[] = [
             'rook',
             'knight',
@@ -85,33 +104,42 @@ export default class ChessPieceLoader {
         // Place pieces with proper chess positions
         for (let col = 0; col < 8; col++) {
             // White pieces (closer to camera)
-            this.loadPiece(scene, pieceOrder[col], this.whitePieceColor, [
-                col * 10 - 35, // X: -35 to +35
-                0, // Y: floor level
-                -35, // Z: back row
-            ]);
-            this.loadPiece(scene, 'pawn', this.whitePieceColor, [
+            this.loadPiece(
+                scene,
+                ref,
+                pieceOrder[col],
+                this.whitePieceColor,
+                [
+                    col * 10 - 35, // X: -35 to +35
+                    0, // Y: floor level
+                    -35, // Z: back row
+                ],
+                1.2
+            );
+            this.loadPiece(scene, ref, 'pawn', this.whitePieceColor, [
                 col * 10 - 35,
                 0,
                 -25, // Z: pawn row
             ]);
 
             // Black pieces (farther from camera)
-            this.loadPiece(scene, pieceOrder[col], this.blackPieceColor, [
-                col * 10 - 35,
-                0,
-                35, // Z: back row
-            ]);
-            this.loadPiece(scene, 'pawn', this.blackPieceColor, [
+            this.loadPiece(
+                scene,
+                ref,
+                pieceOrder[col],
+                this.blackPieceColor,
+                [
+                    col * 10 - 35,
+                    0,
+                    35, // Z: back row
+                ],
+                1.2
+            );
+            this.loadPiece(scene, ref, 'pawn', this.blackPieceColor, [
                 col * 10 - 35,
                 0,
                 25, // Z: pawn row
             ]);
         }
-    }
-
-    // Helper method to test one piece
-    public loadTestPiece(scene: THREE.Scene, piece: PieceType = 'king'): void {
-        this.loadPiece(scene, piece, this.whitePieceColor, [0, 0, 0]);
     }
 }

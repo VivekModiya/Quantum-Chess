@@ -177,7 +177,7 @@ class ChessBoard {
                     // Make light squares lighter with a bright overlay
                     ctx.save();
                     ctx.globalCompositeOperation = 'screen'; // Lightens the image
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; // 30% white overlay
+                    ctx.fillStyle = 'rgba(255, 96, 96, 0.3)'; // 30% white overlay
                     ctx.fillRect(
                         col * squareSize,
                         row * squareSize,
@@ -187,7 +187,7 @@ class ChessBoard {
 
                     // Add slight warm tint to light squares
                     ctx.globalCompositeOperation = 'overlay';
-                    ctx.fillStyle = 'rgba(255, 248, 220, 0.2)'; // Warm cream overlay
+                    ctx.fillStyle = 'rgba(255, 248, 220, 0.1)'; // Warm cream overlay
                     ctx.fillRect(
                         col * squareSize,
                         row * squareSize,
@@ -199,7 +199,7 @@ class ChessBoard {
                     // Make dark squares darker with a dark overlay
                     ctx.save();
                     ctx.globalCompositeOperation = 'multiply'; // Darkens the image
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.37)'; // 40% black overlay
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // 40% black overlay
                     ctx.fillRect(
                         col * squareSize,
                         row * squareSize,

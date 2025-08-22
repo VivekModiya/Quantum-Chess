@@ -19,7 +19,7 @@ class PointerLockControls {
         this.pitchObject.add(camera);
 
         this.yawObject = new THREE.Object3D();
-        this.yawObject.position.y = 100; // Start higher to see the room better
+        this.yawObject.position.y = 20; // Start higher to see the room better
         this.yawObject.add(this.pitchObject);
 
         // Bind methods
