@@ -1,6 +1,5 @@
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import StartButton from './UI/StartButton';
 import Instructions from './UI/Instructions';
 import Crosshair from './UI/Crosshair';
 import Room from './Scene/Room';
@@ -10,6 +9,7 @@ import useMovement from '../hooks/useMovement';
 import usePointerLock from '../hooks/usePointerLock';
 import ChessPieceLoader from './Scene/ChessPieceLoader';
 import PointerPosition from './UI/PointerPosition';
+import { getPubsub } from '../utils/PubSub';
 
 export const CylindricalRoom = () => {
     const mountRef = useRef<HTMLDivElement>(null);
@@ -166,7 +166,7 @@ export const CylindricalRoom = () => {
 
         // Create room components
         const room = new Room();
-        const roomMeshe = room.create(scene, roomObjectsRef);
+        room.create(scene, roomObjectsRef);
 
         const chessBoard = new ChessBoard();
         chessBoard.create().then((mesh) => {
@@ -176,8 +176,8 @@ export const CylindricalRoom = () => {
             roomObjectsRef.current.push(mesh);
         });
 
-        const piecesLoader = new ChessPieceLoader();
-        piecesLoader.loadPieceToScene(scene, roomObjectsRef);
+        const piecesLoader = new ChessPieceLoader(scene, roomObjectsRef);
+        piecesLoader.loadPieceToScene();
 
         // Handle window resize
         const handleResize = (): void => {
@@ -191,6 +191,43 @@ export const CylindricalRoom = () => {
         window.addEventListener('resize', handleResize);
         setIsInitialized(true);
 
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2(0, 0); // default center
+        const pubSub = getPubsub();
+
+        // update pointer position when not locked
+        document.addEventListener('mousemove', (event) => {
+            if (!controls.isLocked) {
+                // convert mouse position to NDC (-1 to +1)
+                pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+                pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            }
+        });
+
+        document.addEventListener('click', () => {
+            if (controls.isLocked) {
+                // pointer lock: ray straight ahead
+                raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            } else {
+                // free pointer: use current mouse coords
+                raycaster.setFromCamera(pointer, camera);
+            }
+
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            if (intersects.length > 0) {
+                let obj: THREE.Object3D | null = intersects[0].object;
+
+                // climb up until we find userData
+                while (obj && !obj.userData.piece) {
+                    obj = obj.parent;
+                }
+
+                if (obj && obj.userData?.pieceId) {
+                    pubSub?.publish('piece_selected', obj.userData as any);
+                }
+            }
+        });
+
         // Subtle animation loop with minimal light variations
         const animate = (): void => {
             animationIdRef.current = requestAnimationFrame(animate);
@@ -199,44 +236,27 @@ export const CylindricalRoom = () => {
                 updateMovement();
             }
 
-            // Cast a ray from the camera forward
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObjects(
-                scene.children,
-                false
-            );
-
-            const tooltip = document.getElementById('tooltip');
-
-            if (intersects.length > 0 && tooltip) {
-                const point = intersects[0].point;
-                tooltip.style.display = 'block';
-                tooltip.innerHTML = `x: ${point.x.toFixed(
-                    2
-                )}<br/>y: ${point.y.toFixed(2)}<br/>z: ${point.z.toFixed(2)}`;
-            } else {
-                // tooltip.style.display = 'none';
-            }
-
             renderer.render(scene, cameraRef.current || camera);
         };
         animate();
     }, [isInitialized, initializePointerLock, updateMovement]);
 
-    const handleStart = (): void => {
-        if (rendererRef.current) {
-            rendererRef.current.domElement.focus();
-        }
+    React.useEffect(() => {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') {
+                if (rendererRef.current) {
+                    rendererRef.current.domElement.focus();
+                }
 
-        controlsRef.current?.lock();
-    };
+                controlsRef.current?.lock();
+            }
+        });
+    }, []);
 
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
             <div ref={mountRef} style={{ width: '100%', height: '100%' }} />
             <PointerPosition isVisible={isLocked} />
-            <StartButton isLocked={isLocked} onStart={handleStart} />
             <Instructions isVisible={isLocked} />
             <Crosshair isVisible={isLocked} />
         </div>

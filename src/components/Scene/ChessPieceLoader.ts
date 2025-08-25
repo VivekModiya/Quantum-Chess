@@ -1,4 +1,6 @@
-import { PieceType } from '@/types';
+import { PieceType } from '../../types';
+import { liftDownPiece, liftPiece } from '../../utils/liftPiece';
+import { getPubsub } from '../../utils/PubSub';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
@@ -7,19 +9,30 @@ export default class ChessPieceLoader {
 
     private readonly blackPieceColor: number = 0x572a00;
     private readonly whitePieceColor: number = 0xffd092;
+    private scene;
+    private ref;
 
-    constructor() {
+    constructor(
+        scene: THREE.Scene,
+        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>
+    ) {
         this.loader = new GLTFLoader();
+        this.scene = scene;
+        this.ref = ref;
     }
 
-    private async loadPiece(
-        scene: THREE.Scene,
-        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>,
-        piece: PieceType,
-        color: number,
-        position: [x: number, y: number, z: number],
-        scale: number = 1
-    ) {
+    private async loadPiece(params: {
+        piece: PieceType;
+        color: 'white' | 'black';
+        position: [x: number, y: number, z: number];
+        scale?: number;
+        pieceId: number;
+    }) {
+        const { color, piece, pieceId, position, scale = 1 } = params;
+        const pubSub = getPubsub();
+
+        const colorHash =
+            color === 'white' ? this.whitePieceColor : this.blackPieceColor;
         this.loader.load(
             `src/assets/pieces/${piece}.glb`,
             (gltf) => {
@@ -33,9 +46,9 @@ export default class ChessPieceLoader {
                     if ((child as THREE.Mesh).isMesh) {
                         const mesh = child as THREE.Mesh;
                         mesh.material = new THREE.MeshStandardMaterial({
-                            color: new THREE.Color(color),
-                            roughness: 0.2,
-                            metalness: 0.1,
+                            color: new THREE.Color(colorHash),
+                            roughness: 0.1,
+                            metalness: 0.5,
                         });
                         if (
                             mesh.material instanceof THREE.MeshStandardMaterial
@@ -45,8 +58,6 @@ export default class ChessPieceLoader {
                         }
                     }
                 });
-
-                // Apply material first
 
                 // Get the bounding box in local space
                 const box = new THREE.Box3().setFromObject(model);
@@ -76,9 +87,30 @@ export default class ChessPieceLoader {
 
                 pieceGroup.castShadow = true;
                 pieceGroup.receiveShadow = true;
+                pieceGroup.userData = {
+                    piece,
+                    color,
+                    isPiece: true,
+                    pieceId,
+                    isSelected: false,
+                };
 
-                scene.add(pieceGroup);
-                ref.current.push(pieceGroup);
+                this.scene.add(pieceGroup);
+                this.ref.current.push(pieceGroup);
+
+                pubSub?.subscribe('piece_selected', (piece) => {
+                    if (piece.pieceId === pieceId) {
+                        if (pieceGroup.userData.isSelected === false) {
+                            liftPiece(pieceGroup);
+                            pieceGroup.userData.isSelected = true;
+                        }
+                    } else if (piece.pieceId) {
+                        if (pieceGroup.userData.isSelected === true) {
+                            liftDownPiece(pieceGroup);
+                            pieceGroup.userData.isSelected = false;
+                        }
+                    }
+                });
             },
             undefined,
             (error) =>
@@ -86,10 +118,7 @@ export default class ChessPieceLoader {
         );
     }
 
-    public async loadPieceToScene(
-        scene: THREE.Scene,
-        ref: React.MutableRefObject<THREE.Object3D<THREE.Object3DEventMap>[]>
-    ): Promise<void> {
+    public async loadPieceToScene(): Promise<void> {
         const pieceOrder: PieceType[] = [
             'rook',
             'knight',
@@ -101,45 +130,45 @@ export default class ChessPieceLoader {
             'rook',
         ];
 
+        let pieceId = 1;
         // Place pieces with proper chess positions
         for (let col = 0; col < 8; col++) {
-            // White pieces (closer to camera)
-            this.loadPiece(
-                scene,
-                ref,
-                pieceOrder[col],
-                this.whitePieceColor,
-                [
-                    col * 10 - 35, // X: -35 to +35
-                    0, // Y: floor level
-                    -35, // Z: back row
-                ],
-                1.2
-            );
-            this.loadPiece(scene, ref, 'pawn', this.whitePieceColor, [
-                col * 10 - 35,
-                0,
-                -25, // Z: pawn row
-            ]);
+            let x = col * 10 - 35,
+                y = 0,
+                z = -35;
+            this.loadPiece({
+                piece: pieceOrder[col],
+                color: 'white',
+                position: [x, y, z],
+                scale: 1.2,
+                pieceId: pieceId++,
+            });
+
+            z = -25;
+            this.loadPiece({
+                piece: 'pawn',
+                color: 'white',
+                position: [x, y, z],
+                pieceId: pieceId++,
+            });
 
             // Black pieces (farther from camera)
-            this.loadPiece(
-                scene,
-                ref,
-                pieceOrder[col],
-                this.blackPieceColor,
-                [
-                    col * 10 - 35,
-                    0,
-                    35, // Z: back row
-                ],
-                1.2
-            );
-            this.loadPiece(scene, ref, 'pawn', this.blackPieceColor, [
-                col * 10 - 35,
-                0,
-                25, // Z: pawn row
-            ]);
+            z = 35;
+            this.loadPiece({
+                piece: pieceOrder[col],
+                color: 'black',
+                position: [x, y, z],
+                scale: 1.2,
+                pieceId: pieceId++,
+            });
+
+            z = 25;
+            this.loadPiece({
+                piece: 'pawn',
+                color: 'black',
+                position: [x, y, z],
+                pieceId: pieceId++,
+            });
         }
     }
 }

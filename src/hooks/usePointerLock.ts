@@ -33,16 +33,16 @@ const usePointerLock = (): UsePointerLockReturn => {
             };
 
             // Handle ESC key to exit pointer lock
-            const handleKeyDown = (event: KeyboardEvent): void => {
-                if (event.code === 'Escape' && isLocked) {
+            const handleKeyUp = (event: KeyboardEvent): void => {
+                if (event.key === 'Shift') {
                     controls.unlock();
                 }
             };
 
-            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
 
             return (): void => {
-                document.removeEventListener('keydown', handleKeyDown);
+                document.removeEventListener('keyup', handleKeyUp);
                 if (controls.dispose) {
                     controls.dispose();
                 }
