@@ -1,7 +1,7 @@
 import React from 'react';
 import type { UIProps } from '../../types';
 
-const PointerPosition: React.FC<UIProps> = ({ isVisible }) => {
+export const PointerPosition: React.FC<UIProps> = ({ isVisible }) => {
     if (!isVisible) return null;
 
     return (
@@ -23,5 +23,3 @@ const PointerPosition: React.FC<UIProps> = ({ isVisible }) => {
         ></div>
     );
 };
-
-export default PointerPosition;

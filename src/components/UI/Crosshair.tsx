@@ -1,7 +1,7 @@
 import React from 'react';
 import type { UIProps } from '../../types';
 
-const Crosshair: React.FC<UIProps> = ({ isVisible }) => {
+export const Crosshair: React.FC<UIProps> = ({ isVisible }) => {
     if (!isVisible) return null;
 
     return (
@@ -21,5 +21,3 @@ const Crosshair: React.FC<UIProps> = ({ isVisible }) => {
         />
     );
 };
-
-export default Crosshair;

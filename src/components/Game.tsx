@@ -4,11 +4,7 @@ import * as THREE from 'three';
 
 import { Canvas } from '@react-three/fiber';
 
-import { Scene } from './UI/Scene';
-import { Loader } from './UI/Loader';
-import Crosshair from './UI/Crosshair';
-import Instructions from './UI/Instructions';
-import PointerPosition from './UI/PointerPosition';
+import { Crosshair, Instructions, Loader, PointerPosition, Scene } from './UI';
 
 export const Game: React.FC = () => {
     const [isLocked, setIsLocked] = React.useState<boolean>(false);

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { UIProps } from '../../types';
 
-const Instructions: React.FC<UIProps> = ({ isVisible }) => {
+export const Instructions: React.FC<UIProps> = ({ isVisible }) => {
     if (!isVisible) return null;
 
     return (
@@ -25,5 +25,3 @@ const Instructions: React.FC<UIProps> = ({ isVisible }) => {
         </div>
     );
 };
-
-export default Instructions;
