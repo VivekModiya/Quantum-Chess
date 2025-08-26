@@ -1,10 +1,13 @@
 import { Game } from './components/Game';
 import './App.css';
+import { ChessProvider } from './components/provider/ChessContextProvide';
 
 export const App = () => {
     return (
-        <div className='App'>
-            <Game />
-        </div>
+        <ChessProvider>
+            <div className='App'>
+                <Game />
+            </div>
+        </ChessProvider>
     );
 };

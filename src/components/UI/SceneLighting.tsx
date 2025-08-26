@@ -1,4 +1,4 @@
-import { LIGHTING_CONFIG } from '../constants';
+import { LIGHTING_CONFIG } from '../../constants';
 
 export const SceneLighting: React.FC = () => {
     return (

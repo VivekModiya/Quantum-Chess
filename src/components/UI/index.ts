@@ -1,6 +1,5 @@
 export * from './Crosshair';
 export * from './Instructions';
-export * from './InterSectionHandler';
 export * from './Loader';
 export * from './MovementControls';
 export * from './PointerPosition';
