@@ -216,6 +216,7 @@ export const generatePossibleMoves = (
         king: generateKingMoves,
     };
 
+    // @ts-ignore
     return generators[piece.type](square, board, piece);
 };
 

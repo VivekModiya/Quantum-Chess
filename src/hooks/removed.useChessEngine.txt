@@ -1,0 +1,68 @@
+    const isGameOver = useMemo(
+        () => ['checkmate', 'stalemate', 'draw'].includes(state.gameStatus),
+        [state.gameStatus]
+    );
+
+
+    const winner = useMemo(() => {
+        if (state.gameStatus === 'checkmate') {
+            return state.currentTurn === 'white' ? 'black' : 'white';
+        }
+        return null;
+    }, [state.gameStatus, state.currentTurn]);
+
+
+    const undoMove = useCallback((): boolean => {
+        if (state.moveHistory.length === 0) return false;
+
+        dispatch({ type: 'UNDO_MOVE' });
+
+        setTimeout(() => {
+            dispatch({ type: 'UPDATE_GAME_STATUS' });
+        }, 0);
+
+        return true;
+    }, [state.moveHistory.length]);
+
+
+    const resetGame = useCallback(() => {
+        dispatch({ type: 'RESET_GAME' });
+    }, []);
+
+    const setPosition = useCallback(
+        (position: Record<Square, Piece | null>) => {
+            dispatch({ type: 'SET_POSITION', payload: { position } });
+            dispatch({ type: 'UPDATE_GAME_STATUS' });
+        },
+        []
+    );
+
+    const getAllCurrentPlayerMoves = useCallback(() => {
+        return getAllLegalMoves(state.board, state.currentTurn);
+    }, [state.board, state.currentTurn]);
+
+    const isValidMove = useCallback(
+        (from: Square, to: Square): boolean => {
+            const piece = getPiece(from);
+            if (!piece || piece.color !== state.currentTurn) {
+                return false;
+            }
+            return getLegalMoves(from).includes(to);
+        },
+        [getPiece, getLegalMoves, state.currentTurn]
+    );
+
+    const isInCheckNow = useMemo(
+        () => isInCheck(state.board, state.currentTurn),
+        [state.board, state.currentTurn]
+    );
+
+    const isCheckmateNow = useMemo(
+        () => isCheckmate(state.board, state.currentTurn),
+        [state.board, state.currentTurn]
+    );
+
+    const isStalemateNow = useMemo(
+        () => isStalemate(state.board, state.currentTurn),
+        [state.board, state.currentTurn]
+    );

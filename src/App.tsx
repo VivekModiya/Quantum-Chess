@@ -1,6 +1,6 @@
 import { Game } from './components/Game';
 import './App.css';
-import { ChessProvider } from './components/provider/ChessContextProvide';
+import { ChessProvider } from './provider';
 
 export const App = () => {
     return (

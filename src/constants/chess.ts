@@ -1,40 +1,40 @@
-import { Piece } from '../utils/Chess';
+import { Piece } from '../hooks';
 
 export const DEFAULT_CHESS_POSITION: Record<string, Piece> = {
     a1: { type: 'rook', color: 'white' },
-    a2: { type: 'bishop', color: 'white' },
-    a3: { type: 'knight', color: 'white' },
-    a4: { type: 'queen', color: 'white' },
-    a5: { type: 'king', color: 'white' },
-    a6: { type: 'knight', color: 'white' },
-    a7: { type: 'bishop', color: 'white' },
-    a8: { type: 'rook', color: 'white' },
+    b1: { type: 'knight', color: 'white' },
+    c1: { type: 'bishop', color: 'white' },
+    d1: { type: 'queen', color: 'white' },
+    e1: { type: 'king', color: 'white' },
+    f1: { type: 'bishop', color: 'white' },
+    g1: { type: 'knight', color: 'white' },
+    h1: { type: 'rook', color: 'white' },
 
-    b1: { type: 'pawn', color: 'white' },
+    a2: { type: 'pawn', color: 'white' },
     b2: { type: 'pawn', color: 'white' },
-    b3: { type: 'pawn', color: 'white' },
-    b4: { type: 'pawn', color: 'white' },
-    b5: { type: 'pawn', color: 'white' },
-    b6: { type: 'pawn', color: 'white' },
-    b7: { type: 'pawn', color: 'white' },
-    b8: { type: 'pawn', color: 'white' },
+    c2: { type: 'pawn', color: 'white' },
+    d2: { type: 'pawn', color: 'white' },
+    e2: { type: 'pawn', color: 'white' },
+    f2: { type: 'pawn', color: 'white' },
+    g2: { type: 'pawn', color: 'white' },
+    h2: { type: 'pawn', color: 'white' },
 
-    g1: { type: 'pawn', color: 'black' },
-    g2: { type: 'pawn', color: 'black' },
-    g3: { type: 'pawn', color: 'black' },
-    g4: { type: 'pawn', color: 'black' },
-    g5: { type: 'pawn', color: 'black' },
-    g6: { type: 'pawn', color: 'black' },
+    a7: { type: 'pawn', color: 'black' },
+    b7: { type: 'pawn', color: 'black' },
+    c7: { type: 'pawn', color: 'black' },
+    d7: { type: 'pawn', color: 'black' },
+    e7: { type: 'pawn', color: 'black' },
+    f7: { type: 'pawn', color: 'black' },
     g7: { type: 'pawn', color: 'black' },
-    g8: { type: 'pawn', color: 'black' },
+    h7: { type: 'pawn', color: 'black' },
 
-    h1: { type: 'rook', color: 'black' },
-    h2: { type: 'bishop', color: 'black' },
-    h3: { type: 'knight', color: 'black' },
-    h4: { type: 'queen', color: 'black' },
-    h5: { type: 'king', color: 'black' },
-    h6: { type: 'knight', color: 'black' },
-    h7: { type: 'bishop', color: 'black' },
+    a8: { type: 'rook', color: 'black' },
+    b8: { type: 'knight', color: 'black' },
+    c8: { type: 'bishop', color: 'black' },
+    d8: { type: 'queen', color: 'black' },
+    e8: { type: 'king', color: 'black' },
+    f8: { type: 'bishop', color: 'black' },
+    g8: { type: 'knight', color: 'black' },
     h8: { type: 'rook', color: 'black' },
 };
 
@@ -95,3 +95,51 @@ export const DIRECTIONS = {
         [-1, 1],
     ] as const,
 } as const;
+
+export const PIECE_SQUARE_MAP = {
+    // White pawns
+    pw1: 'a2',
+    pw2: 'b2',
+    pw3: 'c2',
+    pw4: 'd2',
+    pw5: 'e2',
+    pw6: 'f2',
+    pw7: 'g2',
+    pw8: 'h2',
+
+    // Black pawns
+    pb1: 'a7',
+    pb2: 'b7',
+    pb3: 'c7',
+    pb4: 'd7',
+    pb5: 'e7',
+    pb6: 'f7',
+    pb7: 'g7',
+    pb8: 'h7',
+
+    // White pieces
+    rw1: 'a1', // rook
+    nw1: 'b1', // knight
+    bw1: 'c1', // bishop
+    qw: 'd1', // queen
+    kw: 'e1', // king
+    bw2: 'f1',
+    nw2: 'g1',
+    rw2: 'h1',
+
+    // Black pieces
+    rb1: 'a8', // rook
+    nb1: 'b8', // knight
+    bb1: 'c8', // bishop
+    qb: 'd8', // queen
+    kb: 'e8', // king
+    bb2: 'f8',
+    nb2: 'g8',
+    rb2: 'h8',
+};
+
+export const SQUARE_PIECE_MAP = Object.fromEntries(
+    Object.entries(PIECE_SQUARE_MAP).map(([p, s]) => [s, p])
+);
+
+export const SQUARE_SIZE = 10;

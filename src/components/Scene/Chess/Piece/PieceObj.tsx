@@ -9,11 +9,9 @@ interface PieceObjectProps {
     color: 'white' | 'black';
     position: [number, number, number];
     scale?: number;
-    pieceId: number;
-    handleClick: (
-        e: ThreeEvent<MouseEvent>,
-        ref: React.RefObject<THREE.Group<THREE.Object3DEventMap>>
-    ) => void;
+    pieceId: string;
+    handleClick: (e: ThreeEvent<MouseEvent>) => void;
+    pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>>;
 }
 
 const blackPieceColor = 'rgb(17, 9, 0)'
@@ -33,9 +31,9 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     scale = 1,
     pieceId,
     handleClick,
+    pieceRef,
 }) => {
     const { scene } = useGLTF(`/src/assets/pieces/${piece}.glb`);
-    const groupRef = React.useRef<THREE.Group>(null);
     const modelRef = React.useRef<THREE.Group>(null);
 
     const colorHash = color === 'white' ? whitePieceColor : blackPieceColor;
@@ -109,7 +107,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 
     return (
         <group
-            ref={groupRef}
+            ref={pieceRef}
             position={adjustedPosition}
             rotation={[-Math.PI / 2, 0, 0]}
             castShadow
@@ -119,8 +117,9 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
                 color,
                 isPiece: true,
                 pieceId,
+                isSelected: false,
             }}
-            onClick={(e) => handleClick(e, groupRef)}
+            onClick={(e) => handleClick(e)}
         >
             <group ref={modelRef} position={centerOffset}>
                 <primitive object={modifiedScene} />

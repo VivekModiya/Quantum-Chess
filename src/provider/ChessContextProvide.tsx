@@ -1,12 +1,8 @@
-import React, { createContext, useContext, useRef, ReactNode } from 'react';
-import { useChessEngine } from '../../hooks/useChessEngine';
-import { PubSub, getPubsub } from '../../utils/PubSub';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useChessEngine } from '../hooks';
 
 // Context type - just the hook result + pubsub
-interface ChessContextType extends ReturnType<typeof useChessEngine> {
-    pubsub: PubSub;
-}
-
+interface ChessContextType extends ReturnType<typeof useChessEngine> {}
 // Create context
 const ChessContext = createContext<ChessContextType | null>(null);
 
@@ -18,15 +14,9 @@ interface ChessProviderProps {
 // Minimal provider - just wraps the hook
 export const ChessProvider: React.FC<ChessProviderProps> = ({ children }) => {
     const chessEngine = useChessEngine();
-    const pubsub = useRef(getPubsub()).current;
-
-    const contextValue: ChessContextType = {
-        ...chessEngine,
-        pubsub,
-    };
 
     return (
-        <ChessContext.Provider value={contextValue}>
+        <ChessContext.Provider value={chessEngine}>
             {children}
         </ChessContext.Provider>
     );

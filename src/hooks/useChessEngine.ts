@@ -1,12 +1,13 @@
-import { useReducer, useCallback, useMemo } from 'react';
+import React, { useReducer, useCallback, useMemo } from 'react';
 import { PieceColor, PieceType } from '../types';
-import { DEFAULT_CHESS_POSITION } from '../constants/chess';
+import { DEFAULT_CHESS_POSITION, SQUARE_PIECE_MAP } from '../constants/chess';
 import {
     generateLegalMoves,
     isInCheck,
     isCheckmate,
     isStalemate,
     getAllLegalMoves,
+    formatSquare,
 } from '../utils/calculate';
 
 type Square = string;
@@ -30,6 +31,7 @@ export interface ChessState {
     currentTurn: PieceColor;
     moveHistory: Move[];
     gameStatus: 'playing' | 'check' | 'checkmate' | 'stalemate' | 'draw';
+    squarePieceMap: Map<string, string | null>;
     halfMoveClock: number; // For 50-move rule
     fullMoveNumber: number;
     castlingRights: {
@@ -59,7 +61,7 @@ const createInitialBoard = (): Map<Square, Piece | null> => {
     // Initialize all squares to null first
     for (let file = 0; file < 8; file++) {
         for (let rank = 1; rank <= 8; rank++) {
-            const square = `${String.fromCharCode(97 + file)}${rank}`;
+            const square = formatSquare(file, rank);
             board.set(square, null);
         }
     }
@@ -72,8 +74,36 @@ const createInitialBoard = (): Map<Square, Piece | null> => {
     return board;
 };
 
+// Utility to render board in console (2D view)
+export function printBoard(board: Map<string, Piece | null>) {
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    let output = '\n';
+
+    for (let rank = 8; rank >= 1; rank--) {
+        output += rank + ' '; // Rank number at left
+        for (let file = 0; file < 8; file++) {
+            const square = files[file] + rank;
+            const piece = board.get(square);
+
+            if (piece) {
+                const symbol =
+                    piece.type[0].toUpperCase() +
+                    (piece.color === 'white' ? 'w' : 'b');
+                output += symbol.padEnd(3, ' ');
+            } else {
+                output += '-- '.padEnd(3, ' ');
+            }
+        }
+        output += '\n';
+    }
+
+    output += '   ' + files.map((f) => f.toUpperCase()).join('  ') + '\n';
+    console.log(output);
+}
+
 const initialState: ChessState = {
     board: createInitialBoard(),
+    squarePieceMap: new Map(Object.entries(SQUARE_PIECE_MAP)),
     currentTurn: 'white',
     moveHistory: [],
     gameStatus: 'playing',
@@ -102,6 +132,10 @@ const chessReducer = (state: ChessState, action: ChessAction): ChessState => {
             const newBoard = new Map(state.board);
             newBoard.set(to, piece);
             newBoard.set(from, null);
+
+            const newSquarePieceMap = new Map(state.squarePieceMap);
+            newSquarePieceMap.set(to, newSquarePieceMap.get(from) ?? null);
+            newSquarePieceMap.set(from, null);
 
             // Create move record
             const move: Move = {
@@ -239,27 +273,9 @@ const chessReducer = (state: ChessState, action: ChessAction): ChessState => {
 export const useChessEngine = () => {
     const [state, dispatch] = useReducer(chessReducer, initialState);
 
-    // Memoized selectors
-    const boardArray = useMemo(
-        () => Array.from(state.board.entries()),
-        [state.board]
-    );
-
-    const isGameOver = useMemo(
-        () => ['checkmate', 'stalemate', 'draw'].includes(state.gameStatus),
-        [state.gameStatus]
-    );
-
-    const winner = useMemo(() => {
-        if (state.gameStatus === 'checkmate') {
-            return state.currentTurn === 'white' ? 'black' : 'white';
-        }
-        return null;
-    }, [state.gameStatus, state.currentTurn]);
-
-    // Actions
     const makeMove = useCallback(
-        (from: Square, to: Square): boolean => {
+        (from: Square | null, to: Square | null): boolean => {
+            if (!from || !to) return false;
             const piece = state.board.get(from);
             if (!piece || piece.color !== state.currentTurn) {
                 return false;
@@ -283,30 +299,6 @@ export const useChessEngine = () => {
         [state.board, state.currentTurn]
     );
 
-    const undoMove = useCallback((): boolean => {
-        if (state.moveHistory.length === 0) return false;
-
-        dispatch({ type: 'UNDO_MOVE' });
-
-        setTimeout(() => {
-            dispatch({ type: 'UPDATE_GAME_STATUS' });
-        }, 0);
-
-        return true;
-    }, [state.moveHistory.length]);
-
-    const resetGame = useCallback(() => {
-        dispatch({ type: 'RESET_GAME' });
-    }, []);
-
-    const setPosition = useCallback(
-        (position: Record<Square, Piece | null>) => {
-            dispatch({ type: 'SET_POSITION', payload: { position } });
-            dispatch({ type: 'UPDATE_GAME_STATUS' });
-        },
-        []
-    );
-
     // Getters
     const getPiece = useCallback(
         (square: Square): Piece | null => {
@@ -315,9 +307,25 @@ export const useChessEngine = () => {
         [state.board]
     );
 
+    const getPieceSquare = useCallback(
+        (pieceId?: string | null): Square | null => {
+            if (!pieceId) return '';
+            for (const [square, id] of state.squarePieceMap.entries()) {
+                if (id === pieceId) {
+                    return square;
+                }
+            }
+            return null;
+        },
+        [state.squarePieceMap]
+    );
+
     const getLegalMoves = useCallback(
-        (square: Square): Square[] => {
+        (square?: Square | null): Square[] => {
+            if (!square) return [];
             const piece = getPiece(square);
+            console.log(printBoard(state.board), piece, square);
+
             if (!piece || piece.color !== state.currentTurn) {
                 return [];
             }
@@ -326,72 +334,45 @@ export const useChessEngine = () => {
         [state.board, state.currentTurn, getPiece]
     );
 
-    const getAllCurrentPlayerMoves = useCallback(() => {
-        return getAllLegalMoves(state.board, state.currentTurn);
-    }, [state.board, state.currentTurn]);
+    const selectedPiece = React.useRef<{
+        id: string;
+        ref: React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null;
+    } | null>(null);
 
-    const isSquareAttacked = useCallback(
-        (square: Square, byColor: PieceColor): boolean => {
-            // Implementation would check if square is attacked by pieces of byColor
-            return false; // Placeholder
+    const setSelectedPiece = useCallback(
+        (
+            piece: {
+                id: string;
+                ref: React.RefObject<
+                    THREE.Group<THREE.Object3DEventMap>
+                > | null;
+            } | null
+        ): void => {
+            selectedPiece.current = piece;
         },
         []
     );
 
-    const isValidMove = useCallback(
-        (from: Square, to: Square): boolean => {
-            const piece = getPiece(from);
-            if (!piece || piece.color !== state.currentTurn) {
-                return false;
-            }
-            return getLegalMoves(from).includes(to);
-        },
-        [getPiece, getLegalMoves, state.currentTurn]
-    );
-
     // Computed properties
-    const isInCheckNow = useMemo(
-        () => isInCheck(state.board, state.currentTurn),
-        [state.board, state.currentTurn]
-    );
-
-    const isCheckmateNow = useMemo(
-        () => isCheckmate(state.board, state.currentTurn),
-        [state.board, state.currentTurn]
-    );
-
-    const isStalemateNow = useMemo(
-        () => isStalemate(state.board, state.currentTurn),
-        [state.board, state.currentTurn]
-    );
 
     return {
         // State
         board: state.board,
-        boardArray,
         currentTurn: state.currentTurn,
         moveHistory: state.moveHistory,
         gameStatus: state.gameStatus,
-        isGameOver,
-        winner,
-        isInCheck: isInCheckNow,
-        isCheckmate: isCheckmateNow,
-        isStalemate: isStalemateNow,
         halfMoveClock: state.halfMoveClock,
         fullMoveNumber: state.fullMoveNumber,
         castlingRights: state.castlingRights,
+        selectedPiece: selectedPiece,
 
         // Actions
         makeMove,
-        undoMove,
-        resetGame,
-        setPosition,
+        setSelectedPiece,
 
         // Getters
         getPiece,
         getLegalMoves,
-        getAllCurrentPlayerMoves,
-        isSquareAttacked,
-        isValidMove,
+        getPieceSquare,
     };
 };

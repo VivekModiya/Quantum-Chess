@@ -5,13 +5,14 @@ import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 
 import { Crosshair, Instructions, Loader, PointerPosition, Scene } from './UI';
+import { Subscribers } from './subscribers';
 
 export const Game: React.FC = () => {
     const [isLocked, setIsLocked] = React.useState<boolean>(false);
 
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-            {/* React Three Fiber Canvas */}
+            <Subscribers />
             <Canvas
                 camera={{
                     fov: 40,
@@ -37,12 +38,10 @@ export const Game: React.FC = () => {
                 </Suspense>
             </Canvas>
 
-            {/* Loading overlay */}
             <Suspense fallback={<Loader />}>
                 <div />
             </Suspense>
 
-            {/* UI Overlays */}
             <PointerPosition isVisible={isLocked} />
             <Instructions isVisible={!isLocked} />
             <Crosshair isVisible={isLocked} />
