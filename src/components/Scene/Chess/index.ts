@@ -1,3 +1,3 @@
-export * from './ChessBoard';
-export * from './Piece';
-export * from './PiecesCollection';
+export * from './ChessBoard'
+export * from './Piece'
+export * from './PiecesCollection'

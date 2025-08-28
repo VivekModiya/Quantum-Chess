@@ -1,13 +1,12 @@
-import { Game } from './components/Game';
-import './App.css';
-import { ChessProvider } from './provider';
+import { Game } from './components/Game'
+import { ChessProvider } from './provider'
 
 export const App = () => {
-    return (
-        <ChessProvider>
-            <div className='App'>
-                <Game />
-            </div>
-        </ChessProvider>
-    );
-};
+  return (
+    <ChessProvider>
+      <div className="App">
+        <Game />
+      </div>
+    </ChessProvider>
+  )
+}

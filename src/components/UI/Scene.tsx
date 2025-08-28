@@ -1,25 +1,25 @@
-import React from 'react';
+import React from 'react'
 
-import { SceneLighting } from './SceneLighting';
-import { MovementControls } from './MovementControls';
-import { Objects } from '../Scene';
+import { SceneLighting } from './SceneLighting'
+import { MovementControls } from './MovementControls'
+import { Objects } from '../Scene'
 
 interface SceneProps {
-    isLocked: boolean;
-    setIsLocked: (locked: boolean) => void;
+  isLocked: boolean
+  setIsLocked: (locked: boolean) => void
 }
 
 export const Scene: React.FC<SceneProps> = ({ isLocked, setIsLocked }) => {
-    return (
-        <>
-            {/* Lighting setup */}
-            <SceneLighting />
+  return (
+    <>
+      {/* Lighting setup */}
+      <SceneLighting />
 
-            {/* Scene objects */}
-            <Objects />
+      {/* Scene objects */}
+      <Objects />
 
-            {/* Controls and interactions */}
-            <MovementControls isLocked={isLocked} setIsLocked={setIsLocked} />
-        </>
-    );
-};
+      {/* Controls and interactions */}
+      <MovementControls isLocked={isLocked} setIsLocked={setIsLocked} />
+    </>
+  )
+}

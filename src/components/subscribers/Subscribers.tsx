@@ -40,12 +40,12 @@ export const Subscribers = React.memo(() => {
           fromSquare,
           pieceObject: selectedPiece?.current?.ref?.current,
           onComplete: () => {
-            setSelectedPiece(null)
-            publish('calculate_legal_moves', { square: null })
             publish('make_sound', undefined)
-            makeMove(fromSquare, toSquare)
           },
         })
+        setSelectedPiece(null)
+        publish('calculate_legal_moves', { square: null })
+        makeMove(fromSquare, toSquare)
       }),
       subscribe('make_sound', () => {
         playSound('move')

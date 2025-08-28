@@ -1,61 +1,59 @@
-import { useState, useCallback } from 'react';
-import PointerLockControls from '../utils/PointerLockControls';
+import { useState, useCallback } from 'react'
+import PointerLockControls from '../utils/PointerLockControls'
 
 interface UsePointerLockReturn {
-    isLocked: boolean;
-    error: string | null;
-    initializePointerLock: (
-        controls: PointerLockControls
-    ) => (() => void) | void;
+  isLocked: boolean
+  error: string | null
+  initializePointerLock: (controls: PointerLockControls) => (() => void) | void
 }
 
 const usePointerLock = (): UsePointerLockReturn => {
-    const [isLocked, setIsLocked] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+  const [isLocked, setIsLocked] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
-    const initializePointerLock = useCallback(
-        (controls: PointerLockControls): (() => void) | void => {
-            if (!controls) return;
+  const initializePointerLock = useCallback(
+    (controls: PointerLockControls): (() => void) | void => {
+      if (!controls) return
 
-            // Set up pointer lock callbacks
-            controls.onLockChange = (locked: boolean): void => {
-                setIsLocked(locked);
-                if (locked) {
-                    setError(null);
-                }
-            };
+      // Set up pointer lock callbacks
+      controls.onLockChange = (locked: boolean): void => {
+        setIsLocked(locked)
+        if (locked) {
+          setError(null)
+        }
+      }
 
-            controls.onLockError = (): void => {
-                setError(
-                    'Pointer lock failed. Make sure you clicked the button and your browser supports pointer lock.'
-                );
-                setIsLocked(false);
-            };
+      controls.onLockError = (): void => {
+        setError(
+          'Pointer lock failed. Make sure you clicked the button and your browser supports pointer lock.'
+        )
+        setIsLocked(false)
+      }
 
-            // Handle ESC key to exit pointer lock
-            const handleKeyUp = (event: KeyboardEvent): void => {
-                if (event.key === 'Shift') {
-                    controls.unlock();
-                }
-            };
+      // Handle ESC key to exit pointer lock
+      const handleKeyUp = (event: KeyboardEvent): void => {
+        if (event.key === 'Shift') {
+          controls.unlock()
+        }
+      }
 
-            document.addEventListener('keyup', handleKeyUp);
+      document.addEventListener('keyup', handleKeyUp)
 
-            return (): void => {
-                document.removeEventListener('keyup', handleKeyUp);
-                if (controls.dispose) {
-                    controls.dispose();
-                }
-            };
-        },
-        [isLocked]
-    );
+      return (): void => {
+        document.removeEventListener('keyup', handleKeyUp)
+        if (controls.dispose) {
+          controls.dispose()
+        }
+      }
+    },
+    [isLocked]
+  )
 
-    return {
-        isLocked,
-        error,
-        initializePointerLock,
-    };
-};
+  return {
+    isLocked,
+    error,
+    initializePointerLock,
+  }
+}
 
-export default usePointerLock;
+export default usePointerLock

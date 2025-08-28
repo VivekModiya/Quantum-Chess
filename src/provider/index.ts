@@ -1,1 +1,1 @@
-export * from './ChessContextProvide';
+export * from './ChessContextProvide'
