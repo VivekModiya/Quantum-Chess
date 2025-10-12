@@ -12,7 +12,8 @@
   "dependencies": {
     "gsap": "^3.13.0",
     "@react-three/drei": "^10.7.4",
-    "@react-three/fiber": "^9.3.0"
+    "@react-three/fiber": "^9.3.0",
+    "@react-three/postprocessing": "^3.0.4"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

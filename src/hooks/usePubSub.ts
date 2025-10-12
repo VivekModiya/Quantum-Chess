@@ -8,12 +8,9 @@ export interface EventProps {
   }
   calculate_legal_moves: { square?: string | null }
   legal_move_calculated: { moves: string[] }
+  making_move: { fromSquare: string; toSquare: string; pieceId: string }
   make_move: { toSquare: string }
-  piece_moved: {
-    from: string
-    to: string
-    pieceId: string
-  }
+  piece_moved: { fromSquare: string; toSquare: string; pieceId: string }
   game_reset: {}
   move_undone: {}
   make_sound: undefined

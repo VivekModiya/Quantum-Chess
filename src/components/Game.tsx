@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 
 import * as THREE from 'three'
 
@@ -32,7 +33,7 @@ export const Game: React.FC = () => {
           enabled: true,
           type: THREE.PCFSoftShadowMap,
         }}
-        style={{ background: '#1a1a2e' }}
+        style={{ background: '#a76100ff' }}
       >
         <Suspense fallback={null}>
           <Scene isLocked={isLocked} setIsLocked={setIsLocked} />

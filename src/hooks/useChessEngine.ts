@@ -8,7 +8,6 @@ import {
   isStalemate,
   formatSquare,
 } from '../utils/calculate'
-import { usePubSub } from './usePubSub'
 
 type Square = string
 
@@ -99,6 +98,25 @@ export function printBoard(board: Map<string, Piece | null>) {
 
   output += '   ' + files.map(f => f.toUpperCase()).join('  ') + '\n'
   console.log(output)
+}
+
+export interface SquareCoords {
+  file: number
+  rank: number
+}
+
+export function getSquareCoords(square: string): SquareCoords | null {
+  if (square.length !== 2) return null
+
+  const fileStr = square[0].toLowerCase()
+  const rank = parseInt(square[1])
+
+  if (fileStr < 'a' || fileStr > 'h' || rank < 1 || rank > 8) return null
+
+  return {
+    file: fileStr.charCodeAt(0) - 'a'.charCodeAt(0) + 1,
+    rank,
+  }
 }
 
 const initialState: ChessState = {
@@ -278,7 +296,6 @@ const chessReducer = (state: ChessState, action: ChessAction): ChessState => {
 // Main chess hook
 export const useChessEngine = () => {
   const [state, dispatch] = useReducer(chessReducer, initialState)
-  const pubsub = usePubSub()
 
   const makeMove = useCallback(
     (from: Square | null, to: Square | null): boolean => {
@@ -327,11 +344,38 @@ export const useChessEngine = () => {
     [state.squarePieceMap]
   )
 
+  const getPieceFromId = (pieceId: string): Piece | null => {
+    const pieceMap = {
+      p: 'pawn',
+      b: 'bishop',
+      n: 'knight',
+      k: 'king',
+      q: 'queen',
+      r: 'rook',
+    } satisfies Record<string, PieceType>
+
+    const colorMap = {
+      w: 'white',
+      b: 'black',
+    } satisfies Record<string, PieceColor>
+
+    const piece = pieceMap[pieceId[0] as keyof typeof pieceMap]
+    const color = colorMap[pieceId[1] as keyof typeof colorMap]
+
+    if (piece && color) {
+      return {
+        color,
+        type: piece,
+      }
+    }
+
+    return null
+  }
+
   const getLegalMoves = useCallback(
     (square?: Square | null): Square[] => {
       if (!square) return []
       const piece = getPiece(square)
-      console.log(printBoard(state.board), piece, square)
 
       if (!piece || piece.color !== state.currentTurn) {
         return []
@@ -378,6 +422,7 @@ export const useChessEngine = () => {
 
     // Getters
     getPiece,
+    getPieceFromId,
     getLegalMoves,
     getPieceSquare,
   }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { usePubSub } from '../../hooks'
+import { getSquareCoords, usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
 import { animatePieceMove, liftPiece, lowerPiece } from '../../utils/animations'
 import { playSound } from '../../utils/audioManager'
@@ -11,6 +11,7 @@ export const Subscribers = React.memo(() => {
     selectedPiece,
     setSelectedPiece,
     getPieceSquare,
+    getPieceFromId,
     makeMove,
   } = useChess()
 
@@ -21,6 +22,7 @@ export const Subscribers = React.memo(() => {
         publish('legal_move_calculated', { moves })
       }),
       subscribe('piece_selected', ({ pieceId, pieceRef }) => {
+        console.log({ square: getPieceSquare(pieceId), pieceId })
         lowerPiece(selectedPiece?.current?.ref?.current)
         if (selectedPiece?.current?.id === pieceId) {
           setSelectedPiece(null)
@@ -34,21 +36,43 @@ export const Subscribers = React.memo(() => {
         }
       }),
       subscribe('make_move', ({ toSquare }) => {
+        const pieceId = selectedPiece?.current?.id
         const fromSquare = getPieceSquare(selectedPiece?.current?.id)
-        animatePieceMove({
-          toSquare,
-          fromSquare,
-          pieceObject: selectedPiece?.current?.ref?.current,
-          onComplete: () => {
-            publish('make_sound', undefined)
-          },
-        })
-        setSelectedPiece(null)
-        publish('calculate_legal_moves', { square: null })
-        makeMove(fromSquare, toSquare)
+        if (fromSquare && toSquare && pieceId) {
+          publish('making_move', {
+            fromSquare,
+            toSquare,
+            pieceId,
+            onComplete: () => {},
+          })
+          animatePieceMove({
+            toSquare,
+            fromSquare,
+            pieceObject: selectedPiece?.current?.ref?.current,
+            onComplete: () => {
+              publish('make_sound', undefined)
+            },
+          })
+          setSelectedPiece(null)
+          publish('calculate_legal_moves', { square: null })
+          makeMove(fromSquare, toSquare)
+        }
       }),
       subscribe('make_sound', () => {
         playSound('move')
+      }),
+      subscribe('piece_moved', ({ toSquare, pieceId }) => {
+        const { color, type } = getPieceFromId(pieceId) ?? {}
+        const { rank } = getSquareCoords(toSquare) ?? {}
+        if (rank === 8) {
+          if (color === 'white' && type === 'pawn') {
+            alert('alert to select a White piece')
+          }
+        } else if (rank === 1) {
+          if (color === 'black' && type === 'pawn') {
+            alert('alert to select piece a Black Piece')
+          }
+        }
       }),
     ]
     return () => unsubscribe.forEach(us => us())

@@ -1,6 +1,12 @@
+// @ts-ignore
 import Src from '../../assets/crosshair/crosshair.webp'
 
-export function Crosshair() {
+interface CrosshairProps {
+  isVisible?: boolean
+}
+
+export function Crosshair(props: CrosshairProps) {
+  if (props.isVisible === false) return null
   return (
     <img
       src={Src}

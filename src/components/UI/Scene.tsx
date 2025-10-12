@@ -2,7 +2,7 @@ import React from 'react'
 
 import { SceneLighting } from './SceneLighting'
 import { MovementControls } from './MovementControls'
-import { Objects } from '../Scene'
+import { Chess } from '../Scene'
 
 interface SceneProps {
   isLocked: boolean
@@ -16,7 +16,7 @@ export const Scene: React.FC<SceneProps> = ({ isLocked, setIsLocked }) => {
       <SceneLighting />
 
       {/* Scene objects */}
-      <Objects />
+      <Chess />
 
       {/* Controls and interactions */}
       <MovementControls isLocked={isLocked} setIsLocked={setIsLocked} />

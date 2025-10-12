@@ -4,17 +4,22 @@ import CollisionDetection from '../utils/CollisionDetection'
 import PointerLockControls from '../utils/PointerLockControls'
 import type { MovementState } from '../types'
 
+interface ExtendedMovementState extends MovementState {
+  isFlying: boolean
+}
+
 const useMovement = (
   controlsRef: React.MutableRefObject<PointerLockControls | null>,
   roomObjectsRef: React.MutableRefObject<THREE.Object3D[]>
 ) => {
-  const movementRef = useRef<MovementState>({
+  const movementRef = useRef<ExtendedMovementState>({
     moveForward: false,
     moveBackward: false,
     moveLeft: false,
     moveRight: false,
     moveUp: false,
     moveDown: false,
+    isFlying: false,
   })
 
   const prevTimeRef = useRef<number>(performance.now())
@@ -44,6 +49,10 @@ const useMovement = (
       case 'KeyE':
         movementRef.current.moveDown = true
         break
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        movementRef.current.isFlying = true
+        break
     }
   }, [])
 
@@ -70,6 +79,10 @@ const useMovement = (
         break
       case 'KeyE':
         movementRef.current.moveDown = false
+        break
+      case 'ShiftLeft':
+      case 'ShiftRight':
+        movementRef.current.isFlying = false
         break
     }
   }, [])
@@ -108,43 +121,76 @@ const useMovement = (
 
     // Calculate movement based on camera orientation
     const moveVector = new THREE.Vector3()
+    const moveSpeed = 75.0
 
     if (movement.moveForward || movement.moveBackward) {
       const forwardMultiplier = movement.moveForward ? 1 : -1
-      moveVector.add(
-        cameraDirection.clone().multiplyScalar(forwardMultiplier * 75.0 * delta)
-      )
+
+      if (movement.isFlying) {
+        // In fly mode, move in the exact direction the camera is looking (including pitch)
+        moveVector.add(
+          cameraDirection
+            .clone()
+            .multiplyScalar(forwardMultiplier * moveSpeed * delta)
+        )
+      } else {
+        // In ground mode, move only in horizontal plane
+        const horizontalDirection = cameraDirection.clone()
+        horizontalDirection.y = 0
+        horizontalDirection.normalize()
+        moveVector.add(
+          horizontalDirection.multiplyScalar(
+            forwardMultiplier * moveSpeed * delta
+          )
+        )
+      }
     }
 
     if (movement.moveLeft || movement.moveRight) {
       const rightMultiplier = movement.moveRight ? 1 : -1
       moveVector.add(
-        cameraRight.clone().multiplyScalar(rightMultiplier * 75.0 * delta)
+        cameraRight.clone().multiplyScalar(rightMultiplier * moveSpeed * delta)
       )
     }
 
-    // Vertical movement (Q/E keys)
+    // Vertical movement (Q/E keys) - works in both modes
     if (movement.moveUp || movement.moveDown) {
       const verticalMultiplier = movement.moveUp ? 1 : -1
-      moveVector.y += verticalMultiplier * 75.0 * delta
+      moveVector.y += verticalMultiplier * moveSpeed * delta
     }
 
     // Get current position and calculate new position
     const currentPosition = controls.getObject().position.clone()
     const attemptedPosition = currentPosition.clone().add(moveVector)
 
-    // Use collision detection to get valid position
-    const validPosition = collisionDetection.current.getValidPosition(
-      currentPosition,
-      attemptedPosition,
-      roomObjectsRef.current
-    )
+    let validPosition: THREE.Vector3
+
+    if (movement.isFlying) {
+      // In fly mode, allow free movement without ground collision
+      validPosition = attemptedPosition
+    } else {
+      // In ground mode, use collision detection
+      validPosition = collisionDetection.current.getValidPosition(
+        currentPosition,
+        attemptedPosition,
+        roomObjectsRef.current
+      )
+    }
 
     controlsRef.current.getObject().position.copy(validPosition)
     prevTimeRef.current = time
   }, [])
 
-  return { updateMovement }
+  const getMovementState = useCallback(() => {
+    return {
+      isFlying: movementRef.current.isFlying,
+      hasMovement: Object.values(movementRef.current).some(
+        (value, index) => index < 6 && value // Check only movement booleans, not isFlying
+      ),
+    }
+  }, [])
+
+  return { updateMovement, getMovementState }
 }
 
 export default useMovement
