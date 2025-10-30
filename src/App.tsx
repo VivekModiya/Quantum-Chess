@@ -1,10 +1,12 @@
-import { CylindricalRoom } from './components/CylindricalRoom';
-import './App.css';
+import { Game } from './components/Game'
+import { ChessProvider } from './provider'
 
 export const App = () => {
-    return (
-        <div className='App'>
-            <CylindricalRoom />
-        </div>
-    );
-};
+  return (
+    <ChessProvider>
+      <div className="App">
+        <Game />
+      </div>
+    </ChessProvider>
+  )
+}
