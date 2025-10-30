@@ -1,5 +1,5 @@
 import React from 'react'
-import type { UIProps } from '../../types'
+import type { UIProps } from '../../../types'
 
 export const PointerPosition: React.FC<UIProps> = ({ isVisible }) => {
   if (!isVisible) return null

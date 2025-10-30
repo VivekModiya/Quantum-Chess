@@ -31,7 +31,7 @@ export const Board: React.FC<ChessBoardProps> = ({
         // Load single chess board image
         const boardImage = await loadImage(
           new URL(
-            '../../../../assets/board/board.jpg', // or chess_board.png
+            '../../../../assets/textures/boardTexture.jpg', // or chess_board.png
             import.meta.url
           ).href
         )

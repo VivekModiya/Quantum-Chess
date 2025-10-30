@@ -1,8 +1,8 @@
-import React from 'react'
-import { PieceType } from '../../../../types'
 import { ThreeEvent } from '@react-three/fiber'
+import React from 'react'
+import { usePubSub } from '../../../hooks'
+import { PieceType } from '../../../types'
 import { PieceObject } from './PieceObj'
-import { usePubSub } from '../../../../hooks'
 
 interface ChessPieceProps {
   piece: PieceType

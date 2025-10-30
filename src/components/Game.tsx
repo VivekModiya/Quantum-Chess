@@ -4,16 +4,27 @@ import * as THREE from 'three'
 
 import { Canvas } from '@react-three/fiber'
 
-import { Crosshair, Instructions, Loader, PointerPosition, Scene } from './UI'
+import { SceneLighting } from './scene/Lighting/SceneLighting'
 import { Subscribers } from './subscribers'
+import { Crosshair, Instructions, Loader, PointerPosition } from './uiLower'
+
+import { useGLTF } from '@react-three/drei'
+import { Board } from './game/Board'
+import { Pieces } from './game/Pieces'
+import { MovementControls } from './uiLower/Controls'
 
 export const Game: React.FC = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
 
+  React.useEffect(() => {
+    ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
+      useGLTF.preload(`/src/assets/pieces/${piece}.glb`)
+    })
+  }, [])
+
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Subscribers />
-      {/* <AudioComponent /> */}
       <Canvas
         camera={{
           fov: 50,
@@ -34,15 +45,15 @@ export const Game: React.FC = () => {
         }}
         style={{ background: '#a76100ff' }}
       >
-        <Suspense fallback={null}>
-          <Scene isLocked={isLocked} setIsLocked={setIsLocked} />
+        <Suspense fallback={<Loader />}>
+          <SceneLighting />
+          <group>
+            <Board position={[0, 0, 0]} />
+            <Pieces />
+          </group>
+          <MovementControls isLocked={isLocked} setIsLocked={setIsLocked} />
         </Suspense>
       </Canvas>
-
-      <Suspense fallback={<Loader />}>
-        <div />
-      </Suspense>
-
       <PointerPosition isVisible={isLocked} />
       <Instructions isVisible={!isLocked} />
       <Crosshair isVisible={isLocked} />

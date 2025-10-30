@@ -1,11 +1,11 @@
 import React from 'react'
-import { PieceType } from '../../../../types'
-import { ChessPiece } from './Piece'
-import { formatSquare } from '../../../../utils/calculate'
-import { PIECE_SQUARE_MAP, SQUARE_PIECE_MAP } from '../../../../constants/chess'
+import { PIECE_SQUARE_MAP, SQUARE_PIECE_MAP } from '../../../constants/chess'
+import { getSquareCoords } from '../../../hooks'
+import { useChess } from '../../../provider'
+import { PieceType } from '../../../types'
+import { formatSquare } from '../../../utils/calculate'
 import { HighLightedMoves } from '../MoveHighlight/HighLight'
-import { useChess } from '../../../../provider'
-import { getSquareCoords } from '../../../../hooks'
+import { ChessPiece } from './Piece'
 
 export const Pieces: React.FC = () => {
   const getPieceId = (file: number, rank: number) => {

@@ -1,0 +1,110 @@
+{
+  "App.tsx": "<file>",
+  "assets": {
+    ".DS_Store": "<file>",
+    "audio": {
+      "move.mp3": "<file>"
+    },
+    "board": {
+      "board.jpg": "<file>"
+    },
+    "crosshair": {
+      "crosshair.webp": "<file>"
+    },
+    "fonts": {
+      "font.json": "<file>",
+      "font_texture.jpg": "<file>"
+    },
+    "pieces": {
+      "bishop.glb": "<file>",
+      "king.glb": "<file>",
+      "knight.glb": "<file>",
+      "pawn.glb": "<file>",
+      "queen.glb": "<file>",
+      "rook.glb": "<file>"
+    }
+  },
+  "components": {
+    "Audio": {
+      "Audio.tsx": "<file>",
+      "index.ts": "<file>"
+    },
+    "Game.tsx": "<file>",
+    "Scene": {
+      "Chess": {
+        "Board": {
+          "ChessBoard.tsx": "<file>",
+          "index.ts": "<file>"
+        },
+        "Chess": {
+          "Chess.tsx": "<file>",
+          "index.ts": "<file>"
+        },
+        "MoveHighlight": {
+          "HighLight.tsx": "<file>",
+          "index.ts": "<file>"
+        },
+        "Notations": {
+          "Notations.tsx": "<file>",
+          "index.ts": "<file>"
+        },
+        "Pieces": {
+          "Piece.tsx": "<file>",
+          "PieceObj.tsx": "<file>",
+          "Pieces.tsx": "<file>",
+          "index.ts": "<file>"
+        },
+        "index.ts": "<file>"
+      },
+      "index.ts": "<file>"
+    },
+    "UI": {
+      "Crosshair.tsx": "<file>",
+      "Instructions.tsx": "<file>",
+      "Loader.tsx": "<file>",
+      "MovementControls.tsx": "<file>",
+      "PointerPosition.tsx": "<file>",
+      "Scene.tsx": "<file>",
+      "SceneLighting.tsx": "<file>",
+      "StartButton.tsx": "<file>",
+      "index.ts": "<file>"
+    },
+    "subscribers": {
+      "Subscribers.tsx": "<file>",
+      "index.ts": "<file>"
+    }
+  },
+  "constants": {
+    "chess.ts": "<file>",
+    "index.ts": "<file>",
+    "lighting.ts": "<file>"
+  },
+  "declarations.d.ts": "<file>",
+  "hooks": {
+    "index.ts": "<file>",
+    "useChessEngine.ts": "<file>",
+    "useMovement.ts": "<file>",
+    "usePointerLock.ts": "<file>",
+    "usePubSub.ts": "<file>"
+  },
+  "main.tsx": "<file>",
+  "provider": {
+    "ChessContextProvide.tsx": "<file>",
+    "index.ts": "<file>"
+  },
+  "style.css": "<file>",
+  "three.d.ts": "<file>",
+  "types": {
+    "index.ts": "<file>",
+    "three.d.ts": "<file>",
+    "userData.ts": "<file>"
+  },
+  "utils": {
+    "CollisionDetection.ts": "<file>",
+    "Debug.ts": "<file>",
+    "PointerLockControls.ts": "<file>",
+    "animations.ts": "<file>",
+    "audioManager.ts": "<file>",
+    "calculate.ts": "<file>"
+  }
+}

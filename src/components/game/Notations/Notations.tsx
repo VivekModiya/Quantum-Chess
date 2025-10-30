@@ -2,9 +2,9 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text3D } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
-import Fonts from '../../../../assets/fonts/font.json'
+import Fonts from '../../../assets/fonts/font.json'
 // @ts-ignore
-import Texture from '../../../../assets/fonts/font_texture.jpg'
+import Texture from '../../../assets/textures/fontTexture.jpg'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const RANKS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -68,9 +68,11 @@ export function BoardCoordinates() {
     }
   }, [size, squareSize, textSize, offset])
 
+  // @ts-ignore
   const createText3D = (content, position, rotation, key) => (
     <Text3D
       key={key}
+      // @ts-ignore
       font={Fonts}
       size={textSize}
       height={textHeight}
