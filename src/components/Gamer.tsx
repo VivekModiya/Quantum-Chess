@@ -10,13 +10,12 @@ import {
   Crosshair,
   Instructions,
   Loader,
-  PointerPosition,
   MovementControls,
+  PointerPosition,
 } from './ui'
 
 import { useGLTF } from '@react-three/drei'
-import { Board } from './game/Board'
-import { Pieces } from './game/Pieces'
+import { Board, Pieces } from './Gammmerer'
 
 export const Game: React.FC = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
