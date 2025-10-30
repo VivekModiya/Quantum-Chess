@@ -12,17 +12,32 @@ interface HighLightProps {
 
 export const HighLight = (props: HighLightProps) => {
   const { handleClick, position } = props
+
+  const color = '#552c00'
   return (
-    <mesh castShadow receiveShadow position={position} onClick={handleClick}>
-      <boxGeometry args={[10, 0.2, 10]} />
-      <meshStandardMaterial
-        color="#334bff"
-        emissive="#0026ff"
-        emissiveIntensity={0.5}
-        opacity={0.7}
-        transparent={true}
-      />
-    </mesh>
+    <group position={position}>
+      {/* Visible circular highlight */}
+      <mesh>
+        <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.5}
+          opacity={0.7}
+          transparent={true}
+        />
+      </mesh>
+
+      {/* Invisible clickable box (slightly larger) */}
+      <mesh
+        onClick={handleClick}
+        // small Y offset to avoid z-fighting with board surface
+        position={[0, 0, 0]}
+      >
+        <boxGeometry args={[10, 0.5, 10]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+    </group>
   )
 }
 

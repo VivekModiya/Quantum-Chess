@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback } from 'react'
-import { PieceColor, PieceType } from '../types'
+import { PieceColor, PieceType, PromotablePiece } from '../types'
 import { DEFAULT_CHESS_POSITION, SQUARE_PIECE_MAP } from '../constants/chess'
 import {
   generateLegalMoves,
@@ -53,6 +53,10 @@ type ChessAction =
     }
   | { type: 'SET_TURN'; payload: PieceColor }
   | { type: 'UPDATE_GAME_STATUS' }
+  | {
+      type: 'PROMOTE_PAWN'
+      payload: { pawnPieceId: Square; piece: Piece }
+    }
 
 // Helper function to create initial board
 const createInitialBoard = (): Map<Square, Piece | null> => {
@@ -288,6 +292,15 @@ const chessReducer = (state: ChessState, action: ChessAction): ChessState => {
       }
     }
 
+    case 'PROMOTE_PAWN': {
+      const newBoard = new Map(state.board)
+      newBoard.set(action.payload.pawnPieceId, action.payload.piece)
+      return {
+        ...state,
+        board: new Map(newBoard),
+      }
+    }
+
     default:
       return state
   }
@@ -319,6 +332,19 @@ export const useChessEngine = () => {
       }, 0)
 
       return true
+    },
+    [state.board, state.currentTurn]
+  )
+
+  const promotePawn = useCallback(
+    (pawnPieceId: string, targetPiece: PromotablePiece) => {
+      dispatch({
+        type: 'PROMOTE_PAWN',
+        payload: {
+          pawnPieceId,
+          piece: { color: state.currentTurn, type: targetPiece },
+        },
+      })
     },
     [state.board, state.currentTurn]
   )
@@ -419,6 +445,7 @@ export const useChessEngine = () => {
     // Actions
     makeMove,
     setSelectedPiece,
+    promotePawn,
 
     // Getters
     getPiece,

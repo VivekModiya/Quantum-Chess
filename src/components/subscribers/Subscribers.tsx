@@ -13,6 +13,8 @@ export const Subscribers = React.memo(() => {
     getPieceSquare,
     getPieceFromId,
     makeMove,
+    promotePawn,
+    currentTurn,
   } = useChess()
 
   React.useEffect(() => {
@@ -22,13 +24,14 @@ export const Subscribers = React.memo(() => {
         publish('legal_move_calculated', { moves })
       }),
       subscribe('piece_selected', ({ pieceId, pieceRef }) => {
-        console.log({ square: getPieceSquare(pieceId), pieceId })
-        lowerPiece(selectedPiece?.current?.ref?.current)
+        const pieceColor = getPieceFromId(pieceId)?.color
         if (selectedPiece?.current?.id === pieceId) {
+          lowerPiece(selectedPiece?.current?.ref?.current)
           setSelectedPiece(null)
           publish('calculate_legal_moves', { square: null })
-        } else {
+        } else if (currentTurn === pieceColor) {
           liftPiece(pieceRef?.current)
+          lowerPiece(selectedPiece?.current?.ref?.current)
           setSelectedPiece({ id: pieceId, ref: pieceRef })
           publish('calculate_legal_moves', {
             square: getPieceSquare(pieceId),
@@ -43,7 +46,6 @@ export const Subscribers = React.memo(() => {
             fromSquare,
             toSquare,
             pieceId,
-            onComplete: () => {},
           })
           animatePieceMove({
             toSquare,
@@ -61,16 +63,16 @@ export const Subscribers = React.memo(() => {
       subscribe('make_sound', () => {
         playSound('move')
       }),
-      subscribe('piece_moved', ({ toSquare, pieceId }) => {
+      subscribe('making_move', ({ toSquare, pieceId }) => {
         const { color, type } = getPieceFromId(pieceId) ?? {}
         const { rank } = getSquareCoords(toSquare) ?? {}
         if (rank === 8) {
           if (color === 'white' && type === 'pawn') {
-            alert('alert to select a White piece')
+            promotePawn(pieceId, 'queen')
           }
         } else if (rank === 1) {
           if (color === 'black' && type === 'pawn') {
-            alert('alert to select piece a Black Piece')
+            promotePawn(pieceId, 'queen')
           }
         }
       }),

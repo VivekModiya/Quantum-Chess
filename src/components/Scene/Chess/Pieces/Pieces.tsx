@@ -30,15 +30,6 @@ export const Pieces: React.FC = () => {
       if (file && rank && color && type) {
         const x = -(file - 1) * 10 + 35
         const z = (rank - 1) * 10 - 35
-
-        console.table({
-          type,
-          color,
-          square,
-          pieceId: getPieceId(file - 1, rank - 1),
-          x,
-          z,
-        })
         pieces.push({
           piece: type,
           color,
