@@ -6,12 +6,17 @@ import { Canvas } from '@react-three/fiber'
 
 import { SceneLighting } from './scene/Lighting/SceneLighting'
 import { Subscribers } from './subscribers'
-import { Crosshair, Instructions, Loader, PointerPosition } from './uiLower'
+import {
+  Crosshair,
+  Instructions,
+  Loader,
+  PointerPosition,
+  MovementControls,
+} from './ui'
 
 import { useGLTF } from '@react-three/drei'
 import { Board } from './game/Board'
 import { Pieces } from './game/Pieces'
-import { MovementControls } from './uiLower/Controls'
 
 export const Game: React.FC = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
