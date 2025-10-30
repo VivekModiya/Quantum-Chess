@@ -18,7 +18,7 @@ export const Game: React.FC = () => {
 
   React.useEffect(() => {
     ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
-      useGLTF.preload(`/src/assets/pieces/${piece}.glb`)
+      useGLTF.preload(`/models/${piece}.glb`)
     })
   }, [])
 

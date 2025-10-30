@@ -33,7 +33,7 @@ export const AudioComponent: React.FC = () => {
 
     // Load audio buffer
     const loader = new THREE.AudioLoader()
-    loader.load('src/assets/audio/move.mp3', buffer => {
+    loader.load('/audio/move.mp3', buffer => {
       sound.setBuffer(buffer)
       sound.setRefDistance(2)
       sound.setVolume(1.0)

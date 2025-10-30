@@ -29,12 +29,7 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       try {
         // Load single chess board image
-        const boardImage = await loadImage(
-          new URL(
-            '../../../../assets/textures/boardTexture.jpg', // or chess_board.png
-            import.meta.url
-          ).href
-        )
+        const boardImage = await loadImage('/textures/boardTexture.jpg')
 
         // Create canvas with board image
         const boardCanvas = document.createElement('canvas')

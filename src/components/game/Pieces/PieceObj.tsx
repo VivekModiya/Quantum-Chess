@@ -1,6 +1,6 @@
 import React from 'react'
 import * as THREE from 'three'
-import { PieceType } from '../../../../types'
+import { PieceType } from '../../../types'
 import { useGLTF } from '@react-three/drei'
 import { ThreeEvent } from '@react-three/fiber'
 
@@ -23,7 +23,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
   handleClick,
   pieceRef,
 }) => {
-  const { scene } = useGLTF(`/src/assets/pieces/${piece}.glb`)
+  const { scene } = useGLTF(`/models/${piece}.glb`)
   const modelRef = React.useRef<THREE.Group>(null)
 
   const blackPieceColor = 'rgb(8, 4, 0)'
