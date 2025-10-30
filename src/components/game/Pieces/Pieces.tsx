@@ -3,7 +3,7 @@ import { PIECE_SQUARE_MAP, SQUARE_PIECE_MAP } from '../../../constants/chess'
 import { getSquareCoords } from '../../../hooks'
 import { useChess } from '../../../provider'
 import { PieceType } from '../../../types'
-import { formatSquare } from '../../../utils/calculate'
+import { formatSquare } from '../../../utils/calculations/calculate'
 import { HighLightedMoves } from '../MoveHighlight/HighLight'
 import { ChessPiece } from './Piece'
 

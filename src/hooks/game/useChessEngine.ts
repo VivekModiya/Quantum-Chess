@@ -1,13 +1,13 @@
 import React, { useReducer, useCallback } from 'react'
-import { PieceColor, PieceType, PromotablePiece } from '../types'
-import { DEFAULT_CHESS_POSITION, SQUARE_PIECE_MAP } from '../constants/chess'
+import { PieceColor, PieceType, PromotablePiece } from '../../types'
+import { DEFAULT_CHESS_POSITION, SQUARE_PIECE_MAP } from '../../constants/chess'
 import {
   generateLegalMoves,
   isInCheck,
   isCheckmate,
   isStalemate,
   formatSquare,
-} from '../utils/calculate'
+} from '../../utils/calculations/calculate'
 
 type Square = string
 

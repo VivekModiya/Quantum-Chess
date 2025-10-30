@@ -3,7 +3,7 @@ import React from 'react'
 import { ThreeEvent } from '@react-three/fiber'
 
 import { usePubSub } from '../../../hooks'
-import { parseSquare } from '../../../utils/calculate'
+import { parseSquare } from '../../../utils/calculations/calculate'
 
 interface HighLightProps {
   position: [number, number, number]

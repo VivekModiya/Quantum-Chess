@@ -1,7 +1,7 @@
 import gsap from 'gsap'
-import { parseSquare } from './calculate'
-import { SQUARE_SIZE } from '../constants/chess'
-import { Callback } from '../hooks'
+import { parseSquare } from '../calculations/calculate'
+import { SQUARE_SIZE } from '../../constants/chess'
+import { Callback } from '../../hooks'
 
 // Assume pieces start at y=0 and scale=1 (adjust these defaults as needed)
 

@@ -1,1 +1,1 @@
-export * from './lighting'
+export * from './chess'

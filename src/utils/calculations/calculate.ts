@@ -1,6 +1,6 @@
-import { DIRECTIONS, FILE_TO_INDEX, INDEX_TO_FILE } from '../constants/chess'
-import { PieceColor, PieceType } from '../types'
-import { Piece } from '../hooks/useChessEngine'
+import { DIRECTIONS, FILE_TO_INDEX, INDEX_TO_FILE } from '../../constants/chess'
+import { PieceColor, PieceType } from '../../types'
+import { Piece } from '../../hooks'
 
 // Utility functions
 export const isValidSquare = (file: number, rank: number): boolean =>

@@ -1,24 +1,24 @@
-import { LIGHTING_CONFIG } from '../../../constants'
+import { lightingConfig } from '../../../config'
 
 export const SceneLighting: React.FC = () => {
   return (
     <group>
       {/* Ambient light */}
       <ambientLight
-        color={LIGHTING_CONFIG.ambient.color}
-        intensity={LIGHTING_CONFIG.ambient.intensity}
+        color={lightingConfig.ambient.color}
+        intensity={lightingConfig.ambient.intensity}
       />
 
       {/* Primary spotlight for chess board */}
       <spotLight
-        position={LIGHTING_CONFIG.primarySpotlight.position}
+        position={lightingConfig.primarySpotlight.position}
         target-position={[0, 0, 0]}
-        color={LIGHTING_CONFIG.primarySpotlight.color}
-        intensity={LIGHTING_CONFIG.primarySpotlight.intensity}
-        angle={LIGHTING_CONFIG.primarySpotlight.angle}
-        penumbra={LIGHTING_CONFIG.primarySpotlight.penumbra}
-        distance={LIGHTING_CONFIG.primarySpotlight.distance}
-        decay={LIGHTING_CONFIG.primarySpotlight.decay}
+        color={lightingConfig.primarySpotlight.color}
+        intensity={lightingConfig.primarySpotlight.intensity}
+        angle={lightingConfig.primarySpotlight.angle}
+        penumbra={lightingConfig.primarySpotlight.penumbra}
+        distance={lightingConfig.primarySpotlight.distance}
+        decay={lightingConfig.primarySpotlight.decay}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-near={5}
@@ -28,10 +28,10 @@ export const SceneLighting: React.FC = () => {
 
       {/* Chess board directional light */}
       <directionalLight
-        position={LIGHTING_CONFIG.chessBoardDirectional.position}
+        position={lightingConfig.chessBoardDirectional.position}
         target-position={[0, 0, 0]}
-        color={LIGHTING_CONFIG.chessBoardDirectional.color}
-        intensity={LIGHTING_CONFIG.chessBoardDirectional.intensity}
+        color={lightingConfig.chessBoardDirectional.color}
+        intensity={lightingConfig.chessBoardDirectional.intensity}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-5}
@@ -44,23 +44,23 @@ export const SceneLighting: React.FC = () => {
 
       {/* Piece detail light */}
       <pointLight
-        position={LIGHTING_CONFIG.pieceDetail.position}
-        color={LIGHTING_CONFIG.pieceDetail.color}
-        intensity={LIGHTING_CONFIG.pieceDetail.intensity}
-        distance={LIGHTING_CONFIG.pieceDetail.distance}
+        position={lightingConfig.pieceDetail.position}
+        color={lightingConfig.pieceDetail.color}
+        intensity={lightingConfig.pieceDetail.intensity}
+        distance={lightingConfig.pieceDetail.distance}
         decay={1.5}
       />
 
       {/* Room general lighting */}
       <directionalLight
-        position={LIGHTING_CONFIG.roomGeneral.position}
+        position={lightingConfig.roomGeneral.position}
         target-position={[0, 0, 0]}
-        color={LIGHTING_CONFIG.roomGeneral.color}
-        intensity={LIGHTING_CONFIG.roomGeneral.intensity}
+        color={lightingConfig.roomGeneral.color}
+        intensity={lightingConfig.roomGeneral.intensity}
       />
 
       {/* Accent lights */}
-      {LIGHTING_CONFIG.accentLights.map((config, index) => (
+      {lightingConfig.accentLights.map((config, index) => (
         <pointLight
           key={index}
           position={config.position}
@@ -73,9 +73,9 @@ export const SceneLighting: React.FC = () => {
 
       {/* Hemisphere light */}
       <hemisphereLight
-        color={LIGHTING_CONFIG.hemisphere.skyColor}
-        groundColor={LIGHTING_CONFIG.hemisphere.groundColor}
-        intensity={LIGHTING_CONFIG.hemisphere.intensity}
+        color={lightingConfig.hemisphere.skyColor}
+        groundColor={lightingConfig.hemisphere.groundColor}
+        intensity={lightingConfig.hemisphere.intensity}
         position={[0, 20, 0]}
       />
     </group>

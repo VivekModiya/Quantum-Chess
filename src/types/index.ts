@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import PointerLockControls from '../utils/PointerLockControls'
 
 export interface MovementState {
   moveForward: boolean

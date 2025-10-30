@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import PointerLockControls from '../utils/PointerLockControls'
+import PointerLockControls from '../../utils/PointerLockControls'
 
 interface UsePointerLockReturn {
   isLocked: boolean

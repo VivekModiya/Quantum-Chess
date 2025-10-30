@@ -1,8 +1,12 @@
 import React from 'react'
 import { getSquareCoords, usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import { animatePieceMove, liftPiece, lowerPiece } from '../../utils/animations'
-import { playSound } from '../../utils/audioManager'
+import {
+  animatePieceMove,
+  liftPiece,
+  lowerPiece,
+} from '../../utils/animations/animations'
+import { playSound } from '../../utils/audio/audioManager'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()

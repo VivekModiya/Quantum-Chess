@@ -1,14 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react'
 import * as THREE from 'three'
-import CollisionDetection from '../utils/CollisionDetection'
-import PointerLockControls from '../utils/PointerLockControls'
-import type { MovementState } from '../types'
+import CollisionDetection from '../../utils/CollisionDetection'
+import PointerLockControls from '../../utils/PointerLockControls'
+import type { MovementState } from '../../types'
 
 interface ExtendedMovementState extends MovementState {
   isFlying: boolean
 }
 
-const useMovement = (
+export const useMovement = (
   controlsRef: React.MutableRefObject<PointerLockControls | null>,
   roomObjectsRef: React.MutableRefObject<THREE.Object3D[]>
 ) => {

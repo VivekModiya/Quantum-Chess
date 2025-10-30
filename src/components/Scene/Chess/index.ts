@@ -1,5 +1,0 @@
-export * from './Board'
-export * from './Chess'
-export * from './MoveHighlight'
-export * from './Notations'
-export * from './Pieces'

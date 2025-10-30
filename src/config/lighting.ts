@@ -1,4 +1,18 @@
-export const LIGHTING_CONFIG = {
+import * as THREE from 'three'
+
+export const shadowConfig:
+  | boolean
+  | 'basic'
+  | 'percentage'
+  | 'soft'
+  | 'variance'
+  | Partial<THREE.WebGLShadowMap>
+  | undefined = {
+  enabled: true,
+  type: THREE.PCFSoftShadowMap,
+}
+
+export const lightingConfig = {
   ambient: { color: 0x404040, intensity: 1 },
   primarySpotlight: {
     color: 0xffffff,

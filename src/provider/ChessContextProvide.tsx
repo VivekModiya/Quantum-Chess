@@ -30,5 +30,3 @@ export const useChess = (): ChessContextType => {
   }
   return context
 }
-
-// Convenience hooks that use context
