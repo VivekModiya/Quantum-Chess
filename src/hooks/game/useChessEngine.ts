@@ -64,13 +64,6 @@ export const useChessEngine = () => {
     ) => {
       // Use override if provided, otherwise lookup from current state
       const pieceId = pieceIdOverride || chess.pieceIdAt(square)
-      console.log('promotePawn called with:', {
-        square,
-        targetPiece,
-        pieceIdOverride,
-        pieceId,
-      })
-      console.log('Current board state:', state.board)
 
       if (!pieceId) {
         console.error('Cannot promote: no piece at square', square)
@@ -78,14 +71,11 @@ export const useChessEngine = () => {
       }
 
       const piece = state.board[pieceId]
-      console.log('Piece from state.board:', { piece })
 
       if (!piece || piece.piece !== 'pawn') {
         console.error('Cannot promote: not a pawn at square', square, piece)
         return
       }
-
-      console.log('Dispatching PROMOTE_PAWN:', { pieceId, targetPiece })
 
       dispatch({
         type: 'PROMOTE_PAWN',

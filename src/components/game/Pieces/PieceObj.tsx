@@ -29,22 +29,16 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
   const { file, rank } = coords ?? { file: 0, rank: 0 }
   const x = -(file - 1) * 10 + 35
   const z = (rank - 1) * 10 - 35
-  const position = [x, 0, z]
 
   const { scene } = useGLTF(`/models/${piece}.glb`)
   const modelRef = React.useRef<THREE.Group>(null)
 
-  const blackPieceColor = 'rgb(8, 4, 0)'
-    .replace(/[^\d,]/g, '')
-    .split(',')
-    .map(Number) as [number, number, number]
-
-  const whitePieceColor = 'rgb(124, 101, 63)'
-    .replace(/[^\d,]/g, '')
-    .split(',')
-    .map(Number) as [number, number, number]
-
-  const colorHash = color === 'white' ? whitePieceColor : blackPieceColor
+  // Memoize color calculations
+  const colorHash = React.useMemo(() => {
+    const blackPieceColor = [8, 4, 0] as [number, number, number]
+    const whitePieceColor = [124, 101, 63] as [number, number, number]
+    return color === 'white' ? whitePieceColor : blackPieceColor
+  }, [color])
 
   // Clone and modify the loaded model with proper centering
   const { modifiedScene, centerOffset, yOffset } = React.useMemo(() => {
@@ -110,11 +104,11 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {
     return [
-      position[0],
-      position[1] + yOffset + 2.55, // Lift to sit on floor
-      position[2],
+      x,
+      yOffset + 2.55, // Lift to sit on floor
+      z,
     ] as [number, number, number]
-  }, [position, yOffset])
+  }, [x, z, yOffset])
 
   if (!modifiedScene) return null
 

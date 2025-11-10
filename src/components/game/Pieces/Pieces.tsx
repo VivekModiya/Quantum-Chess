@@ -6,7 +6,6 @@ import { useChess } from '../../../provider'
 export const Pieces: React.FC = () => {
   const { capturedPieces, chess, board } = useChess()
 
-  console.log({ capturedPieces })
   const activePieces = React.useMemo(() => {
     return chess.activePieces(capturedPieces)
   }, [board, capturedPieces, chess])
