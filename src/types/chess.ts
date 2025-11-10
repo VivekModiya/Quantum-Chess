@@ -28,9 +28,16 @@ export interface BoardPiece {
  */
 export type BoardState = Record<string, BoardPiece>
 
+export interface LastMove {
+  from: Square
+  to: Square
+  pieceId: string
+}
+
 export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
+  lastMove: LastMove | null
 }
 
 export type ChessAction =

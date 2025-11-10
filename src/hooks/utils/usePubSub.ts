@@ -10,6 +10,13 @@ export interface EventProps {
   legal_move_calculated: { moves: string[] }
   making_move: { fromSquare: string; toSquare: string; pieceId: string }
   make_move: { toSquare: string }
+  move_completed: {
+    fromSquare: string
+    toSquare: string
+    pieceId: string
+    pieceType: string
+    pieceColor: string
+  }
   piece_moved: { fromSquare: string; toSquare: string; pieceId: string }
   game_reset: {}
   move_undone: {}

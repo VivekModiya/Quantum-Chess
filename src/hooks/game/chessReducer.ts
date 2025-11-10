@@ -8,6 +8,7 @@ import { ChessBoard } from '../../utils/chess/ChessBoard'
 export const initialState: ChessState = {
   board: ChessBoard.createInitial(),
   currentTurn: 'white',
+  lastMove: null,
 }
 
 /**
@@ -34,11 +35,8 @@ export const chessReducer = (
       const capturedPieceId = chess.pieceIdAt(to)
 
       if (capturedPieceId && capturedPieceId !== pieceId) {
-        // Mark the captured piece
-        newBoard[capturedPieceId] = {
-          ...newBoard[capturedPieceId],
-          isCaptured: true,
-        }
+        // Remove the captured piece from the board
+        delete newBoard[capturedPieceId]
       }
 
       // Move the piece
@@ -55,6 +53,7 @@ export const chessReducer = (
         ...state,
         board: newBoard,
         currentTurn: nextTurn,
+        lastMove: { from, to, pieceId },
       }
     }
 

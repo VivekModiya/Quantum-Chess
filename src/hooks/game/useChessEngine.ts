@@ -57,31 +57,45 @@ export const useChessEngine = () => {
    * Promotes a pawn to the specified piece type
    */
   const promotePawn = useCallback(
-    (square: Square, targetPiece: PromotablePiece) => {
-      const pieceId = chess.pieceIdAt(square)
+    (
+      square: Square,
+      targetPiece: PromotablePiece,
+      pieceIdOverride?: string
+    ) => {
+      // Use override if provided, otherwise lookup from current state
+      const pieceId = pieceIdOverride || chess.pieceIdAt(square)
+      console.log('promotePawn called with:', {
+        square,
+        targetPiece,
+        pieceIdOverride,
+        pieceId,
+      })
+      console.log('Current board state:', state.board)
+
       if (!pieceId) {
         console.error('Cannot promote: no piece at square', square)
         return
       }
 
-      const piece = chess.byId(pieceId)
-      console.log({ piece })
+      const piece = state.board[pieceId]
+      console.log('Piece from state.board:', { piece })
+
       if (!piece || piece.piece !== 'pawn') {
-        console.error('Cannot promote: not a pawn at square', square)
+        console.error('Cannot promote: not a pawn at square', square, piece)
         return
       }
 
-      console.log({ pieceId, targetPiece })
+      console.log('Dispatching PROMOTE_PAWN:', { pieceId, targetPiece })
 
       dispatch({
         type: 'PROMOTE_PAWN',
         payload: {
-          pieceId,
+          pieceId: pieceId!,
           targetPiece,
         },
       })
     },
-    [chess]
+    [chess, state.board]
   )
 
   /**

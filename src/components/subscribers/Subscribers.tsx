@@ -1,12 +1,7 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import {
-  animatePieceMove,
-  liftPiece,
-  lowerPiece,
-} from '../../utils/animations/animations'
-import { playSound } from '../../utils/audio/audioManager'
+import { animatePieceMove, liftPiece, lowerPiece, playSound } from '../../utils'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
@@ -50,41 +45,49 @@ export const Subscribers = React.memo(() => {
           const color = pieceInfo?.color
           const type = pieceInfo?.type
 
-          publish('making_move', {
-            fromSquare,
-            toSquare,
-            pieceId,
-          })
-          animatePieceMove({
-            toSquare,
-            fromSquare,
-            pieceObject: selectedPiece?.current?.ref?.current,
-            onComplete: () => {
-              publish('make_sound', undefined)
-            },
-          })
-          setSelectedPiece(null)
-          publish('calculate_legal_moves', { square: null })
-
           // Make the move first
           const moveSuccess = makeMove(fromSquare, toSquare)
 
-          // Then check for promotion
-          if (moveSuccess && type === 'pawn') {
+          if (moveSuccess) {
+            animatePieceMove({
+              toSquare,
+              fromSquare,
+              pieceObject: selectedPiece?.current?.ref?.current,
+              onComplete: () => {
+                publish('make_sound', undefined)
+
+                // Publish move_completed event after animation finishes
+                publish('move_completed', {
+                  fromSquare,
+                  toSquare,
+                  pieceId,
+                  pieceType: type || '',
+                  pieceColor: color || '',
+                })
+              },
+            })
+          }
+
+          setSelectedPiece(null)
+          publish('calculate_legal_moves', { square: null })
+        }
+      }),
+      subscribe(
+        'move_completed',
+        ({ toSquare, pieceId, pieceType, pieceColor }) => {
+          // Handle pawn promotion after move animation completes
+          if (pieceType === 'pawn') {
             const coords = chess.coords(toSquare)
             const rank = coords?.rank
             if (
-              (color === 'white' && rank === 8) ||
-              (color === 'black' && rank === 1)
+              (pieceColor === 'white' && rank === 8) ||
+              (pieceColor === 'black' && rank === 1)
             ) {
-              // Small delay to ensure move is processed
-              setTimeout(() => {
-                promotePawn(toSquare, 'queen')
-              }, 0)
+              promotePawn(toSquare, 'queen', pieceId)
             }
           }
         }
-      }),
+      ),
       subscribe('make_sound', () => {
         playSound('move')
       }),
