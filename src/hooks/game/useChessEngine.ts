@@ -1,8 +1,8 @@
-import React, { useCallback, useReducer } from 'react'
-import { generateLegalMoves } from '../../utils'
-import { PromotablePiece } from '../../types'
-import { Piece, Square } from '../../types/chess'
+import React, { useCallback, useReducer, useMemo } from 'react'
+
 import { chessReducer, initialState } from './chessReducer'
+import { BoardPiece, PromotablePiece, Square } from '../../types'
+import { ChessBoard, generateLegalMoves } from '../../utils'
 
 /**
  * Main chess engine hook
@@ -10,6 +10,9 @@ import { chessReducer, initialState } from './chessReducer'
  */
 export const useChessEngine = () => {
   const [state, dispatch] = useReducer(chessReducer, initialState)
+
+  // Create ChessBoard instance - memoized to avoid recreation on every render
+  const chess = useMemo(() => new ChessBoard(state.board), [state.board])
 
   // Ref to track the currently selected piece
   const selectedPiece = React.useRef<{
@@ -24,22 +27,30 @@ export const useChessEngine = () => {
   const makeMove = useCallback(
     (from: Square | null, to: Square | null): boolean => {
       if (!from || !to) return false
-      const piece = state.board.get(from)
-      if (!piece || piece.color !== state.currentTurn) {
+
+      const pieceId = chess.pieceIdAt(from)
+      if (!pieceId) return false
+
+      const piece = chess.byId(pieceId)
+      if (!piece || piece.isCaptured || piece.color !== state.currentTurn) {
         return false
       }
 
       // Check if move is legal
-      const legalMoves = generateLegalMoves(from, piece, state.board)
+      const legalMoves = generateLegalMoves(
+        from,
+        { type: piece.piece, color: piece.color },
+        chess.toMap()
+      )
       if (!legalMoves.includes(to)) {
         return false
       }
 
-      dispatch({ type: 'MAKE_MOVE', payload: { from, to } })
+      dispatch({ type: 'MAKE_MOVE', payload: { pieceId, from, to } })
 
       return true
     },
-    [state.board, state.currentTurn]
+    [chess, state.currentTurn]
   )
 
   /**
@@ -47,31 +58,40 @@ export const useChessEngine = () => {
    */
   const promotePawn = useCallback(
     (square: Square, targetPiece: PromotablePiece) => {
-      const piece = state.board.get(square)
-      if (!piece || piece.type !== 'pawn') {
+      const pieceId = chess.pieceIdAt(square)
+      if (!pieceId) {
+        console.error('Cannot promote: no piece at square', square)
+        return
+      }
+
+      const piece = chess.byId(pieceId)
+      console.log({ piece })
+      if (!piece || piece.piece !== 'pawn') {
         console.error('Cannot promote: not a pawn at square', square)
         return
       }
 
+      console.log({ pieceId, targetPiece })
+
       dispatch({
         type: 'PROMOTE_PAWN',
         payload: {
-          square,
-          piece: { color: piece.color, type: targetPiece },
+          pieceId,
+          targetPiece,
         },
       })
     },
-    [state.board]
+    [chess]
   )
 
   /**
    * Gets the piece at a specific square
    */
   const getPiece = useCallback(
-    (square: Square): Piece | null => {
-      return state.board.get(square) || null
+    (square: Square): BoardPiece | null => {
+      return chess.at(square)
     },
-    [state.board]
+    [chess]
   )
 
   /**
@@ -80,14 +100,9 @@ export const useChessEngine = () => {
   const getPieceSquare = useCallback(
     (pieceId?: string | null): Square | null => {
       if (!pieceId) return ''
-      for (const [square, id] of state.squarePieceMap.entries()) {
-        if (id === pieceId) {
-          return square
-        }
-      }
-      return null
+      return chess.squareOf(pieceId)
     },
-    [state.squarePieceMap]
+    [chess]
   )
 
   /**
@@ -97,14 +112,19 @@ export const useChessEngine = () => {
   const getLegalMoves = useCallback(
     (square?: Square | null): Square[] => {
       if (!square) return []
-      const piece = getPiece(square)
+      const piece = chess.at(square)
 
-      if (!piece || piece.color !== state.currentTurn) {
+      if (!piece || piece.isCaptured || piece.color !== state.currentTurn) {
         return []
       }
-      return generateLegalMoves(square, piece, state.board)
+
+      return generateLegalMoves(
+        square,
+        { type: piece.piece, color: piece.color },
+        chess.toMap()
+      )
     },
-    [state.board, state.currentTurn, getPiece]
+    [chess, state.currentTurn]
   )
 
   /**
@@ -127,7 +147,10 @@ export const useChessEngine = () => {
     board: state.board,
     currentTurn: state.currentTurn,
     selectedPiece: selectedPiece,
-    capturedPieces: state.capturedPieces,
+    capturedPieces: chess.capturedPieces(),
+
+    // ChessBoard utility instance
+    chess,
 
     // Actions
     makeMove,

@@ -1,16 +1,13 @@
 import { PieceColor } from '../../types'
 import { ChessAction, ChessState } from '../../types/chess'
-import { SQUARE_PIECE_MAP } from '../../constants'
-import { createInitialBoard } from '../../utils/chess/chessHelpers'
+import { ChessBoard } from '../../utils/chess/ChessBoard'
 
 /**
  * Initial chess game state
  */
 export const initialState: ChessState = {
-  board: createInitialBoard(),
-  squarePieceMap: new Map(Object.entries(SQUARE_PIECE_MAP)),
+  board: ChessBoard.createInitial(),
   currentTurn: 'white',
-  capturedPieces: [],
 }
 
 /**
@@ -22,25 +19,32 @@ export const chessReducer = (
 ): ChessState => {
   switch (action.type) {
     case 'MAKE_MOVE': {
-      const { from, to } = action.payload
-      const piece = state.board.get(from)
+      const { pieceId, from, to } = action.payload
+      const piece = state.board[pieceId]
 
-      if (!piece) return state
+      if (!piece || piece.isCaptured || piece.square !== from) {
+        return state
+      }
 
-      // Create new board with the move
-      const newBoard = new Map(state.board)
-      newBoard.set(to, piece)
-      newBoard.set(from, null)
+      // Create new board state
+      const newBoard = { ...state.board }
+      const chess = new ChessBoard(state.board)
 
-      const newSquarePieceMap = new Map(state.squarePieceMap)
-      newSquarePieceMap.set(to, newSquarePieceMap.get(from) ?? null)
-      newSquarePieceMap.set(from, null)
+      // Check if there's a piece to capture at the destination
+      const capturedPieceId = chess.pieceIdAt(to)
 
-      let newCapturedPieces = [...state.capturedPieces]
-      const capturedPieceId = state.squarePieceMap.get(to)
+      if (capturedPieceId && capturedPieceId !== pieceId) {
+        // Mark the captured piece
+        newBoard[capturedPieceId] = {
+          ...newBoard[capturedPieceId],
+          isCaptured: true,
+        }
+      }
 
-      if (capturedPieceId) {
-        newCapturedPieces.push(capturedPieceId)
+      // Move the piece
+      newBoard[pieceId] = {
+        ...piece,
+        square: to,
       }
 
       // Switch turn
@@ -51,8 +55,6 @@ export const chessReducer = (
         ...state,
         board: newBoard,
         currentTurn: nextTurn,
-        squarePieceMap: newSquarePieceMap,
-        capturedPieces: newCapturedPieces,
       }
     }
 
@@ -60,9 +62,19 @@ export const chessReducer = (
       return initialState
 
     case 'PROMOTE_PAWN': {
-      const { square, piece } = action.payload
-      const newBoard = new Map(state.board)
-      newBoard.set(square, piece)
+      const { pieceId, targetPiece } = action.payload
+      const piece = state.board[pieceId]
+
+      if (!piece || piece.piece !== 'pawn') {
+        return state
+      }
+
+      const newBoard = { ...state.board }
+      newBoard[pieceId] = {
+        ...piece,
+        piece: targetPiece,
+      }
+
       return {
         ...state,
         board: newBoard,

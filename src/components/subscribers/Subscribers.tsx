@@ -1,6 +1,5 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
-import { getSquareCoords, getPieceFromId } from '../../utils'
 import { useChess } from '../../provider'
 import {
   animatePieceMove,
@@ -12,6 +11,7 @@ import { playSound } from '../../utils/audio/audioManager'
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
   const {
+    chess,
     getLegalMoves,
     selectedPiece,
     setSelectedPiece,
@@ -28,7 +28,7 @@ export const Subscribers = React.memo(() => {
         publish('legal_move_calculated', { moves })
       }),
       subscribe('piece_selected', ({ pieceId, pieceRef }) => {
-        const pieceColor = getPieceFromId(pieceId)?.color
+        const pieceColor = chess.pieceInfo(pieceId)?.color
         if (selectedPiece?.current?.id === pieceId) {
           lowerPiece(selectedPiece?.current?.ref?.current)
           setSelectedPiece(null)
@@ -46,7 +46,9 @@ export const Subscribers = React.memo(() => {
         const pieceId = selectedPiece?.current?.id
         const fromSquare = getPieceSquare(selectedPiece?.current?.id)
         if (fromSquare && toSquare && pieceId) {
-          const { color, type } = getPieceFromId(pieceId) ?? {}
+          const pieceInfo = chess.pieceInfo(pieceId)
+          const color = pieceInfo?.color
+          const type = pieceInfo?.type
 
           publish('making_move', {
             fromSquare,
@@ -69,7 +71,8 @@ export const Subscribers = React.memo(() => {
 
           // Then check for promotion
           if (moveSuccess && type === 'pawn') {
-            const { rank } = getSquareCoords(toSquare) ?? {}
+            const coords = chess.coords(toSquare)
+            const rank = coords?.rank
             if (
               (color === 'white' && rank === 8) ||
               (color === 'black' && rank === 1)
@@ -88,11 +91,11 @@ export const Subscribers = React.memo(() => {
     ]
     return () => unsubscribe.forEach(us => us())
   }, [
+    chess,
     getLegalMoves,
     selectedPiece,
     setSelectedPiece,
     getPieceSquare,
-    getPieceFromId,
     makeMove,
     promotePawn,
     currentTurn,

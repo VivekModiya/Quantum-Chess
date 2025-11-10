@@ -1,28 +1,36 @@
 import React from 'react'
 import * as THREE from 'three'
-import { PieceType } from '../../../types'
+
 import { useGLTF } from '@react-three/drei'
 import { ThreeEvent } from '@react-three/fiber'
+import { useChessEngine } from '../../../hooks'
 
 interface PieceObjectProps {
-  piece: PieceType
-  color: 'white' | 'black'
-  position: [number, number, number]
-  scale?: number
   pieceId: string
   handleClick: (e: ThreeEvent<MouseEvent>) => void
   pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>>
 }
 
+const PIECE_SCALE = 1.2
+
 export const PieceObject: React.FC<PieceObjectProps> = ({
-  piece,
-  color,
-  position,
-  scale = 1,
   pieceId,
   handleClick,
   pieceRef,
 }) => {
+  const { chess } = useChessEngine()
+  const pieceData = chess.byId(pieceId)
+
+  // Early return if piece doesn't exist
+  if (!pieceData) return null
+
+  const { color, piece, square } = pieceData
+  const coords = chess.coords(square ?? '')
+  const { file, rank } = coords ?? { file: 0, rank: 0 }
+  const x = -(file - 1) * 10 + 35
+  const z = (rank - 1) * 10 - 35
+  const position = [x, 0, z]
+
   const { scene } = useGLTF(`/models/${piece}.glb`)
   const modelRef = React.useRef<THREE.Group>(null)
 
@@ -48,7 +56,11 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       }
 
     const clonedScene = scene.clone()
-    clonedScene.scale.set(0.2 + scale * 0.8, 0.2 + scale, 0.2 + scale * 0.8)
+    clonedScene.scale.set(
+      0.2 + PIECE_SCALE * 0.8,
+      0.2 + PIECE_SCALE,
+      0.2 + PIECE_SCALE * 0.8
+    )
 
     clonedScene.traverse(child => {
       if (child instanceof THREE.Mesh && child.material) {
@@ -93,7 +105,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     const yOffset = -rotatedBox.min.y
 
     return { modifiedScene: clonedScene, centerOffset, yOffset }
-  }, [scene, scale, colorHash, color, pieceId])
+  }, [scene, PIECE_SCALE, colorHash, color, pieceId])
 
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {

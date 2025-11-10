@@ -12,17 +12,34 @@ export interface SquareCoords {
   rank: number
 }
 
+/**
+ * Represents a chess piece on the board with all its state
+ */
+export interface BoardPiece {
+  square: Square
+  piece: PieceType
+  color: PieceColor
+  isCaptured: boolean
+}
+
+/**
+ * Board state - maps piece IDs to their current state
+ * Example: { 'pw0': { square: 'e2', piece: 'pawn', color: 'white', isCaptured: false } }
+ */
+export type BoardState = Record<string, BoardPiece>
+
 export interface ChessState {
-  board: Map<Square, Piece | null>
+  board: BoardState
   currentTurn: PieceColor
-  squarePieceMap: Map<string, string | null>
-  capturedPieces: string[]
 }
 
 export type ChessAction =
-  | { type: 'MAKE_MOVE'; payload: { from: Square; to: Square } }
+  | {
+      type: 'MAKE_MOVE'
+      payload: { pieceId: string; from: Square; to: Square }
+    }
   | { type: 'RESET_GAME' }
   | {
       type: 'PROMOTE_PAWN'
-      payload: { square: Square; piece: Piece }
+      payload: { pieceId: string; targetPiece: PieceType }
     }

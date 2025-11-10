@@ -1,4 +1,4 @@
-import { Piece } from '../hooks'
+import { Piece } from '../types/chess'
 
 export const DEFAULT_CHESS_POSITION: Record<string, Piece> = {
   a1: { type: 'rook', color: 'white' },

@@ -1,55 +1,18 @@
 import React from 'react'
-import { PIECE_SQUARE_MAP, SQUARE_PIECE_MAP } from '../../../constants/chess'
-import { getSquareCoords } from '../../../utils'
 import { useChess } from '../../../provider'
-import { PieceType } from '../../../types'
-import { formatSquare } from '../../../utils/calculations/calculate'
-import { HighLightedMoves } from '../MoveHighlight/HighLight'
+import { HighLightedMoves } from '../MoveHighlight'
 import { ChessPiece } from './Piece'
 
 export const Pieces: React.FC = () => {
-  const getPieceId = (file: number, rank: number) => {
-    const square = formatSquare(file, rank)
-    return SQUARE_PIECE_MAP[square as keyof typeof PIECE_SQUARE_MAP]
-  }
+  const { chess } = useChess()
 
-  const { capturedPieces, board } = useChess()
-
-  const pieces = React.useMemo(() => {
-    const pieces: Array<{
-      piece: PieceType
-      color: 'white' | 'black'
-      position: [number, number, number]
-      scale: number
-      pieceId: string
-    }> = []
-
-    for (const [square, piece] of board.entries()) {
-      const { color, type } = piece ?? {}
-      const { file, rank } = getSquareCoords(square) ?? {}
-      if (file && rank && color && type) {
-        const x = -(file - 1) * 10 + 35
-        const z = (rank - 1) * 10 - 35
-        pieces.push({
-          piece: type,
-          color,
-          position: [x, 0, z],
-          scale: 1.2,
-          pieceId: getPieceId(file - 1, rank - 1),
-        })
-      }
-    }
-
-    return pieces
-  }, [])
+  const activePieces = chess.activePieces()
 
   return (
     <group>
-      {pieces
-        .filter(p => !capturedPieces.includes(p.pieceId))
-        .map(pieceProps => (
-          <ChessPiece key={pieceProps.pieceId} {...pieceProps} />
-        ))}
+      {activePieces.map(([pieceId]) => (
+        <ChessPiece key={pieceId} pieceId={pieceId} />
+      ))}
       <HighLightedMoves />
     </group>
   )
