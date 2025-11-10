@@ -1,5 +1,5 @@
 const sounds: Record<string, HTMLAudioElement> = {
-  move: new Audio('src/assets/audio/move.mp3'),
+  move: new Audio('/audio/move.mp3'),
 }
 
 Object.values(sounds).forEach(audio => {

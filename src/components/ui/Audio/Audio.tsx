@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
 import React, { useEffect } from 'react'
-import { usePubSub } from '../../hooks'
+import { usePubSub } from '../../../hooks'
 
 export const AudioComponent: React.FC = () => {
   const { camera } = useThree()

@@ -46,6 +46,8 @@ export const Subscribers = React.memo(() => {
         const pieceId = selectedPiece?.current?.id
         const fromSquare = getPieceSquare(selectedPiece?.current?.id)
         if (fromSquare && toSquare && pieceId) {
+          const { color, type } = getPieceFromId(pieceId) ?? {}
+
           publish('making_move', {
             fromSquare,
             toSquare,
@@ -61,24 +63,27 @@ export const Subscribers = React.memo(() => {
           })
           setSelectedPiece(null)
           publish('calculate_legal_moves', { square: null })
-          makeMove(fromSquare, toSquare)
+
+          // Make the move first
+          const moveSuccess = makeMove(fromSquare, toSquare)
+
+          // Then check for promotion
+          if (moveSuccess && type === 'pawn') {
+            const { rank } = getSquareCoords(toSquare) ?? {}
+            if (
+              (color === 'white' && rank === 8) ||
+              (color === 'black' && rank === 1)
+            ) {
+              // Small delay to ensure move is processed
+              setTimeout(() => {
+                promotePawn(toSquare, 'queen')
+              }, 0)
+            }
+          }
         }
       }),
       subscribe('make_sound', () => {
         playSound('move')
-      }),
-      subscribe('making_move', ({ toSquare, pieceId }) => {
-        const { color, type } = getPieceFromId(pieceId) ?? {}
-        const { rank } = getSquareCoords(toSquare) ?? {}
-        if (rank === 8) {
-          if (color === 'white' && type === 'pawn') {
-            promotePawn(pieceId, 'queen')
-          }
-        } else if (rank === 1) {
-          if (color === 'black' && type === 'pawn') {
-            promotePawn(pieceId, 'queen')
-          }
-        }
       }),
     ]
     return () => unsubscribe.forEach(us => us())
@@ -87,7 +92,10 @@ export const Subscribers = React.memo(() => {
     selectedPiece,
     setSelectedPiece,
     getPieceSquare,
+    getPieceFromId,
     makeMove,
+    promotePawn,
+    currentTurn,
     subscribe,
     publish,
   ])

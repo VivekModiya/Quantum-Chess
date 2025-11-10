@@ -55,7 +55,7 @@ type ChessAction =
   | { type: 'UPDATE_GAME_STATUS' }
   | {
       type: 'PROMOTE_PAWN'
-      payload: { pawnPieceId: Square; piece: Piece }
+      payload: { square: Square; piece: Piece }
     }
 
 // Helper function to create initial board
@@ -293,11 +293,12 @@ const chessReducer = (state: ChessState, action: ChessAction): ChessState => {
     }
 
     case 'PROMOTE_PAWN': {
+      const { square, piece } = action.payload
       const newBoard = new Map(state.board)
-      newBoard.set(action.payload.pawnPieceId, action.payload.piece)
+      newBoard.set(square, piece)
       return {
         ...state,
-        board: new Map(newBoard),
+        board: newBoard,
       }
     }
 
@@ -337,16 +338,22 @@ export const useChessEngine = () => {
   )
 
   const promotePawn = useCallback(
-    (pawnPieceId: string, targetPiece: PromotablePiece) => {
+    (square: Square, targetPiece: PromotablePiece) => {
+      const piece = state.board.get(square)
+      if (!piece || piece.type !== 'pawn') {
+        console.error('Cannot promote: not a pawn at square', square)
+        return
+      }
+
       dispatch({
         type: 'PROMOTE_PAWN',
         payload: {
-          pawnPieceId,
-          piece: { color: state.currentTurn, type: targetPiece },
+          square,
+          piece: { color: piece.color, type: targetPiece },
         },
       })
     },
-    [state.board, state.currentTurn]
+    [state.board]
   )
 
   // Getters
@@ -441,6 +448,7 @@ export const useChessEngine = () => {
     castlingRights: state.castlingRights,
     selectedPiece: selectedPiece,
     capturedPieces: state.capturedPieces,
+    squarePieceMap: state.squarePieceMap,
 
     // Actions
     makeMove,
