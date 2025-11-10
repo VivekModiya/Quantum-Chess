@@ -105,7 +105,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     const yOffset = -rotatedBox.min.y
 
     return { modifiedScene: clonedScene, centerOffset, yOffset }
-  }, [scene, PIECE_SCALE, colorHash, color, pieceId])
+  }, [scene, colorHash, piece])
 
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {
@@ -125,7 +125,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       return color === 'black' ? Math.PI / 2 : -Math.PI / 2
     }
     return 0
-  }, [])
+  }, [color, piece])
 
   return (
     <group

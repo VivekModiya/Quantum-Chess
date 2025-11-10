@@ -1,10 +1,10 @@
 import React from 'react'
-import { useChess } from '../../../provider'
 import { HighLightedMoves } from '../MoveHighlight'
 import { ChessPiece } from './Piece'
+import { useChessEngine } from '../../../hooks'
 
 export const Pieces: React.FC = () => {
-  const { chess } = useChess()
+  const { chess } = useChessEngine()
 
   const activePieces = chess.activePieces()
 

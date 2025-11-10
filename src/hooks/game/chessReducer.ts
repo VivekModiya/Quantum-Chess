@@ -74,9 +74,13 @@ export const chessReducer = (
         piece: targetPiece,
       }
 
+      const nextTurn: PieceColor =
+        state.currentTurn === 'white' ? 'black' : 'white'
+
       return {
         ...state,
         board: newBoard,
+        currentTurn: nextTurn,
       }
     }
 
