@@ -4,9 +4,10 @@ import { ChessPiece } from './Piece'
 import { useChessEngine } from '../../../hooks'
 
 export const Pieces: React.FC = () => {
-  const { chess } = useChessEngine()
+  const { board } = useChessEngine()
 
-  const activePieces = chess.activePieces()
+  // Convert board state to entries array
+  const activePieces = Object.entries(board)
 
   return (
     <group>

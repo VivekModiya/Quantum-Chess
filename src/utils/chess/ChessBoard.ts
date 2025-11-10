@@ -21,7 +21,7 @@ export class ChessBoard {
 
   at(square: Square): BoardPiece | null {
     for (const piece of Object.values(this.board)) {
-      if (piece.square === square && !piece.isCaptured) {
+      if (piece.square === square) {
         return piece
       }
     }
@@ -30,7 +30,7 @@ export class ChessBoard {
 
   pieceIdAt(square: Square): string | null {
     for (const [pieceId, piece] of Object.entries(this.board)) {
-      if (piece.square === square && !piece.isCaptured) {
+      if (piece.square === square) {
         return pieceId
       }
     }
@@ -43,7 +43,7 @@ export class ChessBoard {
 
   squareOf(pieceId: string): Square | null {
     const piece = this.board[pieceId]
-    if (!piece || piece.isCaptured) return null
+    if (!piece) return null
     return piece.square
   }
 
@@ -61,20 +61,10 @@ export class ChessBoard {
     }
   }
 
-  activePieces(color?: PieceColor): Array<[string, BoardPiece]> {
+  activePieces(capturedPieceIds: string[]): Array<[string, BoardPiece]> {
     return Object.entries(this.board).filter(
-      ([_, piece]) =>
-        !piece.isCaptured && (color === undefined || piece.color === color)
+      ([pieceId]) => !capturedPieceIds.includes(pieceId)
     )
-  }
-
-  capturedPieces(color?: PieceColor): string[] {
-    return Object.entries(this.board)
-      .filter(
-        ([_, piece]) =>
-          piece.isCaptured && (color === undefined || piece.color === color)
-      )
-      .map(([pieceId]) => pieceId)
   }
 
   isEmpty(square: Square): boolean {
@@ -111,10 +101,6 @@ export class ChessBoard {
     return null
   }
 
-  /**
-   * Convert board to Map format (for compatibility with existing functions)
-   * @returns Map of squares to Piece objects
-   */
   toMap(): Map<Square, Piece | null> {
     const boardMap = new Map<Square, Piece | null>()
 
@@ -128,21 +114,15 @@ export class ChessBoard {
 
     // Set pieces
     Object.values(this.board).forEach(piece => {
-      if (!piece.isCaptured) {
-        boardMap.set(piece.square, {
-          type: piece.piece,
-          color: piece.color,
-        })
-      }
+      boardMap.set(piece.square, {
+        type: piece.piece,
+        color: piece.color,
+      })
     })
 
     return boardMap
   }
 
-  /**
-   * Create initial board state
-   * @returns BoardState with all pieces in starting positions
-   */
   static createInitial(): BoardState {
     const board: BoardState = {}
 
@@ -169,7 +149,6 @@ export class ChessBoard {
           square: square as Square,
           piece,
           color,
-          isCaptured: false,
         }
       }
     })

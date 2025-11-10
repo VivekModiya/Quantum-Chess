@@ -19,12 +19,12 @@ export interface BoardPiece {
   square: Square
   piece: PieceType
   color: PieceColor
-  isCaptured: boolean
 }
 
 /**
  * Board state - maps piece IDs to their current state
- * Example: { 'pw0': { square: 'e2', piece: 'pawn', color: 'white', isCaptured: false } }
+ * Captured pieces are removed from the board state entirely
+ * Example: { 'pw0': { square: 'e2', piece: 'pawn', color: 'white' } }
  */
 export type BoardState = Record<string, BoardPiece>
 
@@ -38,6 +38,7 @@ export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
   lastMove: LastMove | null
+  capturedPieces: string[] // Array of captured piece IDs
 }
 
 export type ChessAction =

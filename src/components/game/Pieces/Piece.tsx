@@ -17,7 +17,7 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({ pieceId }) => {
       e.stopPropagation()
       publish('piece_selected', { pieceId, pieceRef })
     },
-    [publish]
+    [publish, pieceId]
   )
 
   return (

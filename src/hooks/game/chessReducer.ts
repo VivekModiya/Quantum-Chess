@@ -9,6 +9,7 @@ export const initialState: ChessState = {
   board: ChessBoard.createInitial(),
   currentTurn: 'white',
   lastMove: null,
+  capturedPieces: [],
 }
 
 /**
@@ -23,7 +24,7 @@ export const chessReducer = (
       const { pieceId, from, to } = action.payload
       const piece = state.board[pieceId]
 
-      if (!piece || piece.isCaptured || piece.square !== from) {
+      if (!piece || piece.square !== from) {
         return state
       }
 
@@ -33,8 +34,11 @@ export const chessReducer = (
 
       // Check if there's a piece to capture at the destination
       const capturedPieceId = chess.pieceIdAt(to)
+      const newCapturedPieces = [...state.capturedPieces]
 
       if (capturedPieceId && capturedPieceId !== pieceId) {
+        // Add to captured pieces list
+        newCapturedPieces.push(capturedPieceId)
         // Remove the captured piece from the board
         delete newBoard[capturedPieceId]
       }
@@ -54,6 +58,7 @@ export const chessReducer = (
         board: newBoard,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
+        capturedPieces: newCapturedPieces,
       }
     }
 
@@ -74,13 +79,9 @@ export const chessReducer = (
         piece: targetPiece,
       }
 
-      const nextTurn: PieceColor =
-        state.currentTurn === 'white' ? 'black' : 'white'
-
       return {
         ...state,
         board: newBoard,
-        currentTurn: nextTurn,
       }
     }
 

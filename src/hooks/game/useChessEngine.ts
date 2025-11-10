@@ -32,7 +32,7 @@ export const useChessEngine = () => {
       if (!pieceId) return false
 
       const piece = chess.byId(pieceId)
-      if (!piece || piece.isCaptured || piece.color !== state.currentTurn) {
+      if (!piece || piece.color !== state.currentTurn) {
         return false
       }
 
@@ -128,7 +128,7 @@ export const useChessEngine = () => {
       if (!square) return []
       const piece = chess.at(square)
 
-      if (!piece || piece.isCaptured || piece.color !== state.currentTurn) {
+      if (!piece || piece.color !== state.currentTurn) {
         return []
       }
 
@@ -161,7 +161,7 @@ export const useChessEngine = () => {
     board: state.board,
     currentTurn: state.currentTurn,
     selectedPiece: selectedPiece,
-    capturedPieces: chess.capturedPieces(),
+    capturedPieces: state.capturedPieces,
 
     // ChessBoard utility instance
     chess,
