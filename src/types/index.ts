@@ -47,3 +47,6 @@ export interface ChessPiece {
   color: PieceColor
   position: THREE.Vector3
 }
+
+// Re-export chess types
+export * from './chess'

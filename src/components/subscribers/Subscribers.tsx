@@ -1,5 +1,6 @@
 import React from 'react'
-import { getSquareCoords, usePubSub } from '../../hooks'
+import { usePubSub } from '../../hooks'
+import { getSquareCoords, getPieceFromId } from '../../utils'
 import { useChess } from '../../provider'
 import {
   animatePieceMove,
@@ -15,7 +16,6 @@ export const Subscribers = React.memo(() => {
     selectedPiece,
     setSelectedPiece,
     getPieceSquare,
-    getPieceFromId,
     makeMove,
     promotePawn,
     currentTurn,

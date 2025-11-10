@@ -1,6 +1,6 @@
 import React from 'react'
 import { PIECE_SQUARE_MAP, SQUARE_PIECE_MAP } from '../../../constants/chess'
-import { getSquareCoords } from '../../../hooks'
+import { getSquareCoords } from '../../../utils'
 import { useChess } from '../../../provider'
 import { PieceType } from '../../../types'
 import { formatSquare } from '../../../utils/calculations/calculate'
