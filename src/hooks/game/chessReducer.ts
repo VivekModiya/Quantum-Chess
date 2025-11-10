@@ -12,9 +12,6 @@ export const initialState: ChessState = {
   capturedPieces: [],
 }
 
-/**
- * Chess game reducer - handles all state mutations
- */
 export const chessReducer = (
   state: ChessState,
   action: ChessAction
@@ -28,22 +25,17 @@ export const chessReducer = (
         return state
       }
 
-      // Create new board state
       const newBoard = { ...state.board }
       const chess = new ChessBoard(state.board)
 
-      // Check if there's a piece to capture at the destination
       const capturedPieceId = chess.pieceIdAt(to)
       const newCapturedPieces = [...state.capturedPieces]
 
       if (capturedPieceId && capturedPieceId !== pieceId) {
-        // Add to captured pieces list
         newCapturedPieces.push(capturedPieceId)
-        // Remove the captured piece from the board
         delete newBoard[capturedPieceId]
       }
 
-      // Move the piece
       newBoard[pieceId] = {
         ...piece,
         square: to,
@@ -53,13 +45,14 @@ export const chessReducer = (
       const nextTurn: PieceColor =
         state.currentTurn === 'white' ? 'black' : 'white'
 
-      return {
+      const newState = {
         ...state,
         board: newBoard,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
         capturedPieces: newCapturedPieces,
       }
+      return newState
     }
 
     case 'RESET_GAME':

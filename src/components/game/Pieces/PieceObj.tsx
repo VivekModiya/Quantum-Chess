@@ -3,7 +3,7 @@ import * as THREE from 'three'
 
 import { useGLTF } from '@react-three/drei'
 import { ThreeEvent } from '@react-three/fiber'
-import { useChessEngine } from '../../../hooks'
+import { useChess } from '../../../provider'
 
 interface PieceObjectProps {
   pieceId: string
@@ -18,7 +18,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
   handleClick,
   pieceRef,
 }) => {
-  const { chess } = useChessEngine()
+  const { chess } = useChess()
   const pieceData = chess.byId(pieceId)
 
   // Early return if piece doesn't exist
