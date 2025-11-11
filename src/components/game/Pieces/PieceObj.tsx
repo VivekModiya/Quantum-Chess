@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { ThreeEvent } from '@react-three/fiber'
 import { useChess } from '../../../provider'
+import { usePubSub } from '../../../hooks'
 
 interface PieceObjectProps {
   pieceId: string
@@ -20,12 +21,40 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 }) => {
   const { chess } = useChess()
   const pieceData = chess.byId(pieceId)
+  const { subscribe } = usePubSub()
+
+  // Track the square we're currently rendering at (to prevent flicker during animation)
+  const [renderSquare, setRenderSquare] = React.useState(
+    pieceData?.square ?? ''
+  )
 
   // Early return if piece doesn't exist
   if (!pieceData) return null
 
   const { color, piece, square } = pieceData
-  const coords = chess.coords(square ?? '')
+
+  // Listen for move completion to update render position
+  React.useEffect(() => {
+    const unsubscribe = subscribe(
+      'move_completed',
+      ({ pieceId: movedPieceId, toSquare }) => {
+        if (movedPieceId === pieceId) {
+          // Update render square only after animation completes
+          setRenderSquare(toSquare)
+        }
+      }
+    )
+    return unsubscribe
+  }, [pieceId, subscribe])
+
+  // Initialize render square on first render
+  React.useEffect(() => {
+    if (renderSquare === '' && square) {
+      setRenderSquare(square)
+    }
+  }, [square, renderSquare])
+
+  const coords = chess.coords(renderSquare ?? '')
   const { file, rank } = coords ?? { file: 0, rank: 0 }
   const x = -(file - 1) * 10 + 35
   const z = (rank - 1) * 10 - 35

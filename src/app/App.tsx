@@ -17,6 +17,7 @@ import {
   Subscribers,
 } from '../components'
 import styles from './index.module.scss'
+import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
@@ -47,6 +48,7 @@ export const App = () => {
         <PointerPosition isVisible={isLocked} />
         <Instructions isVisible={!isLocked} />
         <Crosshair isVisible={isLocked} />
+        <PawnPromotionDialog />
       </div>
     </ChessProvider>
   )

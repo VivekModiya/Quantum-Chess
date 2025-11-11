@@ -58,8 +58,8 @@ export function animatePieceMove(args: {
         y: pieceObject.position.y - 3,
         duration: 0.2,
         ease: 'power1.inOut',
+        onComplete: () => onComplete({}),
       })
-      onComplete({})
     },
   })
 }

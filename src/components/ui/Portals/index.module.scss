@@ -1,0 +1,23 @@
+.dialog {
+  top: 0px;
+  left: 0px;
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+  width: 100dvw;
+  height: 100dvh;
+  position: fixed;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .container {
+    border: 0px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px) saturate(130%);
+    background-color: #ffffff0a;
+    box-shadow: 0px 0px 5px 5px rgba(133, 58, 0, 0.28);
+    padding: 24px;
+  }
+}
