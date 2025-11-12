@@ -48,7 +48,7 @@ export const App = () => {
         <PointerPosition isVisible={isLocked} />
         <Instructions isVisible={!isLocked} />
         <Crosshair isVisible={isLocked} />
-        <PawnPromotionDialog />
+        <PawnPromotionDialog color="white" open />
       </div>
     </ChessProvider>
   )

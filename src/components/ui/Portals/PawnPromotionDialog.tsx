@@ -1,17 +1,32 @@
-import { Canvas } from '@react-three/fiber'
+import React from 'react'
+import { PieceColor } from '../../../types'
 import styles from './index.module.scss'
-export const PawnPromotionDialog = () => {
+
+interface PawnPromotionDialogProps {
+  open: boolean
+  color: PieceColor
+}
+
+export const PawnPromotionDialog = (props: PawnPromotionDialogProps) => {
+  const { color, open } = props
+  const promotablePieces = ['queen', 'rook', 'bishop', 'knight']
+
+  const [show, setShow] = React.useState(false)
+
+  React.useEffect(() => setShow(true), [])
+
   return (
-    <dialog open={true} className={styles.dialog}>
-      <div className={styles.container}>
-        <Canvas
-          camera={{ position: [3, 3, 3], fov: 50 }}
-          style={{ width: '100%', height: '100%' }}
-        >
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[3, 2, 2]} intensity={0.8} />
-        </Canvas>
-      </div>
-    </dialog>
+    open && (
+      <dialog open={open} className={styles.dialog}>
+        <div className={`${styles.container} ${show ? styles.show : ''}`}>
+          {promotablePieces.map(piece => (
+            <img
+              src={`/textures/${color}_${piece}.png`}
+              className={`${styles.pieceImage} ${styles[color]}`}
+            />
+          ))}
+        </div>
+      </dialog>
+    )
   )
 }

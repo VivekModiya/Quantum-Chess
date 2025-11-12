@@ -1,23 +1,77 @@
+// Pawn Promotion Dialog Overlay
 .dialog {
-  top: 0px;
-  left: 0px;
-  border: 0px;
-  margin: 0px;
-  padding: 0px;
+  position: fixed;
+  inset: 0;
   width: 100dvw;
   height: 100dvh;
-  position: fixed;
-  background-color: transparent;
+  padding: 100px;
+  box-sizing: border-box;
+
+  // Layout
   display: flex;
   align-items: center;
   justify-content: center;
 
+  // Visual
+  background-color: transparent;
+  border: none;
+  cursor: auto;
+
+  // Container for piece selection
   .container {
-    border: 0px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 16px;
+
+    max-width: 800px;
+    width: 100%;
+    padding: 32px 48px;
+
+    // Visual styling
     border-radius: 8px;
     backdrop-filter: blur(4px) saturate(130%);
-    background-color: #ffffff0a;
-    box-shadow: 0px 0px 5px 5px rgba(133, 58, 0, 0.28);
-    padding: 24px;
+    background-color: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 0 5px 5px rgba(133, 58, 0, 0.28);
+
+    // Animation
+    transform: scale(0);
+    transition: transform 0.3s ease-in-out;
+
+    // Individual piece image
+    .pieceImage {
+      flex: 1 1 0;
+      max-width: 25%;
+      max-height: 150px;
+
+      object-fit: contain;
+
+      // Visual effects
+      filter: sepia(1) saturate(4) hue-rotate(-30deg);
+      transition:
+        filter 0.3s ease,
+        transform 0.3s ease;
+
+      &:hover {
+        filter: sepia(1) saturate(4) hue-rotate(-30deg)
+          drop-shadow(0 0 20px rgba(255, 187, 92, 0.927));
+        transform: scale(1.1);
+        cursor: pointer;
+      }
+    }
+
+    // Black pieces orientation
+    .black {
+      transform: rotate(180deg);
+
+      &:hover {
+        transform: rotate(180deg) scale(1.1);
+      }
+    }
+  }
+
+  // Show state
+  .show {
+    transform: scale(1);
   }
 }
