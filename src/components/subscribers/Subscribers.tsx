@@ -23,7 +23,7 @@ export const Subscribers = React.memo(() => {
         publish('legal_move_calculated', { moves })
       }),
       subscribe('piece_selected', ({ pieceId, pieceRef }) => {
-        const pieceColor = chess.pieceInfo(pieceId)?.color
+        const pieceColor = chess.byId(pieceId)?.color
         if (selectedPiece?.current?.id === pieceId) {
           lowerPiece(selectedPiece?.current?.ref?.current)
           setSelectedPiece(null)
@@ -41,9 +41,9 @@ export const Subscribers = React.memo(() => {
         const pieceId = selectedPiece?.current?.id
         const fromSquare = getPieceSquare(selectedPiece?.current?.id)
         if (fromSquare && toSquare && pieceId) {
-          const pieceInfo = chess.pieceInfo(pieceId)
+          const pieceInfo = chess.byId(pieceId)
           const color = pieceInfo?.color
-          const type = pieceInfo?.type
+          const type = pieceInfo?.piece
 
           // Make the move first
           const moveSuccess = makeMove(fromSquare, toSquare)

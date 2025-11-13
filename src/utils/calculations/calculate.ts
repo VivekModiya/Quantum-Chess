@@ -1,6 +1,6 @@
 import { DIRECTIONS, FILE_TO_INDEX, INDEX_TO_FILE } from '../../constants/chess'
 import { PieceColor, PieceType } from '../../types'
-import { Piece } from '../../hooks'
+import { Piece } from '../../types'
 
 // Utility functions
 export const isValidSquare = (file: number, rank: number): boolean =>
@@ -18,6 +18,26 @@ export const squareToCoords = (square: string): [number, number] =>
   parseSquare(square)
 export const coordsToSquare = (file: number, rank: number): string =>
   formatSquare(file, rank)
+
+// En passant utilities
+export const isEnPassantCapture = (
+  piece: Piece,
+  to: string,
+  enPassantTarget: string | null
+): boolean => {
+  return (
+    piece.type === 'pawn' && to === enPassantTarget && enPassantTarget !== null
+  )
+}
+
+export const getEnPassantCapturedPawnSquare = (
+  to: string,
+  captorColor: PieceColor
+): string => {
+  const [toFile, toRank] = parseSquare(to)
+  const captureDirection = captorColor === 'white' ? -1 : 1
+  return formatSquare(toFile, toRank + captureDirection)
+}
 
 // Core movement generation
 interface MoveGenerationOptions {
@@ -73,7 +93,8 @@ const generateDirectionalMoves = (
 export const generatePawnMoves = (
   square: string,
   board: Map<string, Piece | null>,
-  piece: Piece
+  piece: Piece,
+  enPassantTarget?: string | null
 ): string[] => {
   const [file, rank] = parseSquare(square)
   const moves: string[] = []
@@ -107,6 +128,11 @@ export const generatePawnMoves = (
       const captureSquare = formatSquare(captureFile, captureRank)
       const targetPiece = board.get(captureSquare)
       if (targetPiece && targetPiece.color !== piece.color) {
+        moves.push(captureSquare)
+      }
+
+      // En passant capture
+      if (enPassantTarget && captureSquare === enPassantTarget) {
         moves.push(captureSquare)
       }
     }
@@ -188,13 +214,19 @@ export const generateKingMoves = (
 export const generatePossibleMoves = (
   square: string,
   piece: Piece,
-  board: Map<string, Piece | null>
+  board: Map<string, Piece | null>,
+  enPassantTarget?: string | null
 ): string[] => {
   const generators: Record<
     PieceType,
-    (sq: string, b: Map<string, Piece | null>, p: Piece) => string[]
+    (
+      sq: string,
+      b: Map<string, Piece | null>,
+      p: Piece,
+      ep?: string | null
+    ) => string[]
   > = {
-    pawn: generatePawnMoves,
+    pawn: (sq, b, p) => generatePawnMoves(sq, b, p, enPassantTarget),
     knight: generateKnightMoves,
     bishop: generateBishopMoves,
     rook: generateRookMoves,
@@ -222,7 +254,8 @@ export const findKing = (
 export const isSquareAttacked = (
   board: Map<string, Piece | null>,
   square: string,
-  byColor: PieceColor
+  byColor: PieceColor,
+  enPassantTarget?: string | null
 ): boolean => {
   for (const [pieceSquare, piece] of board.entries()) {
     if (piece?.color === byColor) {
@@ -241,7 +274,12 @@ export const isSquareAttacked = (
           return true
         }
       } else {
-        const moves = generatePossibleMoves(pieceSquare, piece, board)
+        const moves = generatePossibleMoves(
+          pieceSquare,
+          piece,
+          board,
+          enPassantTarget
+        )
         if (moves.includes(square)) {
           return true
         }
@@ -366,12 +404,19 @@ export const isMoveLegal = (
   from: string,
   to: string,
   piece: Piece,
-  board: Map<string, Piece | null>
+  board: Map<string, Piece | null>,
+  enPassantTarget?: string | null
 ): boolean => {
   // Create a copy of the board with the move made
   const newBoard = new Map(board)
   newBoard.set(to, piece)
   newBoard.set(from, null)
+
+  // Handle en passant capture - remove the captured pawn
+  if (isEnPassantCapture(piece, to, enPassantTarget || null)) {
+    const capturedPawnSquare = getEnPassantCapturedPawnSquare(to, piece.color)
+    newBoard.set(capturedPawnSquare, null)
+  }
 
   // Check if the king would be in check after this move
   return isInCheck(newBoard, piece.color) === false
@@ -381,31 +426,46 @@ export const filterLegalMoves = (
   moves: string[],
   from: string,
   piece: Piece,
-  board: Map<string, Piece | null>
+  board: Map<string, Piece | null>,
+  enPassantTarget?: string | null
 ): string[] => {
-  return moves.filter(to => isMoveLegal(from, to, piece, board))
+  return moves.filter(to =>
+    isMoveLegal(from, to, piece, board, enPassantTarget)
+  )
 }
 
 export const generateLegalMoves = (
   square: string,
   piece: Piece,
-  board: Map<string, Piece | null>
+  board: Map<string, Piece | null>,
+  enPassantTarget?: string | null
 ): string[] => {
-  const possibleMoves = generatePossibleMoves(square, piece, board)
-  return filterLegalMoves(possibleMoves, square, piece, board)
+  const possibleMoves = generatePossibleMoves(
+    square,
+    piece,
+    board,
+    enPassantTarget
+  )
+  return filterLegalMoves(possibleMoves, square, piece, board, enPassantTarget)
 }
 
 // Game state analysis
 export const isCheckmate = (
   board: Map<string, Piece | null>,
-  color: PieceColor
+  color: PieceColor,
+  enPassantTarget?: string | null
 ): boolean => {
   if (!isInCheck(board, color)) return false
 
   // Check if any piece has legal moves
   for (const [square, piece] of board.entries()) {
     if (piece?.color === color) {
-      const legalMoves = generateLegalMoves(square, piece, board)
+      const legalMoves = generateLegalMoves(
+        square,
+        piece,
+        board,
+        enPassantTarget
+      )
       if (legalMoves.length > 0) return false
     }
   }
@@ -415,12 +475,13 @@ export const isCheckmate = (
 
 export const isStalemate = (
   board: Map<string, Piece | null>,
-  color: PieceColor
+  color: PieceColor,
+  enPassantTarget?: string | null
 ): boolean => {
   if (isInCheck(board, color)) return false
 
   // Check if any piece has legal moves
-  const allLegalMoves = getAllLegalMoves(board, color)
+  const allLegalMoves = getAllLegalMoves(board, color, enPassantTarget)
   if (allLegalMoves.length > 0) {
     return false
   }
@@ -430,13 +491,19 @@ export const isStalemate = (
 
 export const getAllLegalMoves = (
   board: Map<string, Piece | null>,
-  color: PieceColor
+  color: PieceColor,
+  enPassantTarget?: string | null
 ): Array<{ from: string; to: string; piece: Piece }> => {
   const allMoves: Array<{ from: string; to: string; piece: Piece }> = []
 
   for (const [square, piece] of board.entries()) {
     if (piece?.color === color) {
-      const legalMoves = generateLegalMoves(square, piece, board)
+      const legalMoves = generateLegalMoves(
+        square,
+        piece,
+        board,
+        enPassantTarget
+      )
       for (const move of legalMoves) {
         allMoves.push({ from: square, to: move, piece })
       }

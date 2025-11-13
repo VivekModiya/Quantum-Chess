@@ -39,6 +39,7 @@ export interface ChessState {
   currentTurn: PieceColor
   lastMove: LastMove | null
   capturedPieces: string[] // Array of captured piece IDs
+  enPassantTarget: Square | null // Square where en passant capture is possible
 }
 
 export type ChessAction =

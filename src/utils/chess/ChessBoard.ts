@@ -76,31 +76,6 @@ export class ChessBoard {
     return piece !== null && piece.color === color
   }
 
-  pieceInfo(pieceId: string): Piece | null {
-    const pieceMap: Record<string, PieceType> = {
-      p: 'pawn',
-      b: 'bishop',
-      n: 'knight',
-      k: 'king',
-      q: 'queen',
-      r: 'rook',
-    }
-
-    const colorMap: Record<string, PieceColor> = {
-      w: 'white',
-      b: 'black',
-    }
-
-    const piece = pieceMap[pieceId[0]]
-    const color = colorMap[pieceId[1]]
-
-    if (piece && color) {
-      return { type: piece, color }
-    }
-
-    return null
-  }
-
   toMap(): Map<Square, Piece | null> {
     const boardMap = new Map<Square, Piece | null>()
 
