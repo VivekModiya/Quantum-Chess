@@ -30,7 +30,8 @@ export const useChessEngine = () => {
         from,
         { type: piece.piece, color: piece.color },
         chess.toMap(),
-        state.enPassantTarget
+        state.enPassantTarget,
+        state.castlingRights
       )
       if (!legalMoves.includes(to)) {
         return false
@@ -40,7 +41,7 @@ export const useChessEngine = () => {
 
       return true
     },
-    [chess, state.currentTurn, state.enPassantTarget]
+    [chess, state.currentTurn, state.enPassantTarget, state.castlingRights]
   )
 
   const promotePawn = useCallback(
@@ -102,10 +103,11 @@ export const useChessEngine = () => {
         square,
         { type: piece.piece, color: piece.color },
         chess.toMap(),
-        state.enPassantTarget
+        state.enPassantTarget,
+        state.castlingRights
       )
     },
-    [chess, state.currentTurn, state.enPassantTarget]
+    [chess, state.currentTurn, state.enPassantTarget, state.castlingRights]
   )
 
   const setSelectedPiece = useCallback(

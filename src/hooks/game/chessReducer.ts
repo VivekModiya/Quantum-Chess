@@ -4,6 +4,8 @@ import { ChessBoard } from '../../utils/chess/ChessBoard'
 import {
   isEnPassantCapture,
   getEnPassantCapturedPawnSquare,
+  isCastlingMove,
+  getCastlingRookMove,
 } from '../../utils/calculations/calculate'
 
 /**
@@ -15,6 +17,12 @@ export const initialState: ChessState = {
   lastMove: null,
   capturedPieces: [],
   enPassantTarget: null,
+  castlingRights: {
+    whiteKingside: true,
+    whiteQueenside: true,
+    blackKingside: true,
+    blackQueenside: true,
+  },
 }
 
 export const chessReducer = (
@@ -66,6 +74,20 @@ export const chessReducer = (
         square: to,
       }
 
+      // Handle castling - move the rook as well
+      if (isCastlingMove({ type: piece.piece, color: piece.color }, from, to)) {
+        const rookMove = getCastlingRookMove(to)
+        if (rookMove) {
+          const rookId = chess.pieceIdAt(rookMove.from)
+          if (rookId) {
+            newBoard[rookId] = {
+              ...newBoard[rookId],
+              square: rookMove.to,
+            }
+          }
+        }
+      }
+
       // Calculate new en passant target square
       let newEnPassantTarget: string | null = null
       if (piece.piece === 'pawn') {
@@ -85,6 +107,39 @@ export const chessReducer = (
         }
       }
 
+      // Update castling rights
+      const newCastlingRights = { ...state.castlingRights }
+
+      // If king moves, remove all castling rights for that color
+      if (piece.piece === 'king') {
+        if (piece.color === 'white') {
+          newCastlingRights.whiteKingside = false
+          newCastlingRights.whiteQueenside = false
+        } else {
+          newCastlingRights.blackKingside = false
+          newCastlingRights.blackQueenside = false
+        }
+      }
+
+      // If rook moves or is captured, remove corresponding castling right
+      if (piece.piece === 'rook' || capturedPieceId) {
+        // Check if a rook moved from its starting square
+        if (piece.piece === 'rook') {
+          if (from === 'h1') newCastlingRights.whiteKingside = false
+          if (from === 'a1') newCastlingRights.whiteQueenside = false
+          if (from === 'h8') newCastlingRights.blackKingside = false
+          if (from === 'a8') newCastlingRights.blackQueenside = false
+        }
+
+        // Check if a rook was captured on its starting square
+        if (capturedPieceId) {
+          if (to === 'h1') newCastlingRights.whiteKingside = false
+          if (to === 'a1') newCastlingRights.whiteQueenside = false
+          if (to === 'h8') newCastlingRights.blackKingside = false
+          if (to === 'a8') newCastlingRights.blackQueenside = false
+        }
+      }
+
       // Switch turn
       const nextTurn: PieceColor =
         state.currentTurn === 'white' ? 'black' : 'white'
@@ -96,6 +151,7 @@ export const chessReducer = (
         lastMove: { from, to, pieceId },
         capturedPieces: newCapturedPieces,
         enPassantTarget: newEnPassantTarget,
+        castlingRights: newCastlingRights,
       }
       return newState
     }

@@ -1,6 +1,6 @@
 import { DIRECTIONS, FILE_TO_INDEX, INDEX_TO_FILE } from '../../constants/chess'
-import { PieceColor, PieceType } from '../../types'
-import { Piece } from '../../types'
+import { PieceColor } from '../../types'
+import { Piece, CastlingRights } from '../../types'
 
 // Utility functions
 export const isValidSquare = (file: number, rank: number): boolean =>
@@ -37,6 +37,42 @@ export const getEnPassantCapturedPawnSquare = (
   const [toFile, toRank] = parseSquare(to)
   const captureDirection = captorColor === 'white' ? -1 : 1
   return formatSquare(toFile, toRank + captureDirection)
+}
+
+// Castling utilities
+export const isCastlingMove = (
+  piece: Piece,
+  from: string,
+  to: string
+): boolean => {
+  if (piece.type !== 'king') return false
+  const [fromFile] = parseSquare(from)
+  const [toFile] = parseSquare(to)
+  return Math.abs(toFile - fromFile) === 2
+}
+
+export const getCastlingRookMove = (
+  kingTo: string
+): { from: string; to: string } | null => {
+  const [toFile, toRank] = parseSquare(kingTo)
+
+  // Kingside castling (king moves to g-file)
+  if (toFile === 6) {
+    return {
+      from: formatSquare(7, toRank), // Rook from h-file
+      to: formatSquare(5, toRank), // Rook to f-file
+    }
+  }
+
+  // Queenside castling (king moves to c-file)
+  if (toFile === 2) {
+    return {
+      from: formatSquare(0, toRank), // Rook from a-file
+      to: formatSquare(3, toRank), // Rook to d-file
+    }
+  }
+
+  return null
 }
 
 // Core movement generation
@@ -202,12 +238,83 @@ export const generateQueenMoves = (
 export const generateKingMoves = (
   square: string,
   board: Map<string, Piece | null>,
-  piece: Piece
+  piece: Piece,
+  castlingRights?: CastlingRights
 ): string[] => {
   const [file, rank] = parseSquare(square)
-  return generateDirectionalMoves(file, rank, DIRECTIONS.KING, board, piece, {
-    maxDistance: 1,
-  })
+  const moves = generateDirectionalMoves(
+    file,
+    rank,
+    DIRECTIONS.KING,
+    board,
+    piece,
+    {
+      maxDistance: 1,
+    }
+  )
+
+  // Add castling moves if applicable
+  if (castlingRights) {
+    const baseRank = piece.color === 'white' ? 0 : 7
+    const isOnBaseRank = rank === baseRank && file === 4 // King on e1 or e8
+
+    if (isOnBaseRank) {
+      // Check kingside castling
+      const canCastleKingside =
+        piece.color === 'white'
+          ? castlingRights.whiteKingside
+          : castlingRights.blackKingside
+
+      if (canCastleKingside) {
+        const f1 = formatSquare(5, baseRank)
+        const g1 = formatSquare(6, baseRank)
+        const h1 = formatSquare(7, baseRank)
+
+        // Check if squares between king and rook are empty
+        if (!board.get(f1) && !board.get(g1)) {
+          // Check if rook is present
+          const rookPiece = board.get(h1)
+          if (
+            rookPiece &&
+            rookPiece.type === 'rook' &&
+            rookPiece.color === piece.color
+          ) {
+            // Don't check here if king is in check or passes through check
+            // That will be validated in isMoveLegal
+            moves.push(g1)
+          }
+        }
+      }
+
+      // Check queenside castling
+      const canCastleQueenside =
+        piece.color === 'white'
+          ? castlingRights.whiteQueenside
+          : castlingRights.blackQueenside
+
+      if (canCastleQueenside) {
+        const d1 = formatSquare(3, baseRank)
+        const c1 = formatSquare(2, baseRank)
+        const b1 = formatSquare(1, baseRank)
+        const a1 = formatSquare(0, baseRank)
+
+        // Check if squares between king and rook are empty
+        if (!board.get(d1) && !board.get(c1) && !board.get(b1)) {
+          // Check if rook is present
+          const rookPiece = board.get(a1)
+          if (
+            rookPiece &&
+            rookPiece.type === 'rook' &&
+            rookPiece.color === piece.color
+          ) {
+            moves.push(c1)
+          }
+        }
+      }
+    }
+  }
+
+  return moves
 }
 
 // Main move generation function
@@ -215,27 +322,23 @@ export const generatePossibleMoves = (
   square: string,
   piece: Piece,
   board: Map<string, Piece | null>,
-  enPassantTarget?: string | null
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
 ): string[] => {
-  const generators: Record<
-    PieceType,
-    (
-      sq: string,
-      b: Map<string, Piece | null>,
-      p: Piece,
-      ep?: string | null
-    ) => string[]
-  > = {
-    pawn: (sq, b, p) => generatePawnMoves(sq, b, p, enPassantTarget),
-    knight: generateKnightMoves,
-    bishop: generateBishopMoves,
-    rook: generateRookMoves,
-    queen: generateQueenMoves,
-    king: generateKingMoves,
+  if (piece.type === 'pawn') {
+    return generatePawnMoves(square, board, piece, enPassantTarget)
+  } else if (piece.type === 'king') {
+    return generateKingMoves(square, board, piece, castlingRights)
+  } else if (piece.type === 'knight') {
+    return generateKnightMoves(square, board, piece)
+  } else if (piece.type === 'bishop') {
+    return generateBishopMoves(square, board, piece)
+  } else if (piece.type === 'rook') {
+    return generateRookMoves(square, board, piece)
+  } else if (piece.type === 'queen') {
+    return generateQueenMoves(square, board, piece)
   }
-
-  // @ts-ignore
-  return generators[piece.type](square, board, piece)
+  return []
 }
 
 // King and check utilities
@@ -407,6 +510,33 @@ export const isMoveLegal = (
   board: Map<string, Piece | null>,
   enPassantTarget?: string | null
 ): boolean => {
+  // Special validation for castling
+  if (isCastlingMove(piece, from, to)) {
+    // King cannot be in check when castling
+    if (isInCheck(board, piece.color)) {
+      return false
+    }
+
+    // King cannot pass through check or land in check
+    const [fromFile, fromRank] = parseSquare(from)
+    const [toFile] = parseSquare(to)
+
+    // Check all squares the king passes through
+    const step = toFile > fromFile ? 1 : -1
+    for (let file = fromFile + step; file !== toFile + step; file += step) {
+      const squareToCheck = formatSquare(file, fromRank)
+      const testBoard = new Map(board)
+      testBoard.set(squareToCheck, piece)
+      testBoard.set(from, null)
+
+      if (isInCheck(testBoard, piece.color)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   // Create a copy of the board with the move made
   const newBoard = new Map(board)
   newBoard.set(to, piece)
@@ -438,13 +568,15 @@ export const generateLegalMoves = (
   square: string,
   piece: Piece,
   board: Map<string, Piece | null>,
-  enPassantTarget?: string | null
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
 ): string[] => {
   const possibleMoves = generatePossibleMoves(
     square,
     piece,
     board,
-    enPassantTarget
+    enPassantTarget,
+    castlingRights
   )
   return filterLegalMoves(possibleMoves, square, piece, board, enPassantTarget)
 }
@@ -453,7 +585,8 @@ export const generateLegalMoves = (
 export const isCheckmate = (
   board: Map<string, Piece | null>,
   color: PieceColor,
-  enPassantTarget?: string | null
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
 ): boolean => {
   if (!isInCheck(board, color)) return false
 
@@ -464,7 +597,8 @@ export const isCheckmate = (
         square,
         piece,
         board,
-        enPassantTarget
+        enPassantTarget,
+        castlingRights
       )
       if (legalMoves.length > 0) return false
     }
@@ -476,12 +610,18 @@ export const isCheckmate = (
 export const isStalemate = (
   board: Map<string, Piece | null>,
   color: PieceColor,
-  enPassantTarget?: string | null
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
 ): boolean => {
   if (isInCheck(board, color)) return false
 
   // Check if any piece has legal moves
-  const allLegalMoves = getAllLegalMoves(board, color, enPassantTarget)
+  const allLegalMoves = getAllLegalMoves(
+    board,
+    color,
+    enPassantTarget,
+    castlingRights
+  )
   if (allLegalMoves.length > 0) {
     return false
   }
@@ -492,7 +632,8 @@ export const isStalemate = (
 export const getAllLegalMoves = (
   board: Map<string, Piece | null>,
   color: PieceColor,
-  enPassantTarget?: string | null
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
 ): Array<{ from: string; to: string; piece: Piece }> => {
   const allMoves: Array<{ from: string; to: string; piece: Piece }> = []
 
@@ -502,7 +643,8 @@ export const getAllLegalMoves = (
         square,
         piece,
         board,
-        enPassantTarget
+        enPassantTarget,
+        castlingRights
       )
       for (const move of legalMoves) {
         allMoves.push({ from: square, to: move, piece })
