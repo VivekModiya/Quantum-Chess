@@ -1,77 +1,114 @@
-// Pawn Promotion Dialog Overlay
+// =============================================================================
+// Pawn Promotion Dialog Styles
+// =============================================================================
+
+// Variables
+$dialog-padding: 100px;
+$dialog-bg-color: rgba(0, 0, 0, 0.516);
+
+$container-max-width: 800px;
+$container-padding-block: 32px;
+$container-padding-inline: 48px;
+$container-gap: 16px;
+$container-border-width: 4px;
+$container-border-color: black;
+$container-border-radius: 16px;
+$container-bg-color: rgba(255, 249, 237, 0.7);
+
+$piece-max-size: calc(25% - 24px);
+$piece-hover-scale: 1.1;
+
+$transition-duration: 0.3s;
+$transition-easing: ease-in-out;
+
+// Colors
+$piece-filter-sepia: 1;
+$piece-filter-saturate: 4;
+$piece-filter-hue: -30deg;
+$piece-hover-sepia: 10;
+$piece-glow-color: rgba(255, 187, 92, 0.927);
+
 .dialog {
   position: fixed;
   inset: 0;
+
   width: 100dvw;
   height: 100dvh;
-  padding: 100px;
+  padding: $dialog-padding;
   box-sizing: border-box;
 
-  // Layout
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
 
-  // Visual
-  background-color: transparent;
+  background-color: $dialog-bg-color;
   border: none;
+
   cursor: auto;
+}
 
-  // Container for piece selection
-  .container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    gap: 16px;
+.showDialog {
+  display: flex;
+}
 
-    max-width: 800px;
-    width: 100%;
-    padding: 32px 48px;
+.container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: $container-gap;
 
-    // Visual styling
-    border-radius: 8px;
-    backdrop-filter: blur(4px) saturate(130%);
-    background-color: rgba(255, 255, 255, 0.04);
-    box-shadow: 0 0 5px 5px rgba(133, 58, 0, 0.28);
+  max-width: $container-max-width;
+  width: 100%;
+  padding: $container-padding-block $container-padding-inline;
 
-    // Animation
-    transform: scale(0);
-    transition: transform 0.3s ease-in-out;
+  border: $container-border-width solid $container-border-color;
+  border-radius: $container-border-radius;
+  user-select: none;
 
-    // Individual piece image
-    .pieceImage {
-      flex: 1 1 0;
-      max-width: 25%;
-      max-height: 150px;
+  transform: scale(0);
+  transition: transform $transition-duration $transition-easing;
+}
 
-      object-fit: contain;
+.container-black {
+  background-color: $container-bg-color;
+}
 
-      // Visual effects
-      filter: sepia(1) saturate(4) hue-rotate(-30deg);
-      transition:
-        filter 0.3s ease,
-        transform 0.3s ease;
+.container-white {
+  background-color: $container-bg-color;
+}
 
-      &:hover {
-        filter: sepia(1) saturate(4) hue-rotate(-30deg)
-          drop-shadow(0 0 20px rgba(255, 187, 92, 0.927));
-        transform: scale(1.1);
-        cursor: pointer;
-      }
-    }
+.show {
+  transform: scale(1);
+}
 
-    // Black pieces orientation
-    .black {
-      transform: rotate(180deg);
+.pieceImage {
+  flex: 1 1 0;
+  max-width: $piece-max-size;
+  max-height: $piece-max-size;
 
-      &:hover {
-        transform: rotate(180deg) scale(1.1);
-      }
-    }
+  object-fit: contain;
+
+  filter: sepia($piece-filter-sepia) saturate($piece-filter-saturate)
+    hue-rotate($piece-filter-hue);
+  transition:
+    filter $transition-duration ease,
+    transform $transition-duration ease;
+
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    filter: sepia($piece-hover-sepia) saturate($piece-filter-saturate)
+      hue-rotate($piece-filter-hue) drop-shadow(0 0 5px $piece-glow-color);
+    transform: scale($piece-hover-scale);
   }
+}
 
-  // Show state
-  .show {
-    transform: scale(1);
+.black {
+  transform: rotate(180deg);
+
+  &:hover,
+  &:focus {
+    transform: rotate(180deg) scale($piece-hover-scale);
   }
 }

@@ -83,10 +83,13 @@ export const Subscribers = React.memo(() => {
               (pieceColor === 'white' && rank === 8) ||
               (pieceColor === 'black' && rank === 1)
             ) {
-              promotePawn(toSquare, 'queen', pieceId)
+              publish('open_promotion_dialog', { pieceId, toSquare })
             }
           }
         }
+      ),
+      subscribe('promotion_piece_selected', ({ piece, pieceId, toSquare }) =>
+        promotePawn(toSquare, piece, pieceId)
       ),
       subscribe('make_sound', () => {
         playSound('move')
