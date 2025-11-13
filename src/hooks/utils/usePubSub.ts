@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { PromotablePiece, Square } from '../../types'
 
 // Event types
 export interface EventProps {
@@ -21,6 +22,12 @@ export interface EventProps {
   game_reset: {}
   move_undone: {}
   make_sound: undefined
+  open_promotion_dialog: { toSquare: Square; pieceId: string }
+  promotion_piece_selected: {
+    toSquare: Square
+    pieceId: string
+    piece: PromotablePiece
+  }
 }
 
 export type EventKey = keyof EventProps
