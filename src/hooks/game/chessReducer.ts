@@ -1,5 +1,10 @@
 import { PieceColor } from '../../types'
-import { ChessAction, ChessState, BoardState } from '../../types/chess'
+import {
+  ChessAction,
+  ChessState,
+  BoardState,
+  CastlingRights,
+} from '../../types/chess'
 import { ChessBoard } from '../../utils/chess/ChessBoard'
 import {
   isEnPassantCapture,
@@ -9,13 +14,6 @@ import {
 } from '../../utils/calculations/calculate'
 import { animatePieceMove } from '../../utils'
 
-/**
- * Helper function to move a piece to a new square
- * @param board - Current board state
- * @param pieceId - ID of the piece to move
- * @param toSquare - Target square
- * @returns New board state with the piece moved
- */
 const movePieceToSquare = (
   board: BoardState,
   pieceId: string,
@@ -34,6 +32,153 @@ const movePieceToSquare = (
   }
 
   return newBoard
+}
+
+const handleCaptures = (
+  board: BoardState,
+  chess: ChessBoard,
+  piece: { piece: string; color: PieceColor },
+  to: string,
+  enPassantTarget: string | null
+): { newBoard: BoardState; capturedPieceIds: string[] } => {
+  const newBoard = { ...board }
+  const capturedPieceIds: string[] = []
+
+  // Regular capture
+  const capturedPieceId = chess.pieceIdAt(to)
+  if (capturedPieceId) {
+    capturedPieceIds.push(capturedPieceId)
+    delete newBoard[capturedPieceId]
+  }
+
+  // En passant capture
+  if (
+    isEnPassantCapture(
+      { type: piece.piece as any, color: piece.color },
+      to,
+      enPassantTarget
+    )
+  ) {
+    const capturedPawnSquare = getEnPassantCapturedPawnSquare(to, piece.color)
+    const capturedPawnId = chess.pieceIdAt(capturedPawnSquare)
+    if (capturedPawnId) {
+      capturedPieceIds.push(capturedPawnId)
+      delete newBoard[capturedPawnId]
+    }
+  }
+
+  return { newBoard, capturedPieceIds }
+}
+
+const handleCastling = (
+  board: BoardState,
+  chess: ChessBoard,
+  piece: { piece: string; color: PieceColor },
+  from: string,
+  to: string,
+  getPieceRef?: (pieceId: string) => any,
+  onComplete?: () => void
+): BoardState => {
+  if (
+    !isCastlingMove({ type: piece.piece as any, color: piece.color }, from, to)
+  ) {
+    return board
+  }
+
+  const rookMove = getCastlingRookMove(to)
+  if (!rookMove) {
+    return board
+  }
+
+  const rookId = chess.pieceIdAt(rookMove.from)
+  if (!rookId) {
+    return board
+  }
+
+  // Move the rook
+  const boardAfterRookMove = movePieceToSquare(board, rookId, rookMove.to)
+
+  // Animate rook if getPieceRef provided
+  if (getPieceRef) {
+    const rookRef = getPieceRef(rookId)
+    if (rookRef?.current) {
+      animatePieceMove({
+        toSquare: rookMove.to,
+        fromSquare: rookMove.from,
+        pieceObject: rookRef.current,
+        onComplete: onComplete || (() => {}),
+      })
+    }
+  }
+
+  return boardAfterRookMove
+}
+
+/**
+ * Calculate en passant target square after a pawn move
+ */
+const calculateEnPassantTarget = (
+  piece: { piece: string; color: PieceColor },
+  from: string,
+  to: string
+): string | null => {
+  if (piece.piece !== 'pawn') {
+    return null
+  }
+
+  const fromRank = parseInt(from[1]) - 1
+  const [toFile, toRank] = [
+    to.charCodeAt(0) - 'a'.charCodeAt(0),
+    parseInt(to[1]) - 1,
+  ]
+
+  // Check if pawn moved two squares
+  if (Math.abs(toRank - fromRank) === 2) {
+    const enPassantRank = (fromRank + toRank) / 2
+    return String.fromCharCode('a'.charCodeAt(0) + toFile) + (enPassantRank + 1)
+  }
+
+  return null
+}
+
+/**
+ * Update castling rights based on the move
+ */
+const updateCastlingRights = (
+  castlingRights: CastlingRights,
+  piece: { piece: string; color: PieceColor },
+  from: string,
+  to: string,
+  capturedPieceId: string | null
+): CastlingRights => {
+  const newRights = { ...castlingRights }
+
+  if (piece.piece === 'king') {
+    if (piece.color === 'white') {
+      newRights.whiteKingside = false
+      newRights.whiteQueenside = false
+    } else {
+      newRights.blackKingside = false
+      newRights.blackQueenside = false
+    }
+    return newRights
+  }
+
+  if (piece.piece === 'rook') {
+    if (from === 'h1') newRights.whiteKingside = false
+    if (from === 'a1') newRights.whiteQueenside = false
+    if (from === 'h8') newRights.blackKingside = false
+    if (from === 'a8') newRights.blackQueenside = false
+  }
+
+  if (capturedPieceId) {
+    if (to === 'h1') newRights.whiteKingside = false
+    if (to === 'a1') newRights.whiteQueenside = false
+    if (to === 'h8') newRights.blackKingside = false
+    if (to === 'a8') newRights.blackQueenside = false
+  }
+
+  return newRights
 }
 
 /**
@@ -66,135 +211,63 @@ export const chessReducer = (
         return state
       }
 
-      const newBoard = { ...state.board }
       const chess = new ChessBoard(state.board)
 
-      const capturedPieceId = chess.pieceIdAt(to)
-      const newCapturedPieces = [...state.capturedPieces]
+      const { newBoard, capturedPieceIds } = handleCaptures(
+        state.board,
+        chess,
+        piece,
+        to,
+        state.enPassantTarget
+      )
 
-      // Handle regular capture
-      if (capturedPieceId && capturedPieceId !== pieceId) {
-        newCapturedPieces.push(capturedPieceId)
-        delete newBoard[capturedPieceId]
-      }
+      let boardAfterMove = movePieceToSquare(newBoard, pieceId, to)
 
-      // Handle en passant capture
-      if (
-        isEnPassantCapture(
-          { type: piece.piece, color: piece.color },
-          to,
-          state.enPassantTarget
-        )
-      ) {
-        const capturedPawnSquare = getEnPassantCapturedPawnSquare(
-          to,
-          piece.color
-        )
-        const capturedPawnId = chess.pieceIdAt(capturedPawnSquare)
-        if (capturedPawnId) {
-          newCapturedPieces.push(capturedPawnId)
-          delete newBoard[capturedPawnId]
+      if (getPieceRef) {
+        const pieceRef = getPieceRef(pieceId)
+        if (pieceRef?.current) {
+          animatePieceMove({
+            toSquare: to,
+            fromSquare: from,
+            pieceObject: pieceRef.current,
+            onComplete: onComplete || (() => {}),
+          })
         }
       }
 
-      // Move the piece to the new square
-      const boardAfterMove = movePieceToSquare(newBoard, pieceId, to)
-      const kingRef = getPieceRef(pieceId)
-      animatePieceMove({
-        toSquare: to,
-        fromSquare: from,
-        pieceObject: kingRef?.current,
-        onComplete: onComplete,
-      })
+      // Step 3: Handle castling (move rook if castling)
+      boardAfterMove = handleCastling(
+        boardAfterMove,
+        chess,
+        piece,
+        from,
+        to,
+        getPieceRef,
+        onComplete
+      )
 
-      // Handle castling - move the rook as well
-      if (isCastlingMove({ type: piece.piece, color: piece.color }, from, to)) {
-        const rookMove = getCastlingRookMove(to)
-        if (rookMove) {
-          const rookId = chess.pieceIdAt(rookMove.from)
-          if (rookId) {
-            Object.assign(
-              boardAfterMove,
-              movePieceToSquare(boardAfterMove, rookId, rookMove.to)
-            )
+      const newEnPassantTarget = calculateEnPassantTarget(piece, from, to)
 
-            const rookRef = getPieceRef(rookId)
-            animatePieceMove({
-              toSquare: rookMove.to,
-              fromSquare: rookMove.from,
-              pieceObject: rookRef?.current,
-              onComplete: onComplete,
-            })
-          }
-        }
-      }
+      const newCastlingRights = updateCastlingRights(
+        state.castlingRights,
+        piece,
+        from,
+        to,
+        capturedPieceIds[0] || null
+      )
 
-      // Calculate new en passant target square
-      let newEnPassantTarget: string | null = null
-      if (piece.piece === 'pawn') {
-        const fromRank = parseInt(from[1]) - 1
-        const [toFile, toRank] = [
-          to.charCodeAt(0) - 'a'.charCodeAt(0),
-          parseInt(to[1]) - 1,
-        ]
-
-        // Check if pawn moved two squares
-        if (Math.abs(toRank - fromRank) === 2) {
-          // Set en passant target to the square the pawn "jumped over"
-          const enPassantRank = (fromRank + toRank) / 2
-          newEnPassantTarget =
-            String.fromCharCode('a'.charCodeAt(0) + toFile) +
-            (enPassantRank + 1)
-        }
-      }
-
-      // Update castling rights
-      const newCastlingRights = { ...state.castlingRights }
-
-      // If king moves, remove all castling rights for that color
-      if (piece.piece === 'king') {
-        if (piece.color === 'white') {
-          newCastlingRights.whiteKingside = false
-          newCastlingRights.whiteQueenside = false
-        } else {
-          newCastlingRights.blackKingside = false
-          newCastlingRights.blackQueenside = false
-        }
-      }
-
-      // If rook moves or is captured, remove corresponding castling right
-      if (piece.piece === 'rook' || capturedPieceId) {
-        // Check if a rook moved from its starting square
-        if (piece.piece === 'rook') {
-          if (from === 'h1') newCastlingRights.whiteKingside = false
-          if (from === 'a1') newCastlingRights.whiteQueenside = false
-          if (from === 'h8') newCastlingRights.blackKingside = false
-          if (from === 'a8') newCastlingRights.blackQueenside = false
-        }
-
-        // Check if a rook was captured on its starting square
-        if (capturedPieceId) {
-          if (to === 'h1') newCastlingRights.whiteKingside = false
-          if (to === 'a1') newCastlingRights.whiteQueenside = false
-          if (to === 'h8') newCastlingRights.blackKingside = false
-          if (to === 'a8') newCastlingRights.blackQueenside = false
-        }
-      }
-
-      // Switch turn
       const nextTurn: PieceColor =
         state.currentTurn === 'white' ? 'black' : 'white'
 
-      const newState = {
+      return {
         ...state,
         board: boardAfterMove,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
-        capturedPieces: newCapturedPieces,
+        capturedPieces: [...state.capturedPieces, ...capturedPieceIds],
         enPassantTarget: newEnPassantTarget,
         castlingRights: newCastlingRights,
       }
-      return newState
     }
 
     case 'RESET_GAME':
