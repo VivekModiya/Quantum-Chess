@@ -18,7 +18,7 @@ export const HighLight = (props: HighLightProps) => {
   return (
     <group position={position}>
       {/* Visible circular highlight */}
-      <mesh>
+      <mesh receiveShadow>
         <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
         <meshStandardMaterial
           color={color}

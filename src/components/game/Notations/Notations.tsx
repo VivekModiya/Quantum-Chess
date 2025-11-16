@@ -76,6 +76,8 @@ export function BoardCoordinates() {
       position={position}
       rotation={rotation}
       material={material}
+      castShadow
+      receiveShadow
       {...TEXT_CONFIG}
     >
       {content}

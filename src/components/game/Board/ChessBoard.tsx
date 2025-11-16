@@ -184,31 +184,51 @@ export const Board: React.FC<ChessBoardProps> = ({
       {/* Base/thickness of the board - adjusted size */}
       <mesh position={[0, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[totalBoardSize, 5, totalBoardSize]} />
-        <meshStandardMaterial color={'#ab6b33'} roughness={5} metalness={10} />
+        <meshStandardMaterial
+          color={'#6d4013'}
+          roughness={0.9}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Border - Top */}
       <mesh position={[0, 0, -borderOffset]} castShadow receiveShadow>
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
-        <meshLambertMaterial color={borderColor} />
+        <meshStandardMaterial
+          color={borderColor}
+          roughness={0.8}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Border - Bottom */}
       <mesh position={[0, 0, borderOffset]} castShadow receiveShadow>
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
-        <meshLambertMaterial color={borderColor} />
+        <meshStandardMaterial
+          color={borderColor}
+          roughness={0.8}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Border - Left */}
       <mesh position={[-borderOffset, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
-        <meshLambertMaterial color={borderColor} />
+        <meshStandardMaterial
+          color={borderColor}
+          roughness={0.8}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Border - Right */}
       <mesh position={[borderOffset, 0, 0]} castShadow receiveShadow>
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
-        <meshLambertMaterial color={borderColor} />
+        <meshStandardMaterial
+          color={borderColor}
+          roughness={0.8}
+          metalness={0.1}
+        />
       </mesh>
 
       {/* Board top with squares - keep at 80x80 */}
@@ -220,15 +240,27 @@ export const Board: React.FC<ChessBoardProps> = ({
           castShadow
         >
           <planeGeometry args={[80, 80]} />
-          <meshLambertMaterial map={boardTex} />
+          <meshStandardMaterial
+            map={boardTex}
+            roughness={0.7}
+            metalness={0.2}
+          />
         </mesh>
       )}
 
       {/* Board frame - adjusted to use totalBoardSize */}
       {frameTex && (
-        <mesh position={[0, 2.52, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh
+          position={[0, 2.52, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          receiveShadow
+        >
           <planeGeometry args={[totalBoardSize, totalBoardSize]} />
-          <meshLambertMaterial map={frameTex} />
+          <meshStandardMaterial
+            map={frameTex}
+            roughness={0.7}
+            metalness={0.2}
+          />
         </mesh>
       )}
       <BoardCoordinates />

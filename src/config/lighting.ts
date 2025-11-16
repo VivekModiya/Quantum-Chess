@@ -1,24 +1,12 @@
-import * as THREE from 'three'
-
-export const shadowConfig:
-  | boolean
-  | 'basic'
-  | 'percentage'
-  | 'soft'
-  | 'variance'
-  | Partial<THREE.WebGLShadowMap>
-  | undefined = {
-  enabled: true,
-  type: THREE.PCFSoftShadowMap,
-}
+export const shadowConfig = true // Enable shadows with default settings (PCFSoftShadowMap)
 
 export const lightingConfig = {
-  ambient: { color: 0x404040, intensity: 1 },
+  ambient: { color: 0x444444, intensity: 4 }, // Increased to lighten shadows
   primarySpotlight: {
     color: 0xffffff,
     intensity: 10,
-    position: [0, 100, 0] as [number, number, number],
-    angle: Math.PI / 4,
+    position: [30, 80, 30] as [number, number, number], // Angled position for directional shadows
+    angle: Math.PI / 3,
     penumbra: 0.2,
     distance: 150,
     decay: 1.5,
@@ -26,11 +14,11 @@ export const lightingConfig = {
   chessBoardDirectional: {
     color: 0xffffff,
     intensity: 5.0,
-    position: [0, 50, 0] as [number, number, number],
+    position: [35, 60, 40] as [number, number, number], // Angled for directional shadows
   },
   pieceDetail: {
     color: 0xfff8dc,
-    intensity: 0.8,
+    intensity: 1.2, // Increased to add more fill light
     position: [-2, 8, 2] as [number, number, number],
     distance: 15,
   },
@@ -54,6 +42,6 @@ export const lightingConfig = {
   hemisphere: {
     skyColor: 0x87ceeb,
     groundColor: 0x2d1b0f,
-    intensity: 0.2,
+    intensity: 0.5, // Increased to add more ambient fill light
   },
 } as const

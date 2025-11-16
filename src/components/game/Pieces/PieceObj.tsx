@@ -109,6 +109,10 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
         newMaterial.roughness = 0.7
 
         child.material = newMaterial
+
+        // Enable shadows on the mesh
+        child.castShadow = true
+        child.receiveShadow = true
       }
     })
 
