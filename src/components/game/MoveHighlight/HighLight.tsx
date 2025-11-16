@@ -4,6 +4,7 @@ import { ThreeEvent } from '@react-three/fiber'
 
 import { usePubSub } from '../../../hooks'
 import { parseSquare } from '../../../utils/calculations/calculate'
+import { useChess } from '../../../provider'
 
 interface HighLightProps {
   position: [number, number, number]
@@ -43,13 +44,13 @@ export const HighLight = (props: HighLightProps) => {
 
 export const HighLightedMoves = () => {
   const [moves, setMoves] = React.useState<string[]>([])
+  const { selectedPiece } = useChess()
   const pubsub = usePubSub()
 
   React.useEffect(() => {
     const unsubscribe = pubsub.subscribe('legal_move_calculated', params =>
       setMoves(params.moves)
     )
-
     return unsubscribe
   }, [pubsub])
 
@@ -64,16 +65,17 @@ export const HighLightedMoves = () => {
 
   return (
     <>
-      {positions.map(({ position, square }) => (
-        <HighLight
-          key={square}
-          position={position as [number, number, number]}
-          handleClick={e => {
-            e.stopPropagation()
-            pubsub.publish('make_move', { toSquare: square })
-          }}
-        />
-      ))}
+      {selectedPiece &&
+        positions.map(({ position, square }) => (
+          <HighLight
+            key={square}
+            position={position as [number, number, number]}
+            handleClick={e => {
+              e.stopPropagation()
+              pubsub.publish('make_move', { toSquare: square })
+            }}
+          />
+        ))}
     </>
   )
 }

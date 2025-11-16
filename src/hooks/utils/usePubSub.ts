@@ -5,7 +5,6 @@ import { PromotablePiece, Square } from '../../types'
 export interface EventProps {
   piece_selected: {
     pieceId: string
-    pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null
   }
   calculate_legal_moves: { square?: string | null }
   legal_move_calculated: { moves: string[] }

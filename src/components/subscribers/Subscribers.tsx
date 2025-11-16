@@ -1,7 +1,7 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import { liftPiece, lowerPiece, playSound } from '../../utils'
+import { playSound } from '../../utils'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
@@ -22,45 +22,40 @@ export const Subscribers = React.memo(() => {
         const moves = getLegalMoves(square)
         publish('legal_move_calculated', { moves })
       }),
-      subscribe('piece_selected', ({ pieceId, pieceRef }) => {
-        const pieceColor = chess.byId(pieceId)?.color
-        if (selectedPiece?.current?.id === pieceId) {
-          lowerPiece(selectedPiece?.current?.ref?.current)
+      subscribe('piece_selected', ({ pieceId }) => {
+        const pieceData = chess.byId(pieceId)
+        if (!pieceData) return
+
+        // Deselect if clicking the same piece, or select if it's the current turn
+        if (selectedPiece === pieceId) {
           setSelectedPiece(null)
-          publish('calculate_legal_moves', { square: null })
-        } else if (currentTurn === pieceColor) {
-          liftPiece(pieceRef?.current)
-          lowerPiece(selectedPiece?.current?.ref?.current)
-          setSelectedPiece({ id: pieceId, ref: pieceRef })
-          publish('calculate_legal_moves', {
-            square: getPieceSquare(pieceId),
-          })
+        } else if (currentTurn === pieceData.color) {
+          setSelectedPiece(pieceId)
+          publish('calculate_legal_moves', { square: pieceData.square })
         }
       }),
       subscribe('make_move', ({ toSquare }) => {
-        const pieceId = selectedPiece?.current?.id
-        const fromSquare = getPieceSquare(selectedPiece?.current?.id)
-        if (fromSquare && toSquare && pieceId) {
-          const pieceInfo = chess.byId(pieceId)
+        if (!selectedPiece) return
+
+        const fromSquare = getPieceSquare(selectedPiece)
+        if (fromSquare && toSquare) {
+          const pieceInfo = chess.byId(selectedPiece)
           const color = pieceInfo?.color
           const type = pieceInfo?.piece
 
           // Make the move first
           makeMove(fromSquare, toSquare, () => {
             publish('make_sound', undefined)
-
-            // Publish move_completed event after animation finishes
             publish('move_completed', {
               fromSquare,
               toSquare,
-              pieceId,
+              pieceId: selectedPiece,
               pieceType: type || '',
               pieceColor: color || '',
             })
           })
 
           setSelectedPiece(null)
-          publish('calculate_legal_moves', { square: null })
         }
       }),
       subscribe(

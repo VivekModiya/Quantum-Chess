@@ -48,16 +48,19 @@ export function animatePieceMove(args: {
 
   gsap.killTweensOf(pieceObject.position)
 
+  // Step 1: Lift the piece up
   gsap.to(pieceObject.position, {
     x: pieceObject.position.x + dx,
     z: pieceObject.position.z + dz,
+    y: pieceObject.position.y + LIFTED_Y_OFFSET,
     duration: 0.4,
     ease: 'power1.inOut',
     onComplete: () => {
+      // Step 3: Lower the piece down
       gsap.to(pieceObject.position, {
-        y: pieceObject.position.y - 3,
+        y: pieceObject.position.y - LIFTED_Y_OFFSET,
         duration: 0.2,
-        ease: 'power1.inOut',
+        ease: 'power1.in',
         onComplete: () => onComplete({}),
       })
     },

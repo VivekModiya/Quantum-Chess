@@ -20,7 +20,7 @@ export const ChessPiece: React.FC<ChessPieceProps> = ({ pieceId }) => {
   const handleClick = React.useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       e.stopPropagation()
-      publish('piece_selected', { pieceId, pieceRef })
+      publish('piece_selected', { pieceId })
     },
     [publish, pieceId]
   )
