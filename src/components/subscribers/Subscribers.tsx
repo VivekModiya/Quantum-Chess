@@ -1,7 +1,7 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import { animatePieceMove, liftPiece, lowerPiece, playSound } from '../../utils'
+import { liftPiece, lowerPiece, playSound } from '../../utils'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
@@ -46,27 +46,18 @@ export const Subscribers = React.memo(() => {
           const type = pieceInfo?.piece
 
           // Make the move first
-          const moveSuccess = makeMove(fromSquare, toSquare)
+          makeMove(fromSquare, toSquare, () => {
+            publish('make_sound', undefined)
 
-          if (moveSuccess) {
-            animatePieceMove({
-              toSquare,
+            // Publish move_completed event after animation finishes
+            publish('move_completed', {
               fromSquare,
-              pieceObject: selectedPiece?.current?.ref?.current,
-              onComplete: () => {
-                publish('make_sound', undefined)
-
-                // Publish move_completed event after animation finishes
-                publish('move_completed', {
-                  fromSquare,
-                  toSquare,
-                  pieceId,
-                  pieceType: type || '',
-                  pieceColor: color || '',
-                })
-              },
+              toSquare,
+              pieceId,
+              pieceType: type || '',
+              pieceColor: color || '',
             })
-          }
+          })
 
           setSelectedPiece(null)
           publish('calculate_legal_moves', { square: null })

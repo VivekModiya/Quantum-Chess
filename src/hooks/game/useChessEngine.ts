@@ -9,13 +9,44 @@ export const useChessEngine = () => {
 
   const chess = useMemo(() => new ChessBoard(state.board), [state.board])
 
+  const pieceRefs = React.useRef<
+    Record<string, React.RefObject<THREE.Group<THREE.Object3DEventMap>>>
+  >({})
+
   const selectedPiece = React.useRef<{
     id: string
     ref: React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null
   } | null>(null)
 
+  const setPieceRef = useCallback(
+    (
+      pieceId: string,
+      ref: React.RefObject<THREE.Group<THREE.Object3DEventMap>>
+    ) => {
+      pieceRefs.current[pieceId] = ref
+    },
+    []
+  )
+
+  const getPieceRef = useCallback(
+    (
+      pieceId: string
+    ): React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null => {
+      return pieceRefs.current[pieceId] || null
+    },
+    []
+  )
+
+  const removePieceRef = useCallback((pieceId: string) => {
+    delete pieceRefs.current[pieceId]
+  }, [])
+
   const makeMove = useCallback(
-    (from: Square | null, to: Square | null): boolean => {
+    (
+      from: Square | null,
+      to: Square | null,
+      onComplete: () => void
+    ): boolean => {
       if (!from || !to) return false
 
       const pieceId = chess.pieceIdAt(from)
@@ -37,7 +68,10 @@ export const useChessEngine = () => {
         return false
       }
 
-      dispatch({ type: 'MAKE_MOVE', payload: { pieceId, from, to } })
+      dispatch({
+        type: 'MAKE_MOVE',
+        payload: { pieceId, from, to, getPieceRef, onComplete },
+      })
 
       return true
     },
@@ -137,5 +171,10 @@ export const useChessEngine = () => {
     getPiece,
     getLegalMoves,
     getPieceSquare,
+
+    // Piece ref management
+    setPieceRef,
+    getPieceRef,
+    removePieceRef,
   }
 }

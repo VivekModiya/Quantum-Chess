@@ -1,5 +1,5 @@
 import { PieceColor } from '../../types'
-import { ChessAction, ChessState } from '../../types/chess'
+import { ChessAction, ChessState, BoardState } from '../../types/chess'
 import { ChessBoard } from '../../utils/chess/ChessBoard'
 import {
   isEnPassantCapture,
@@ -7,6 +7,34 @@ import {
   isCastlingMove,
   getCastlingRookMove,
 } from '../../utils/calculations/calculate'
+import { animatePieceMove } from '../../utils'
+
+/**
+ * Helper function to move a piece to a new square
+ * @param board - Current board state
+ * @param pieceId - ID of the piece to move
+ * @param toSquare - Target square
+ * @returns New board state with the piece moved
+ */
+const movePieceToSquare = (
+  board: BoardState,
+  pieceId: string,
+  toSquare: string
+): BoardState => {
+  const newBoard = { ...board }
+  const piece = newBoard[pieceId]
+
+  if (!piece) {
+    return newBoard
+  }
+
+  newBoard[pieceId] = {
+    ...piece,
+    square: toSquare,
+  }
+
+  return newBoard
+}
 
 /**
  * Initial chess game state
@@ -31,7 +59,7 @@ export const chessReducer = (
 ): ChessState => {
   switch (action.type) {
     case 'MAKE_MOVE': {
-      const { pieceId, from, to } = action.payload
+      const { pieceId, from, to, getPieceRef, onComplete } = action.payload
       const piece = state.board[pieceId]
 
       if (!piece || piece.square !== from) {
@@ -69,10 +97,15 @@ export const chessReducer = (
         }
       }
 
-      newBoard[pieceId] = {
-        ...piece,
-        square: to,
-      }
+      // Move the piece to the new square
+      const boardAfterMove = movePieceToSquare(newBoard, pieceId, to)
+      const kingRef = getPieceRef(pieceId)
+      animatePieceMove({
+        toSquare: to,
+        fromSquare: from,
+        pieceObject: kingRef?.current,
+        onComplete: onComplete,
+      })
 
       // Handle castling - move the rook as well
       if (isCastlingMove({ type: piece.piece, color: piece.color }, from, to)) {
@@ -80,10 +113,18 @@ export const chessReducer = (
         if (rookMove) {
           const rookId = chess.pieceIdAt(rookMove.from)
           if (rookId) {
-            newBoard[rookId] = {
-              ...newBoard[rookId],
-              square: rookMove.to,
-            }
+            Object.assign(
+              boardAfterMove,
+              movePieceToSquare(boardAfterMove, rookId, rookMove.to)
+            )
+
+            const rookRef = getPieceRef(rookId)
+            animatePieceMove({
+              toSquare: rookMove.to,
+              fromSquare: rookMove.from,
+              pieceObject: rookRef?.current,
+              onComplete: onComplete,
+            })
           }
         }
       }
@@ -146,7 +187,7 @@ export const chessReducer = (
 
       const newState = {
         ...state,
-        board: newBoard,
+        board: boardAfterMove,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
         capturedPieces: newCapturedPieces,

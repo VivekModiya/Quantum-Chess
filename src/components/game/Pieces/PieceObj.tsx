@@ -9,7 +9,7 @@ import { usePubSub } from '../../../hooks'
 interface PieceObjectProps {
   pieceId: string
   handleClick: (e: ThreeEvent<MouseEvent>) => void
-  pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>>
+  pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null
 }
 
 const PIECE_SCALE = 1.2

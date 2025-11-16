@@ -1,3 +1,4 @@
+import { Group, Object3DEventMap } from 'three'
 import { PieceColor, PieceType } from './index'
 
 export type Square = string
@@ -53,7 +54,15 @@ export interface ChessState {
 export type ChessAction =
   | {
       type: 'MAKE_MOVE'
-      payload: { pieceId: string; from: Square; to: Square }
+      payload: {
+        pieceId: string
+        from: Square
+        to: Square
+        getPieceRef: (
+          pieceId: string
+        ) => React.RefObject<Group<Object3DEventMap>> | null
+        onComplete: () => void
+      }
     }
   | { type: 'RESET_GAME' }
   | {
