@@ -1,7 +1,7 @@
 export const shadowConfig = true // Enable shadows with default settings (PCFSoftShadowMap)
 
 export const lightingConfig = {
-  ambient: { color: 0x444444, intensity: 4 }, // Increased to lighten shadows
+  ambient: { color: 0x050505, intensity: 1 }, // Increased to lighten shadows
   primarySpotlight: {
     color: 0xffffff,
     intensity: 10,

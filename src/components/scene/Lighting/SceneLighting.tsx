@@ -1,8 +1,40 @@
+import { useRef } from 'react'
+import { useThree, useFrame } from '@react-three/fiber'
+import * as THREE from 'three'
 import { lightingConfig } from '../../../config'
 
 export const SceneLighting: React.FC = () => {
+  const { camera } = useThree()
+  const directionalLightRef = useRef<THREE.DirectionalLight>(null)
+  const targetRef = useRef<THREE.Object3D>(null)
+
+  // Update light position to follow camera orientation
+  useFrame(() => {
+    if (directionalLightRef.current && targetRef.current) {
+      // Get camera direction
+      const cameraDir = new THREE.Vector3()
+      camera.getWorldDirection(cameraDir)
+
+      // Position light above and slightly offset based on camera view
+      // Adjusted for longer shadows at an angle
+      const lightOffset = new THREE.Vector3()
+      lightOffset.copy(cameraDir)
+      lightOffset.multiplyScalar(-50) // Further behind for longer shadows
+      lightOffset.x += 40 // Side offset for angled shadows
+      lightOffset.y = 70 // Higher for longer shadow projection
+
+      directionalLightRef.current.position.copy(lightOffset)
+
+      // Always target the board center
+      targetRef.current.position.set(0, 2.5, 0)
+    }
+  })
+
   return (
     <group>
+      {/* Target for directional light */}
+      <object3D ref={targetRef} position={[0, 2.5, 0]} />
+
       {/* Ambient light */}
       <ambientLight
         color={lightingConfig.ambient.color}
@@ -23,15 +55,16 @@ export const SceneLighting: React.FC = () => {
         shadow-mapSize={[2048, 2048]}
         shadow-camera-near={30}
         shadow-camera-far={150}
-        shadow-bias={-0.0001}
-        shadow-normalBias={0.05}
+        shadow-bias={-0.00001}
+        shadow-normalBias={10} // Larger = softer/lighter
         shadow-radius={8}
       />
 
-      {/* Chess board directional light */}
+      {/* Chess board directional light - follows camera */}
       <directionalLight
+        ref={directionalLightRef}
         position={lightingConfig.chessBoardDirectional.position}
-        target-position={[0, 2.5, 0]}
+        target={targetRef.current || undefined}
         color={lightingConfig.chessBoardDirectional.color}
         intensity={lightingConfig.chessBoardDirectional.intensity}
         castShadow
