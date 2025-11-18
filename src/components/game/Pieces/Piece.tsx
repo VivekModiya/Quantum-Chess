@@ -11,19 +11,24 @@ interface ChessPieceProps {
 export const ChessPiece: React.FC<ChessPieceProps> = ({ pieceId }) => {
   const { publish } = usePubSub()
 
-  const { setPieceRef } = useChess()
+  const { setPieceRef, currentLegalMoves, chess } = useChess()
 
   const pieceRef = React.useRef<THREE.Group>(null)
 
-  React.useEffect(() => setPieceRef(pieceId, pieceRef), [])
+  React.useEffect(() => {
+    setPieceRef(pieceId, pieceRef)
+  }, [])
 
-  const handleClick = React.useCallback(
-    (e: ThreeEvent<MouseEvent>) => {
-      e.stopPropagation()
-      publish('piece_selected', { pieceId })
-    },
-    [publish, pieceId]
-  )
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    const { square } = chess.byId(pieceId) ?? {}
+    // If the current piece is being captured then it will be captured
+    if (square && currentLegalMoves?.includes(square)) {
+      publish('make_move', { toSquare: square })
+    }
+    // else piece will be
+    e.stopPropagation()
+    publish('piece_selected', { pieceId })
+  }
 
   return (
     <PieceObject

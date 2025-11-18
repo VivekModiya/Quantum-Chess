@@ -9,25 +9,52 @@ import { useChess } from '../../../provider'
 interface HighLightProps {
   position: [number, number, number]
   handleClick: (event: ThreeEvent<MouseEvent>) => void
+  square: string
 }
 
 export const HighLight = (props: HighLightProps) => {
-  const { handleClick, position } = props
+  const { handleClick, position, square } = props
+
+  const { currentTurn, chess } = useChess()
+
+  const hasOpponentPiece = React.useMemo(() => {
+    const { color, piece } = chess.at(square) ?? {}
+    if (color !== currentTurn && piece) {
+      return true
+    }
+    return false
+  }, [chess, currentTurn, square])
 
   const color = '#552c00'
+  const captureColor = '#4b4997'
+
   return (
     <group position={position}>
-      {/* Visible circular highlight */}
-      <mesh receiveShadow>
-        <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={0.5}
-          opacity={0.7}
-          transparent={true}
-        />
-      </mesh>
+      {hasOpponentPiece ? (
+        // Square highlight for capture moves
+        <mesh receiveShadow>
+          <boxGeometry args={[10, 0.2, 10]} />
+          <meshStandardMaterial
+            color={captureColor}
+            emissive={captureColor}
+            emissiveIntensity={0.6}
+            opacity={0.5}
+            transparent={true}
+          />
+        </mesh>
+      ) : (
+        // Circular highlight for regular moves
+        <mesh receiveShadow>
+          <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
+          <meshStandardMaterial
+            color={color}
+            emissive={color}
+            emissiveIntensity={0.5}
+            opacity={0.7}
+            transparent={true}
+          />
+        </mesh>
+      )}
 
       {/* Invisible clickable box (slightly larger) */}
       <mesh
@@ -43,16 +70,10 @@ export const HighLight = (props: HighLightProps) => {
 }
 
 export const HighLightedMoves = () => {
-  const [moves, setMoves] = React.useState<string[]>([])
-  const { selectedPiece } = useChess()
+  const { selectedPiece, currentLegalMoves = [] } = useChess()
   const pubsub = usePubSub()
 
-  React.useEffect(() => {
-    const unsubscribe = pubsub.subscribe('legal_move_calculated', params =>
-      setMoves(params.moves)
-    )
-    return unsubscribe
-  }, [pubsub])
+  const moves = currentLegalMoves ?? []
 
   const positions = React.useMemo(() => {
     return moves.map(m => {
@@ -69,6 +90,7 @@ export const HighLightedMoves = () => {
         positions.map(({ position, square }) => (
           <HighLight
             key={square}
+            square={square}
             position={position as [number, number, number]}
             handleClick={e => {
               e.stopPropagation()

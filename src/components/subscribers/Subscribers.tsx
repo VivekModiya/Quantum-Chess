@@ -14,13 +14,14 @@ export const Subscribers = React.memo(() => {
     makeMove,
     promotePawn,
     currentTurn,
+    setCurrentLegalMoves,
   } = useChess()
 
   React.useEffect(() => {
     const unsubscribe = [
       subscribe('calculate_legal_moves', ({ square }) => {
         const moves = getLegalMoves(square)
-        publish('legal_move_calculated', { moves })
+        setCurrentLegalMoves(moves)
       }),
       subscribe('piece_selected', ({ pieceId }) => {
         const pieceData = chess.byId(pieceId)

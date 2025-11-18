@@ -7,6 +7,9 @@ import { ChessBoard, generateLegalMoves } from '../../utils'
 export const useChessEngine = () => {
   const [state, dispatch] = useReducer(chessReducer, initialState)
   const [selectedPiece, setSelectedPiece] = React.useState<string | null>(null)
+  const [currentLegalMoves, setCurrentLegalMoves] = React.useState<
+    string[] | null
+  >(null)
 
   const chess = useMemo(() => new ChessBoard(state.board), [state.board])
 
@@ -140,17 +143,29 @@ export const useChessEngine = () => {
     [chess, state.currentTurn, state.enPassantTarget, state.castlingRights]
   )
 
+  const _setSelectedPiece = React.useCallback(
+    (val: React.SetStateAction<string | null>) => {
+      if (!val) {
+        setCurrentLegalMoves(null)
+      }
+      setSelectedPiece(val)
+    },
+    [setCurrentLegalMoves, setSelectedPiece]
+  )
+
   return {
     board: state.board,
     currentTurn: state.currentTurn,
     selectedPiece,
-    setSelectedPiece,
+    currentLegalMoves,
     capturedPieces: state.capturedPieces,
 
     chess,
 
     makeMove,
     promotePawn,
+    setSelectedPiece: _setSelectedPiece,
+    setCurrentLegalMoves,
 
     getPiece,
     getLegalMoves,
