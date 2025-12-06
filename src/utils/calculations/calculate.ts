@@ -588,7 +588,11 @@ export const isCheckmate = (
   enPassantTarget?: string | null,
   castlingRights?: CastlingRights
 ): boolean => {
-  if (!isInCheck(board, color)) return false
+  const inCheck = isInCheck(board, color)
+
+  if (!inCheck) {
+    return false
+  }
 
   // Check if any piece has legal moves
   for (const [square, piece] of board.entries()) {
@@ -600,7 +604,9 @@ export const isCheckmate = (
         enPassantTarget,
         castlingRights
       )
-      if (legalMoves.length > 0) return false
+      if (legalMoves.length > 0) {
+        return false
+      }
     }
   }
 
@@ -613,7 +619,11 @@ export const isStalemate = (
   enPassantTarget?: string | null,
   castlingRights?: CastlingRights
 ): boolean => {
-  if (isInCheck(board, color)) return false
+  const inCheck = isInCheck(board, color)
+
+  if (inCheck) {
+    return false
+  }
 
   // Check if any piece has legal moves
   const allLegalMoves = getAllLegalMoves(
@@ -622,6 +632,7 @@ export const isStalemate = (
     enPassantTarget,
     castlingRights
   )
+
   if (allLegalMoves.length > 0) {
     return false
   }

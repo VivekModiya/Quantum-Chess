@@ -18,6 +18,7 @@ import {
 } from '../components'
 import styles from './index.module.scss'
 import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
+import { GameOverDialog } from '../components/ui/Portals/GameOverDialog'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
@@ -51,6 +52,7 @@ export const App = () => {
         <Instructions isVisible={!isLocked} />
         <Crosshair isVisible={isLocked} />
         <PawnPromotionDialog />
+        <GameOverDialog />
       </div>
     </ChessProvider>
   )

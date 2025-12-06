@@ -153,17 +153,26 @@ export const useChessEngine = () => {
     [setCurrentLegalMoves, setSelectedPiece]
   )
 
+  const resetGame = useCallback(() => {
+    dispatch({ type: 'RESET_GAME' })
+    setSelectedPiece(null)
+    setCurrentLegalMoves(null)
+  }, [])
+
   return {
     board: state.board,
     currentTurn: state.currentTurn,
     selectedPiece,
     currentLegalMoves,
     capturedPieces: state.capturedPieces,
+    enPassantTarget: state.enPassantTarget,
+    castlingRights: state.castlingRights,
 
     chess,
 
     makeMove,
     promotePawn,
+    resetGame,
     setSelectedPiece: _setSelectedPiece,
     setCurrentLegalMoves,
 

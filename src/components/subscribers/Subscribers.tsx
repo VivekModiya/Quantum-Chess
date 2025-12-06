@@ -1,7 +1,8 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import { playSound } from '../../utils'
+import { playSound, isCheckmate, isStalemate } from '../../utils'
+import { PieceColor } from '../../types'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
@@ -13,8 +14,11 @@ export const Subscribers = React.memo(() => {
     getPieceSquare,
     makeMove,
     promotePawn,
+    resetGame,
     currentTurn,
     setCurrentLegalMoves,
+    enPassantTarget,
+    castlingRights,
   } = useChess()
 
   React.useEffect(() => {
@@ -71,7 +75,38 @@ export const Subscribers = React.memo(() => {
               (pieceColor === 'black' && rank === 1)
             ) {
               publish('open_promotion_dialog', { pieceId, toSquare })
+              return // Don't check game over during promotion
             }
+          }
+
+          // Check for checkmate or stalemate after move
+          // Note: currentTurn has already switched to the next player in the reducer
+          // So currentTurn is the player who needs to move now (potential victim)
+          // pieceColor is the player who just moved (potential winner)
+          const boardMap = chess.toMap()
+
+          const isInCheckmate = isCheckmate(
+            boardMap,
+            currentTurn,
+            enPassantTarget,
+            castlingRights
+          )
+          const isInStalemate = isStalemate(
+            boardMap,
+            currentTurn,
+            enPassantTarget,
+            castlingRights
+          )
+
+          if (isInCheckmate) {
+            publish('game_over', {
+              type: 'checkmate',
+              winner: pieceColor as PieceColor,
+            })
+          } else if (isInStalemate) {
+            publish('game_over', {
+              type: 'stalemate',
+            })
           }
         }
       ),
@@ -80,6 +115,9 @@ export const Subscribers = React.memo(() => {
       ),
       subscribe('make_sound', () => {
         playSound('move')
+      }),
+      subscribe('game_reset', () => {
+        resetGame()
       }),
     ]
     return () => unsubscribe.forEach(us => us())
@@ -91,9 +129,13 @@ export const Subscribers = React.memo(() => {
     getPieceSquare,
     makeMove,
     promotePawn,
+    resetGame,
     currentTurn,
     subscribe,
     publish,
+    enPassantTarget,
+    castlingRights,
+    setCurrentLegalMoves,
   ])
   return null
 })
