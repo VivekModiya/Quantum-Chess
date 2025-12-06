@@ -31,17 +31,17 @@ export const Board: React.FC<ChessBoardProps> = ({
         // Load single chess board image
         const boardImage = await loadImage('/textures/boardTexture.jpg')
 
-        // Create canvas with board image
+        // Create canvas with optimized size
         const boardCanvas = document.createElement('canvas')
-        boardCanvas.width = boardImage.width
-        boardCanvas.height = boardImage.height
+        boardCanvas.width = 1024
+        boardCanvas.height = 1024
         const ctx = boardCanvas.getContext('2d')!
 
         ctx.imageSmoothingEnabled = true
         ctx.imageSmoothingQuality = 'high'
 
-        // Draw the board image
-        ctx.drawImage(boardImage, 0, 0)
+        // Draw the board image scaled to canvas size
+        ctx.drawImage(boardImage, 0, 0, 1024, 1024)
 
         ctx.save()
         ctx.globalCompositeOperation = 'multiply'
@@ -86,8 +86,8 @@ export const Board: React.FC<ChessBoardProps> = ({
 
   const frameTexture = React.useMemo(() => {
     const canvas = document.createElement('canvas')
-    const frameSize = frameWidth * 64
-    const boardSize = 5000
+    const frameSize = frameWidth * 32
+    const boardSize = 1024
     const total = boardSize + frameSize * 2
 
     canvas.width = canvas.height = total

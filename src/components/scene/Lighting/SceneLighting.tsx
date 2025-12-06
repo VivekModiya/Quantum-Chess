@@ -7,21 +7,26 @@ export const SceneLighting: React.FC = () => {
   const { camera } = useThree()
   const directionalLightRef = useRef<THREE.DirectionalLight>(null)
   const targetRef = useRef<THREE.Object3D>(null)
+  const frameCount = useRef(0)
 
-  // Update light position to follow camera orientation
+  // Update light position to follow camera orientation (throttled for performance)
   useFrame(() => {
+    frameCount.current++
+
+    // Update every 3rd frame for performance
+    if (frameCount.current % 3 !== 0) return
+
     if (directionalLightRef.current && targetRef.current) {
       // Get camera direction
       const cameraDir = new THREE.Vector3()
       camera.getWorldDirection(cameraDir)
 
       // Position light above and slightly offset based on camera view
-      // Adjusted for longer shadows at an angle
       const lightOffset = new THREE.Vector3()
       lightOffset.copy(cameraDir)
-      lightOffset.multiplyScalar(-50) // Further behind for longer shadows
-      lightOffset.x += 40 // Side offset for angled shadows
-      lightOffset.y = 70 // Higher for longer shadow projection
+      lightOffset.multiplyScalar(-50)
+      lightOffset.x += 40
+      lightOffset.y = 70
 
       directionalLightRef.current.position.copy(lightOffset)
 
@@ -52,11 +57,11 @@ export const SceneLighting: React.FC = () => {
         distance={lightingConfig.primarySpotlight.distance}
         decay={lightingConfig.primarySpotlight.decay}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1048, 1048]}
         shadow-camera-near={30}
         shadow-camera-far={150}
         shadow-bias={-0.00001}
-        shadow-normalBias={10} // Larger = softer/lighter
+        shadow-normalBias={10}
         shadow-radius={8}
       />
 
@@ -77,7 +82,7 @@ export const SceneLighting: React.FC = () => {
         shadow-camera-far={120}
         shadow-bias={-0.00005}
         shadow-normalBias={0.08}
-        shadow-radius={6}
+        shadow-radius={8}
       />
 
       {/* Piece detail light */}

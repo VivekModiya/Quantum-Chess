@@ -132,7 +132,25 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     const yOffset = -rotatedBox.min.y
 
     return { modifiedScene: clonedScene, centerOffset, yOffset }
-  }, [scene, colorHash, piece])
+  }, [scene, colorHash])
+
+  // Cleanup effect to dispose of materials and geometries when component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (modifiedScene) {
+        modifiedScene.traverse(child => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry?.dispose()
+            if (Array.isArray(child.material)) {
+              child.material.forEach(mat => mat.dispose())
+            } else {
+              child.material?.dispose()
+            }
+          }
+        })
+      }
+    }
+  }, [modifiedScene])
 
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {
@@ -161,6 +179,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       rotation={[-Math.PI / 2, 0, pieceRotation]}
       castShadow
       receiveShadow
+      frustumCulled={true}
       userData={{
         piece,
         color,

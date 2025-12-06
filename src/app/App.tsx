@@ -37,6 +37,8 @@ export const App = () => {
           gl={renderConfig}
           shadows={shadowConfig}
           style={{ background: '#a76100ff' }}
+          performance={{ min: 0.5 }}
+          dpr={[1, 2]}
         >
           <Suspense fallback={<Loader />}>
             <SceneLighting />

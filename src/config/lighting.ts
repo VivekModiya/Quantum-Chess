@@ -40,8 +40,8 @@ export const lightingConfig = {
     },
   ],
   hemisphere: {
-    skyColor: 0x87ceeb,
-    groundColor: 0x2d1b0f,
-    intensity: 0.5, // Increased to add more ambient fill light
+    skyColor: '#623200',
+    groundColor: '#63441e',
+    intensity: 2,
   },
 } as const
