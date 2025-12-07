@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { Text3D } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
+import { useChess } from '../../../provider'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const RANKS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -38,6 +39,8 @@ export function BoardCoordinates() {
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
 
+  const { settings } = useChess()
+
   const material = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -64,6 +67,10 @@ export function BoardCoordinates() {
       },
     }
   }, [size, squareSize, textSize, offset])
+
+  if (!settings.showNotations) {
+    return null
+  }
 
   // @ts-ignore
   const createText3D = (content, position, rotation, key) => (

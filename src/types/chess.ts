@@ -42,6 +42,13 @@ export interface CastlingRights {
   blackQueenside: boolean
 }
 
+export interface GameSettings {
+  soundEffects: boolean
+  showNotations: boolean
+  highlightMoves: boolean
+  autoQueenPromotion: boolean
+}
+
 export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
@@ -49,6 +56,7 @@ export interface ChessState {
   capturedPieces: BoardPiece[] // Array of captured pieces with their info
   enPassantTarget: Square | null // Square where en passant capture is possible
   castlingRights: CastlingRights // Tracks which castling moves are still legal
+  settings: GameSettings // Game configuration settings
 }
 
 export type ChessAction =
@@ -68,4 +76,8 @@ export type ChessAction =
   | {
       type: 'PROMOTE_PAWN'
       payload: { pieceId: string; targetPiece: PieceType }
+    }
+  | {
+      type: 'UPDATE_SETTINGS'
+      payload: Partial<GameSettings>
     }

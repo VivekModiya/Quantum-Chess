@@ -19,6 +19,7 @@ export const Subscribers = React.memo(() => {
     setCurrentLegalMoves,
     enPassantTarget,
     castlingRights,
+    settings,
   } = useChess()
 
   React.useEffect(() => {
@@ -70,10 +71,15 @@ export const Subscribers = React.memo(() => {
           if (pieceType === 'pawn') {
             const coords = chess.coords(toSquare)
             const rank = coords?.rank
+
             if (
               (pieceColor === 'white' && rank === 8) ||
               (pieceColor === 'black' && rank === 1)
             ) {
+              if (settings.autoQueenPromotion) {
+                promotePawn(toSquare, 'queen', pieceId)
+                return
+              }
               publish('open_promotion_dialog', { pieceId, toSquare })
               return // Don't check game over during promotion
             }
@@ -114,7 +120,9 @@ export const Subscribers = React.memo(() => {
         promotePawn(toSquare, piece, pieceId)
       ),
       subscribe('make_sound', () => {
-        playSound('move')
+        if (settings.soundEffects) {
+          playSound('move')
+        }
       }),
       subscribe('game_reset', () => {
         resetGame()

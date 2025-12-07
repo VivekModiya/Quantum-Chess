@@ -1,3 +1,4 @@
+import { usePubSub } from '../../../hooks'
 import { useChess } from '../../../provider'
 import { BoardPiece, PieceType } from '../../../types'
 import styles from './index.module.scss'
@@ -5,8 +6,7 @@ import { useState } from 'react'
 
 export const CapturedPieces = () => {
   const { capturedPieces } = useChess()
-  const [whiteScrollIndex, setWhiteScrollIndex] = useState(0)
-  const [blackScrollIndex, setBlackScrollIndex] = useState(0)
+  const { publish } = usePubSub()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // Group captured pieces by the player who captured them
@@ -25,15 +25,6 @@ export const CapturedPieces = () => {
   })
 
   const order: PieceType[] = ['pawn', 'bishop', 'knight', 'rook', 'queen']
-
-  const handleWhitePrev = () =>
-    setWhiteScrollIndex(prev => Math.max(0, prev - 1))
-  const handleWhiteNext = () =>
-    setWhiteScrollIndex(prev => Math.min(whiteCaptured.length - 1, prev + 1))
-  const handleBlackPrev = () =>
-    setBlackScrollIndex(prev => Math.max(0, prev - 1))
-  const handleBlackNext = () =>
-    setBlackScrollIndex(prev => Math.min(blackCaptured.length - 1, prev + 1))
 
   const toggleMenu = () => setIsMenuOpen(prev => !prev)
 
@@ -103,14 +94,28 @@ export const CapturedPieces = () => {
         </button>
         {isMenuOpen && (
           <div className={styles.menuDropdown}>
-            <button className={styles.menuItem}>Resign</button>
-            <button className={styles.menuItem}>Draw</button>
+            <button
+              className={styles.menuItem}
+              onClick={() => {
+                publish('game_over', { type: 'checkmate', winner: 'white' })
+              }}
+            >
+              Resign
+            </button>
+            <button
+              className={styles.menuItem}
+              onClick={() => {
+                publish('game_over', { type: 'draw' })
+              }}
+            >
+              Draw
+            </button>
           </div>
         )}
         <div className={styles.chevronButtons}>
           <button
             className={`${styles.chevronBtn} ${styles.left}`}
-            onClick={handleBlackPrev}
+            onClick={() => {}}
           >
             <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
               <path
@@ -124,7 +129,7 @@ export const CapturedPieces = () => {
           </button>
           <button
             className={`${styles.chevronBtn} ${styles.right}`}
-            onClick={handleBlackNext}
+            onClick={() => {}}
           >
             <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
               <path

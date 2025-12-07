@@ -203,6 +203,12 @@ export const initialState: ChessState = {
     blackKingside: true,
     blackQueenside: true,
   },
+  settings: {
+    soundEffects: true,
+    showNotations: true,
+    highlightMoves: true,
+    autoQueenPromotion: false,
+  },
 }
 
 export const chessReducer = (
@@ -297,6 +303,16 @@ export const chessReducer = (
       return {
         ...state,
         board: newBoard,
+      }
+    }
+
+    case 'UPDATE_SETTINGS': {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.payload,
+        },
       }
     }
 

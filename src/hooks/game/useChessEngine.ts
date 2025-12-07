@@ -2,6 +2,7 @@ import React, { useCallback, useReducer, useMemo } from 'react'
 
 import { chessReducer, initialState } from './chessReducer'
 import { BoardPiece, PromotablePiece, Square } from '../../types'
+import { GameSettings } from '../../types/chess'
 import { ChessBoard, generateLegalMoves } from '../../utils'
 
 export const useChessEngine = () => {
@@ -159,6 +160,10 @@ export const useChessEngine = () => {
     setCurrentLegalMoves(null)
   }, [])
 
+  const updateSettings = useCallback((settings: Partial<GameSettings>) => {
+    dispatch({ type: 'UPDATE_SETTINGS', payload: settings })
+  }, [])
+
   return {
     board: state.board,
     currentTurn: state.currentTurn,
@@ -167,12 +172,14 @@ export const useChessEngine = () => {
     capturedPieces: state.capturedPieces,
     enPassantTarget: state.enPassantTarget,
     castlingRights: state.castlingRights,
+    settings: state.settings,
 
     chess,
 
     makeMove,
     promotePawn,
     resetGame,
+    updateSettings,
     setSelectedPiece: _setSelectedPiece,
     setCurrentLegalMoves,
 

@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import styles from './index.module.scss'
+import { useChess } from '../../../provider'
 
 export const Settings = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const { settings, updateSettings } = useChess()
 
   const toggleSettings = () => setIsOpen(prev => !prev)
+
+  const handleToggle = (key: keyof typeof settings) => {
+    updateSettings({ [key]: !settings[key] })
+  }
 
   return (
     <>
@@ -45,19 +51,35 @@ export const Settings = () => {
           <div className={styles.settingsContent}>
             <div className={styles.settingItem}>
               <label>Sound Effects</label>
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={settings.soundEffects}
+                onChange={() => handleToggle('soundEffects')}
+              />
             </div>
             <div className={styles.settingItem}>
               <label>Show Notations</label>
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={settings.showNotations}
+                onChange={() => handleToggle('showNotations')}
+              />
             </div>
             <div className={styles.settingItem}>
               <label>Highlight Moves</label>
-              <input type="checkbox" defaultChecked />
+              <input
+                type="checkbox"
+                checked={settings.highlightMoves}
+                onChange={() => handleToggle('highlightMoves')}
+              />
             </div>
             <div className={styles.settingItem}>
               <label>Auto Queen Promotion</label>
-              <input type="checkbox" />
+              <input
+                type="checkbox"
+                checked={settings.autoQueenPromotion}
+                onChange={() => handleToggle('autoQueenPromotion')}
+              />
             </div>
           </div>
         </div>

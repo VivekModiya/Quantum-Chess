@@ -15,7 +15,7 @@ interface HighLightProps {
 export const HighLight = (props: HighLightProps) => {
   const { handleClick, position, square } = props
 
-  const { currentTurn, chess } = useChess()
+  const { currentTurn, chess, settings } = useChess()
 
   const hasOpponentPiece = React.useMemo(() => {
     const { color, piece } = chess.at(square) ?? {}
@@ -30,30 +30,34 @@ export const HighLight = (props: HighLightProps) => {
 
   return (
     <group position={position}>
-      {hasOpponentPiece ? (
-        // Square highlight for capture moves
-        <mesh receiveShadow>
-          <boxGeometry args={[10, 0.2, 10]} />
-          <meshStandardMaterial
-            color={captureColor}
-            emissive={captureColor}
-            emissiveIntensity={0.6}
-            opacity={0.5}
-            transparent={true}
-          />
-        </mesh>
-      ) : (
-        // Circular highlight for regular moves
-        <mesh receiveShadow>
-          <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
-          <meshStandardMaterial
-            color={color}
-            emissive={color}
-            emissiveIntensity={0.5}
-            opacity={0.7}
-            transparent={true}
-          />
-        </mesh>
+      {settings.highlightMoves && (
+        <>
+          {hasOpponentPiece ? (
+            // Square highlight for capture moves
+            <mesh receiveShadow>
+              <boxGeometry args={[10, 0.2, 10]} />
+              <meshStandardMaterial
+                color={captureColor}
+                emissive={captureColor}
+                emissiveIntensity={0.6}
+                opacity={0.5}
+                transparent={true}
+              />
+            </mesh>
+          ) : (
+            // Circular highlight for regular moves
+            <mesh receiveShadow>
+              <cylinderGeometry args={[2.5, 2.5, 0.2, 32]} />
+              <meshStandardMaterial
+                color={color}
+                emissive={color}
+                emissiveIntensity={0.5}
+                opacity={0.7}
+                transparent={true}
+              />
+            </mesh>
+          )}
+        </>
       )}
 
       {/* Invisible clickable box (slightly larger) */}
