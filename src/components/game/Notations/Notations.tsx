@@ -88,14 +88,17 @@ export function BoardCoordinates() {
     <group>
       {/* Files (letters) */}
       {/* South side - normal order */}
-      {positions.files.map((x, i) =>
-        createText3D(
-          FILES[i],
-          [x, textY, positions.boundaries.south],
-          ROTATIONS.flat,
-          `file-south-${i}`
-        )
-      )}
+      {positions.files
+        .slice()
+        .reverse()
+        .map((x, i) =>
+          createText3D(
+            FILES[i],
+            [x, textY, positions.boundaries.south],
+            ROTATIONS.flat,
+            `file-south-${i}`
+          )
+        )}
 
       {/* North side - reversed order */}
       {positions.files.map((x, i) =>
@@ -119,14 +122,17 @@ export function BoardCoordinates() {
       )}
 
       {/* East side */}
-      {positions.ranks.map((z, i) =>
-        createText3D(
-          String(RANKS[7 - i]),
-          [positions.boundaries.east, textY, z - halfText],
-          ROTATIONS.flatReverse,
-          `rank-east-${i}`
-        )
-      )}
+      {positions.ranks
+        .slice()
+        .reverse()
+        .map((z, i) =>
+          createText3D(
+            String(RANKS[7 - i]),
+            [positions.boundaries.east, textY, z - halfText],
+            ROTATIONS.flatReverse,
+            `rank-east-${i}`
+          )
+        )}
     </group>
   )
 }

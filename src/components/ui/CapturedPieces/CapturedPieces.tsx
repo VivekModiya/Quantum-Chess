@@ -7,6 +7,7 @@ export const CapturedPieces = () => {
   const { capturedPieces } = useChess()
   const [whiteScrollIndex, setWhiteScrollIndex] = useState(0)
   const [blackScrollIndex, setBlackScrollIndex] = useState(0)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   // Group captured pieces by the player who captured them
   // If a white piece is captured, black captured it
@@ -33,6 +34,8 @@ export const CapturedPieces = () => {
     setBlackScrollIndex(prev => Math.max(0, prev - 1))
   const handleBlackNext = () =>
     setBlackScrollIndex(prev => Math.min(blackCaptured.length - 1, prev + 1))
+
+  const toggleMenu = () => setIsMenuOpen(prev => !prev)
 
   return (
     <div className={styles.mainContainer}>
@@ -75,35 +78,65 @@ export const CapturedPieces = () => {
           </div>
         </div>
       </div>
-      <div className={styles.chevronButtons}>
-        <button
-          className={`${styles.chevronBtn} ${styles.left}`}
-          onClick={handleBlackPrev}
-        >
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+      <div className={styles.controlButtons}>
+        <button className={styles.burgerBtn} onClick={toggleMenu}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
-              d="M10 12L6 8L10 4"
+              d="M3 12H21"
               stroke="white"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
             />
-          </svg>
-        </button>
-        <button
-          className={`${styles.chevronBtn} ${styles.right}`}
-          onClick={handleBlackNext}
-        >
-          <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
             <path
-              d="M6 4L10 8L6 12"
+              d="M3 6H21"
               stroke="white"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
+            />
+            <path
+              d="M3 18H21"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
             />
           </svg>
         </button>
+        {isMenuOpen && (
+          <div className={styles.menuDropdown}>
+            <button className={styles.menuItem}>Resign</button>
+            <button className={styles.menuItem}>Draw</button>
+          </div>
+        )}
+        <div className={styles.chevronButtons}>
+          <button
+            className={`${styles.chevronBtn} ${styles.left}`}
+            onClick={handleBlackPrev}
+          >
+            <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M10 12L6 8L10 4"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          <button
+            className={`${styles.chevronBtn} ${styles.right}`}
+            onClick={handleBlackNext}
+          >
+            <svg width="32" height="32" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M6 4L10 8L6 12"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   )

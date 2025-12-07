@@ -16,6 +16,7 @@ import {
   SceneLighting,
   Subscribers,
   CapturedPieces,
+  Settings,
 } from '../components'
 import styles from './index.module.scss'
 import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
@@ -52,6 +53,7 @@ export const App = () => {
         <PointerPosition isVisible={isLocked} />
         <Instructions isVisible={!isLocked} />
         <Crosshair isVisible={isLocked} />
+        <Settings />
         <CapturedPieces />
         <PawnPromotionDialog />
         <GameOverDialog />
