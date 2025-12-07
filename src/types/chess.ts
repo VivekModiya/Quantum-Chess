@@ -46,7 +46,7 @@ export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
   lastMove: LastMove | null
-  capturedPieces: string[] // Array of captured piece IDs
+  capturedPieces: BoardPiece[] // Array of captured pieces with their info
   enPassantTarget: Square | null // Square where en passant capture is possible
   castlingRights: CastlingRights // Tracks which castling moves are still legal
 }

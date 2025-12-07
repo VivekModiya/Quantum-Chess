@@ -4,6 +4,7 @@ import {
   ChessState,
   BoardState,
   CastlingRights,
+  BoardPiece,
 } from '../../types/chess'
 import { ChessBoard } from '../../utils/chess/ChessBoard'
 import {
@@ -40,14 +41,17 @@ const handleCaptures = (
   piece: { piece: string; color: PieceColor },
   to: string,
   enPassantTarget: string | null
-): { newBoard: BoardState; capturedPieceIds: string[] } => {
+): { newBoard: BoardState; capturedPieces: BoardPiece[] } => {
   const newBoard = { ...board }
-  const capturedPieceIds: string[] = []
+  const capturedPieces: BoardPiece[] = []
 
   // Regular capture
   const capturedPieceId = chess.pieceIdAt(to)
   if (capturedPieceId) {
-    capturedPieceIds.push(capturedPieceId)
+    const capturedPiece = newBoard[capturedPieceId]
+    if (capturedPiece) {
+      capturedPieces.push(capturedPiece)
+    }
     delete newBoard[capturedPieceId]
   }
 
@@ -62,12 +66,15 @@ const handleCaptures = (
     const capturedPawnSquare = getEnPassantCapturedPawnSquare(to, piece.color)
     const capturedPawnId = chess.pieceIdAt(capturedPawnSquare)
     if (capturedPawnId) {
-      capturedPieceIds.push(capturedPawnId)
+      const capturedPawn = newBoard[capturedPawnId]
+      if (capturedPawn) {
+        capturedPieces.push(capturedPawn)
+      }
       delete newBoard[capturedPawnId]
     }
   }
 
-  return { newBoard, capturedPieceIds }
+  return { newBoard, capturedPieces }
 }
 
 const handleCastling = (
@@ -213,7 +220,7 @@ export const chessReducer = (
 
       const chess = new ChessBoard(state.board)
 
-      const { newBoard, capturedPieceIds } = handleCaptures(
+      const { newBoard, capturedPieces } = handleCaptures(
         state.board,
         chess,
         piece,
@@ -253,7 +260,7 @@ export const chessReducer = (
         piece,
         from,
         to,
-        capturedPieceIds[0] || null
+        capturedPieces[0] ? 'captured' : null
       )
 
       const nextTurn: PieceColor =
@@ -264,7 +271,7 @@ export const chessReducer = (
         board: boardAfterMove,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
-        capturedPieces: [...state.capturedPieces, ...capturedPieceIds],
+        capturedPieces: [...state.capturedPieces, ...capturedPieces],
         enPassantTarget: newEnPassantTarget,
         castlingRights: newCastlingRights,
       }
