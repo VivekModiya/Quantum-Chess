@@ -3,7 +3,12 @@ import React, { useCallback, useReducer, useMemo } from 'react'
 import { chessReducer, initialState } from './chessReducer'
 import { BoardPiece, PromotablePiece, Square } from '../../types'
 import { GameSettings } from '../../types/chess'
-import { ChessBoard, generateLegalMoves } from '../../utils'
+import {
+  ChessBoard,
+  generateLegalMoves,
+  isInCheck,
+  findKing,
+} from '../../utils'
 
 export const useChessEngine = () => {
   const [state, dispatch] = useReducer(chessReducer, initialState)
@@ -13,6 +18,16 @@ export const useChessEngine = () => {
   >(null)
 
   const chess = useMemo(() => new ChessBoard(state.board), [state.board])
+
+  // Check if current player's king is in check
+  const kingInCheckSquare = useMemo(() => {
+    const boardMap = chess.toMap()
+    const inCheck = isInCheck(boardMap, state.currentTurn)
+    if (inCheck) {
+      return findKing(boardMap, state.currentTurn)
+    }
+    return null
+  }, [chess, state.currentTurn])
 
   const pieceRefs = React.useRef<
     Record<string, React.RefObject<THREE.Group<THREE.Object3DEventMap>>>
@@ -174,6 +189,7 @@ export const useChessEngine = () => {
     castlingRights: state.castlingRights,
     settings: state.settings,
     lastMoveSquares: state.lastMoveSquares,
+    kingInCheckSquare,
 
     chess,
 

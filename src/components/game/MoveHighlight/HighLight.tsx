@@ -13,6 +13,7 @@ const moveHightlightColor = '#552c00'
 const captureColor = '#4b4997'
 const selectedPieceHighlightColor = '#a07b00'
 const lastMoveHighlightColor = '#ae3232'
+const checkHighlightColor = '#ff0000'
 
 export const HighLightedMoves = () => {
   const {
@@ -22,6 +23,7 @@ export const HighLightedMoves = () => {
     currentTurn,
     settings,
     lastMoveSquares,
+    kingInCheckSquare,
   } = useChess()
   const pubsub = usePubSub()
 
@@ -103,12 +105,25 @@ export const HighLightedMoves = () => {
             )
           }
 
+          // Show king in check highlight
+          if (kingInCheckSquare === square && settings.highlightMoves) {
+            return (
+              <SquareHighlight
+                key={`check-${square}`}
+                color={checkHighlightColor}
+                position={position}
+                opacity={1}
+              />
+            )
+          }
+
           if (
             lastMoveSquares &&
             (lastMoveSquares.from === square || lastMoveSquares.to === square)
           ) {
             return (
               <BorderHighlight
+                key={`last-move-${square}`}
                 color={lastMoveHighlightColor}
                 position={position}
               />
@@ -131,7 +146,5 @@ export const HighLightedMoves = () => {
         })()}
       </group>
     )
-
-    return null
   })
 }

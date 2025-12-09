@@ -1,10 +1,12 @@
 export interface SquareHighlightProps {
   color: string
   position: [number, number, number]
+  emissiveIntensity?: number
+  opacity?: number
 }
 
 export const SquareHighlight = (props: SquareHighlightProps) => {
-  const { color } = props
+  const { color, emissiveIntensity = 0.6, opacity = 0.5 } = props
 
   return (
     <mesh receiveShadow>
@@ -12,8 +14,8 @@ export const SquareHighlight = (props: SquareHighlightProps) => {
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={0.6}
-        opacity={0.5}
+        emissiveIntensity={emissiveIntensity}
+        opacity={opacity}
         transparent={true}
       />
     </mesh>
