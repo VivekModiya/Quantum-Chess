@@ -12,7 +12,7 @@ import { BorderHighlight } from './BorderHighlight'
 const moveHightlightColor = '#552c00'
 const captureColor = '#4b4997'
 const selectedPieceHighlightColor = '#a07b00'
-const lastMoveHighlightColor = '#ae3232'
+const lastMoveHighlightColor = '#ae5532'
 const checkHighlightColor = '#ff0000'
 
 export const HighLightedMoves = () => {
