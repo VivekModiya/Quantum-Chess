@@ -75,8 +75,8 @@ class PointerLockControls {
       (event as any).webkitMovementY ||
       0
 
-    this.yawObject.rotation.y -= movementX * 0.002
-    this.pitchObject.rotation.x -= movementY * 0.002
+    this.yawObject.rotation.y -= movementX * 0.00001
+    this.pitchObject.rotation.x -= movementY * 0.00001
     this.pitchObject.rotation.x = Math.max(
       -Math.PI / 2,
       Math.min(Math.PI / 2, this.pitchObject.rotation.x)

@@ -7,19 +7,20 @@ import { useMovement } from '../../../hooks/three'
 interface MovementControlsProps {
   isLocked: boolean
   setIsLocked: (locked: boolean) => void
+  onResetView?: (resetFn: () => void) => void
 }
 
 export const MovementControls: React.FC<MovementControlsProps> = ({
   isLocked,
   setIsLocked,
+  onResetView,
 }) => {
-  const { camera } = useThree()
+  const { camera, gl } = useThree()
   const pointerLockControlsRef = useRef<any>(null)
   const orbitControlsRef = useRef<any>(null)
   const roomObjectsRef = useRef<THREE.Object3D[]>([])
 
   const [controlMode, setControlMode] = useState<'orbit' | 'fps'>('orbit')
-  const [isShiftPressed, setIsShiftPressed] = useState(false)
 
   // Store camera state for seamless transitions
   const cameraStateRef = useRef<{
@@ -34,84 +35,176 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
 
   const { updateMovement } = useMovement(pointerLockControlsRef, roomObjectsRef)
 
-  // Handle shift key for immediate mode switching
+  // Track if we're waiting to lock on next click
+  const pendingLockRef = useRef(false)
+
+  // Animation state for camera reset
+  const animationRef = useRef<{
+    isAnimating: boolean
+    startPosition: THREE.Vector3
+    startTarget: THREE.Vector3
+    endPosition: THREE.Vector3
+    endTarget: THREE.Vector3
+    startTime: number
+    duration: number
+  } | null>(null)
+
+  // Expose reset view function to parent
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-        if (!isShiftPressed) {
-          // Only trigger on first press
-          setIsShiftPressed(true)
+    if (onResetView) {
+      const resetView = () => {
+        if (orbitControlsRef.current && controlMode === 'orbit') {
+          // Start animation from current position to default
+          const currentPosition = camera.position.clone()
+          const currentTarget = orbitControlsRef.current.target.clone()
+          const targetPosition = new THREE.Vector3(0, 900, -900)
+          const targetCenter = new THREE.Vector3(0, 0, 0)
 
-          // Save current camera state before switching to FPS
-          if (orbitControlsRef.current) {
-            cameraStateRef.current.position.copy(camera.position)
-            cameraStateRef.current.rotation.copy(camera.rotation)
-            cameraStateRef.current.target.copy(orbitControlsRef.current.target)
+          animationRef.current = {
+            isAnimating: true,
+            startPosition: currentPosition,
+            startTarget: currentTarget,
+            endPosition: targetPosition,
+            endTarget: targetCenter,
+            startTime: performance.now(),
+            duration: 1000, // 1 second animation
           }
-
-          setControlMode('fps')
-          // Immediately lock pointer when Shift is pressed
-          setTimeout(() => {
-            if (pointerLockControlsRef.current) {
-              pointerLockControlsRef.current.lock()
-              setIsLocked(true)
-            }
-          }, 0)
         }
       }
+      onResetView(resetView)
     }
+  }, [onResetView, camera, controlMode])
 
-    const handleKeyUp = (event: KeyboardEvent) => {
+  // Handle shift key to toggle between FPS and orbit mode
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent repeat events when holding the key
+      if (event.repeat) return
+
       if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-        setIsShiftPressed(false)
+        setControlMode(prevMode => {
+          const newMode = prevMode === 'orbit' ? 'fps' : 'orbit'
 
-        // Save current camera state before switching to orbit
-        cameraStateRef.current.position.copy(camera.position)
-        cameraStateRef.current.rotation.copy(camera.rotation)
+          if (newMode === 'fps') {
+            // Switching to FPS mode
+            if (orbitControlsRef.current) {
+              cameraStateRef.current.position.copy(camera.position)
+              cameraStateRef.current.rotation.copy(camera.rotation)
+              cameraStateRef.current.target.copy(
+                orbitControlsRef.current.target
+              )
+            }
 
-        // Immediately return to orbit mode when Shift is released
-        setControlMode('orbit')
-        if (pointerLockControlsRef.current) {
-          pointerLockControlsRef.current.unlock()
-          setIsLocked(false)
-        }
+            // Try to lock immediately - this works if Shift is considered a user gesture
+            const lockPromise = gl.domElement.requestPointerLock()
 
-        // Restore camera state after switching to orbit
-        setTimeout(() => {
-          if (orbitControlsRef.current) {
-            camera.position.copy(cameraStateRef.current.position)
-            camera.rotation.copy(cameraStateRef.current.rotation)
+            // If it fails (returns a promise that rejects), we'll catch it silently
+            // and the user will need to click
+            if (lockPromise) {
+              lockPromise.catch(() => {
+                // Pointer lock was blocked, set flag to lock on next click
+                pendingLockRef.current = true
+              })
+            }
+          } else {
+            // Switching to orbit mode
+            cameraStateRef.current.position.copy(camera.position)
+            cameraStateRef.current.rotation.copy(camera.rotation)
 
-            // Calculate target based on camera direction to maintain view direction
-            const direction = new THREE.Vector3()
-            camera.getWorldDirection(direction)
-            const distance =
-              cameraStateRef.current.position.distanceTo(
-                cameraStateRef.current.target
-              ) || 5
-            orbitControlsRef.current.target.copy(
-              cameraStateRef.current.position
-                .clone()
-                .add(direction.multiplyScalar(distance))
-            )
+            // Unlock pointer
+            if (pointerLockControlsRef.current) {
+              pointerLockControlsRef.current.unlock()
+              setIsLocked(false)
+            }
 
-            orbitControlsRef.current.update()
+            // Restore camera state for orbit mode
+            setTimeout(() => {
+              if (orbitControlsRef.current) {
+                camera.position.copy(cameraStateRef.current.position)
+                camera.rotation.copy(cameraStateRef.current.rotation)
+
+                // Calculate target based on camera direction
+                const direction = new THREE.Vector3()
+                camera.getWorldDirection(direction)
+                const distance =
+                  cameraStateRef.current.position.distanceTo(
+                    cameraStateRef.current.target
+                  ) || 5
+                orbitControlsRef.current.target.copy(
+                  cameraStateRef.current.position
+                    .clone()
+                    .add(direction.multiplyScalar(distance))
+                )
+
+                orbitControlsRef.current.update()
+              }
+            }, 0)
           }
-        }, 0)
+
+          return newMode
+        })
       }
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    document.addEventListener('keyup', handleKeyUp)
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
-      document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [isShiftPressed, camera])
+  }, [camera, setIsLocked, gl, controlMode])
+
+  // Handle canvas click to activate pointer lock if pending
+  useEffect(() => {
+    const handleCanvasClick = () => {
+      if (controlMode === 'fps' && !isLocked && pendingLockRef.current) {
+        gl.domElement.requestPointerLock()
+        pendingLockRef.current = false
+      }
+    }
+
+    gl.domElement.addEventListener('click', handleCanvasClick)
+
+    return () => {
+      gl.domElement.removeEventListener('click', handleCanvasClick)
+    }
+  }, [controlMode, isLocked, gl])
 
   // Animation loop
   useFrame(() => {
+    // Handle camera reset animation
+    if (animationRef.current?.isAnimating && orbitControlsRef.current) {
+      const animation = animationRef.current
+      const elapsed = performance.now() - animation.startTime
+      const progress = Math.min(elapsed / animation.duration, 1)
+
+      // Easing function (ease-in-out)
+      const easeProgress =
+        progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2
+
+      // Interpolate camera position
+      camera.position.lerpVectors(
+        animation.startPosition,
+        animation.endPosition,
+        easeProgress
+      )
+
+      // Interpolate camera target
+      orbitControlsRef.current.target.lerpVectors(
+        animation.startTarget,
+        animation.endTarget,
+        easeProgress
+      )
+
+      orbitControlsRef.current.update()
+
+      // Stop animation when complete
+      if (progress >= 1) {
+        animationRef.current = null
+      }
+    }
+
     if (controlMode === 'fps' && isLocked && pointerLockControlsRef.current) {
       updateMovement()
     }

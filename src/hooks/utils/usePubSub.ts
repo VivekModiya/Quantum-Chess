@@ -27,10 +27,28 @@ export interface EventProps {
     pieceId: string
     piece: PromotablePiece
   }
-  game_over: {
-    type: 'checkmate' | 'stalemate' | 'draw'
-    winner?: 'white' | 'black'
-  }
+  game_over:
+    | {
+        type: 'win'
+        subType: 'resignation' | 'checkmate' | 'abandoned'
+        winner: 'white' | 'black'
+      }
+    | {
+        type: 'stalemate'
+        subType: 'stalemate'
+      }
+    | {
+        type: 'draw'
+        subType:
+          | 'agreement'
+          | 'repetition'
+          | '50 moves'
+          | 'insufficient material'
+      }
+    | {
+        type: 'aborted'
+        subType: 'aborted'
+      }
 }
 
 export type EventKey = keyof EventProps

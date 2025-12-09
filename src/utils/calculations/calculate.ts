@@ -665,3 +665,142 @@ export const getAllLegalMoves = (
 
   return allMoves
 }
+
+// ============================================================================
+// DRAW CONDITIONS
+// ============================================================================
+
+/**
+ * Generate a position hash for threefold repetition detection
+ * Includes board state, turn, castling rights, and en passant
+ */
+export const generatePositionHash = (
+  board: Map<string, Piece | null>,
+  turn: PieceColor,
+  castlingRights: CastlingRights,
+  enPassantTarget: string | null
+): string => {
+  const pieces: string[] = []
+
+  // Sort squares for consistent hashing
+  const sortedEntries = Array.from(board.entries()).sort(([a], [b]) =>
+    a.localeCompare(b)
+  )
+
+  for (const [square, piece] of sortedEntries) {
+    if (piece) {
+      pieces.push(`${square}:${piece.color[0]}${piece.type[0]}`)
+    }
+  }
+
+  const castling = [
+    castlingRights.whiteKingside ? 'K' : '',
+    castlingRights.whiteQueenside ? 'Q' : '',
+    castlingRights.blackKingside ? 'k' : '',
+    castlingRights.blackQueenside ? 'q' : '',
+  ].join('')
+
+  return `${pieces.join('|')}|${turn}|${castling}|${enPassantTarget || '-'}`
+}
+
+/**
+ * Check for threefold repetition
+ */
+export const isThreefoldRepetition = (positionHistory: string[]): boolean => {
+  if (positionHistory.length < 3) return false
+
+  const currentPosition = positionHistory[positionHistory.length - 1]
+  let count = 0
+
+  for (const position of positionHistory) {
+    if (position === currentPosition) {
+      count++
+      if (count >= 3) return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check for fifty-move rule
+ * If 50 moves (100 half-moves) have been made without a capture or pawn move, it's a draw
+ */
+export const isFiftyMoveRule = (halfMoveClock: number): boolean => {
+  return halfMoveClock >= 100
+}
+
+/**
+ * Check for insufficient material to checkmate
+ * Returns true if neither side has enough material to deliver checkmate
+ */
+export const isInsufficientMaterial = (
+  board: Map<string, Piece | null>
+): boolean => {
+  const pieces: Piece[] = []
+
+  for (const piece of board.values()) {
+    if (piece) {
+      pieces.push(piece)
+    }
+  }
+
+  // Only kings
+  if (pieces.length === 2) {
+    return pieces.every(p => p.type === 'king')
+  }
+
+  // King vs (King + Bishop) or King vs (King + Knight)
+  if (pieces.length === 3) {
+    const nonKings = pieces.filter(p => p.type !== 'king')
+    if (nonKings.length === 1) {
+      const piece = nonKings[0]
+      return piece.type === 'bishop' || piece.type === 'knight'
+    }
+  }
+
+  // King + Bishop vs King + Bishop (same color squares)
+  if (pieces.length === 4) {
+    const bishops = pieces.filter(p => p.type === 'bishop')
+    const kings = pieces.filter(p => p.type === 'king')
+
+    if (bishops.length === 2 && kings.length === 2) {
+      // Check if bishops are on same color squares
+      const bishopSquares: string[] = []
+      for (const [square, piece] of board.entries()) {
+        if (piece?.type === 'bishop') {
+          bishopSquares.push(square)
+        }
+      }
+
+      if (bishopSquares.length === 2) {
+        const [square1, square2] = bishopSquares
+        const [file1, rank1] = parseSquare(square1)
+        const [file2, rank2] = parseSquare(square2)
+
+        // Bishops on same color if (file + rank) has same parity
+        const color1 = (file1 + rank1) % 2
+        const color2 = (file2 + rank2) % 2
+
+        return color1 === color2
+      }
+    }
+  }
+
+  return false
+}
+
+/**
+ * Check if the game is a draw by any rule
+ */
+export const isDraw = (
+  board: Map<string, Piece | null>,
+  positionHistory: string[],
+  halfMoveClock: number
+): boolean => {
+  return (
+    isThreefoldRepetition(positionHistory) ||
+    isFiftyMoveRule(halfMoveClock) ||
+    isInsufficientMaterial(board)
+  )
+}

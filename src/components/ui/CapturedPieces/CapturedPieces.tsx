@@ -97,7 +97,11 @@ export const CapturedPieces = () => {
             <button
               className={styles.menuItem}
               onClick={() => {
-                publish('game_over', { type: 'checkmate', winner: 'white' })
+                publish('game_over', {
+                  type: 'win',
+                  subType: 'resignation',
+                  winner: 'white',
+                })
               }}
             >
               Resign
@@ -105,14 +109,17 @@ export const CapturedPieces = () => {
             <button
               className={styles.menuItem}
               onClick={() => {
-                publish('game_over', { type: 'draw' })
+                publish('game_over', {
+                  type: 'draw',
+                  subType: 'agreement',
+                })
               }}
             >
               Draw
             </button>
           </div>
         )}
-        <div className={styles.chevronButtons}>
+        {/* <div className={styles.chevronButtons}>
           <button
             className={`${styles.chevronBtn} ${styles.left}`}
             onClick={() => {}}
@@ -141,7 +148,7 @@ export const CapturedPieces = () => {
               />
             </svg>
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   )

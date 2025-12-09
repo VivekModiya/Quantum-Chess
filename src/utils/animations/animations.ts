@@ -53,13 +53,13 @@ export function animatePieceMove(args: {
     x: pieceObject.position.x + dx,
     z: pieceObject.position.z + dz,
     y: pieceObject.position.y + LIFTED_Y_OFFSET,
-    duration: 0.4,
+    duration: 0.3,
     ease: 'power1.inOut',
     onComplete: () => {
       // Step 3: Lower the piece down
       gsap.to(pieceObject.position, {
         y: pieceObject.position.y - LIFTED_Y_OFFSET,
-        duration: 0.2,
+        duration: 0.15,
         ease: 'power1.in',
         onComplete: () => onComplete({}),
       })

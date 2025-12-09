@@ -54,6 +54,21 @@ export interface GameSettings {
   autoQueenPromotion: boolean
 }
 
+export interface MoveHistoryEntry {
+  pieceId: string
+  piece: PieceType
+  color: PieceColor
+  from: Square
+  to: Square
+  capturedPiece?: BoardPiece
+  isEnPassant?: boolean
+  isCastling?: boolean
+  castlingRookMove?: { from: Square; to: Square }
+  promotion?: PieceType
+  enPassantTarget?: Square | null
+  timestamp: number
+}
+
 export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
@@ -63,6 +78,9 @@ export interface ChessState {
   enPassantTarget: Square | null // Square where en passant capture is possible
   castlingRights: CastlingRights // Tracks which castling moves are still legal
   settings: GameSettings // Game configuration settings
+  moveHistory: MoveHistoryEntry[] // Complete history of all moves
+  positionHistory: string[] // Hash of each position for threefold repetition
+  halfMoveClock: number // Moves since last capture or pawn move (for fifty-move rule)
 }
 
 export type ChessAction =

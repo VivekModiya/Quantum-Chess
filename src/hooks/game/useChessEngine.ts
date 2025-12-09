@@ -190,6 +190,9 @@ export const useChessEngine = () => {
     settings: state.settings,
     lastMoveSquares: state.lastMoveSquares,
     kingInCheckSquare,
+    moveHistory: state.moveHistory,
+    positionHistory: state.positionHistory,
+    halfMoveClock: state.halfMoveClock,
 
     chess,
 

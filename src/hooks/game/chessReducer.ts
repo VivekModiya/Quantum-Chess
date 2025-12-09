@@ -5,6 +5,7 @@ import {
   BoardState,
   CastlingRights,
   BoardPiece,
+  MoveHistoryEntry,
 } from '../../types/chess'
 import { ChessBoard } from '../../utils/chess/ChessBoard'
 import {
@@ -12,6 +13,7 @@ import {
   getEnPassantCapturedPawnSquare,
   isCastlingMove,
   getCastlingRookMove,
+  generatePositionHash,
 } from '../../utils/calculations/calculate'
 import { animatePieceMove } from '../../utils'
 
@@ -210,6 +212,9 @@ export const initialState: ChessState = {
     highlightMoves: true,
     autoQueenPromotion: false,
   },
+  moveHistory: [],
+  positionHistory: [],
+  halfMoveClock: 0,
 }
 
 export const chessReducer = (
@@ -273,6 +278,49 @@ export const chessReducer = (
       const nextTurn: PieceColor =
         state.currentTurn === 'white' ? 'black' : 'white'
 
+      const isPawnMove = piece.piece === 'pawn'
+      const isCapture = capturedPieces.length > 0
+      const newHalfMoveClock =
+        isPawnMove || isCapture ? 0 : state.halfMoveClock + 1
+
+      // Generate position hash for threefold repetition
+      const boardAfterMoveChess = new ChessBoard(boardAfterMove)
+      const positionHash = generatePositionHash(
+        boardAfterMoveChess.toMap(),
+        nextTurn,
+        newCastlingRights,
+        newEnPassantTarget
+      )
+
+      // Detect castling for move history
+      const isCastling = isCastlingMove(
+        { type: piece.piece as any, color: piece.color },
+        from,
+        to
+      )
+      const castlingRookMove = isCastling
+        ? getCastlingRookMove(to) || undefined
+        : undefined
+
+      // Create move history entry
+      const moveHistoryEntry: MoveHistoryEntry = {
+        pieceId,
+        piece: piece.piece,
+        color: piece.color,
+        from,
+        to,
+        capturedPiece: capturedPieces[0],
+        isEnPassant: isEnPassantCapture(
+          { type: piece.piece, color: piece.color },
+          to,
+          state.enPassantTarget
+        ),
+        isCastling,
+        castlingRookMove,
+        enPassantTarget: newEnPassantTarget,
+        timestamp: Date.now(),
+      }
+
       return {
         ...state,
         board: boardAfterMove,
@@ -282,6 +330,9 @@ export const chessReducer = (
         capturedPieces: [...state.capturedPieces, ...capturedPieces],
         enPassantTarget: newEnPassantTarget,
         castlingRights: newCastlingRights,
+        moveHistory: [...state.moveHistory, moveHistoryEntry],
+        positionHistory: [...state.positionHistory, positionHash],
+        halfMoveClock: newHalfMoveClock,
       }
     }
 
@@ -302,9 +353,20 @@ export const chessReducer = (
         piece: targetPiece,
       }
 
+      // Update the last move history entry with promotion info
+      const updatedMoveHistory = [...state.moveHistory]
+      if (updatedMoveHistory.length > 0) {
+        const lastMove = updatedMoveHistory[updatedMoveHistory.length - 1]
+        updatedMoveHistory[updatedMoveHistory.length - 1] = {
+          ...lastMove,
+          promotion: targetPiece,
+        }
+      }
+
       return {
         ...state,
         board: newBoard,
+        moveHistory: updatedMoveHistory,
       }
     }
 

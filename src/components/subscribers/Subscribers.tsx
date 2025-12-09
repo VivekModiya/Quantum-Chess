@@ -1,7 +1,14 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
-import { playSound, isCheckmate, isStalemate } from '../../utils'
+import {
+  playSound,
+  isCheckmate,
+  isStalemate,
+  isThreefoldRepetition,
+  isFiftyMoveRule,
+  isInsufficientMaterial,
+} from '../../utils'
 import { PieceColor } from '../../types'
 
 export const Subscribers = React.memo(() => {
@@ -20,6 +27,8 @@ export const Subscribers = React.memo(() => {
     enPassantTarget,
     castlingRights,
     settings,
+    positionHistory,
+    halfMoveClock,
   } = useChess()
 
   React.useEffect(() => {
@@ -106,12 +115,29 @@ export const Subscribers = React.memo(() => {
 
           if (isInCheckmate) {
             publish('game_over', {
-              type: 'checkmate',
+              type: 'win',
+              subType: 'checkmate',
               winner: pieceColor as PieceColor,
             })
           } else if (isInStalemate) {
             publish('game_over', {
               type: 'stalemate',
+              subType: 'stalemate',
+            })
+          } else if (isThreefoldRepetition(positionHistory)) {
+            publish('game_over', {
+              type: 'draw',
+              subType: 'repetition',
+            })
+          } else if (isFiftyMoveRule(halfMoveClock)) {
+            publish('game_over', {
+              type: 'draw',
+              subType: '50 moves',
+            })
+          } else if (isInsufficientMaterial(boardMap)) {
+            publish('game_over', {
+              type: 'draw',
+              subType: 'insufficient material',
             })
           }
         }
@@ -144,6 +170,9 @@ export const Subscribers = React.memo(() => {
     enPassantTarget,
     castlingRights,
     setCurrentLegalMoves,
+    settings,
+    positionHistory,
+    halfMoveClock,
   ])
   return null
 })
