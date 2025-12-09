@@ -195,6 +195,7 @@ export const initialState: ChessState = {
   board: ChessBoard.createInitial(),
   currentTurn: 'white',
   lastMove: null,
+  lastMoveSquares: null,
   capturedPieces: [],
   enPassantTarget: null,
   castlingRights: {
@@ -277,6 +278,7 @@ export const chessReducer = (
         board: boardAfterMove,
         currentTurn: nextTurn,
         lastMove: { from, to, pieceId },
+        lastMoveSquares: { from, to },
         capturedPieces: [...state.capturedPieces, ...capturedPieces],
         enPassantTarget: newEnPassantTarget,
         castlingRights: newCastlingRights,

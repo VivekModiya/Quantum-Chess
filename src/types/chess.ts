@@ -35,6 +35,11 @@ export interface LastMove {
   pieceId: string
 }
 
+export interface LastMoveSquares {
+  from: Square
+  to: Square
+}
+
 export interface CastlingRights {
   whiteKingside: boolean
   whiteQueenside: boolean
@@ -53,6 +58,7 @@ export interface ChessState {
   board: BoardState
   currentTurn: PieceColor
   lastMove: LastMove | null
+  lastMoveSquares: LastMoveSquares | null // Stores just the from and to squares for highlighting
   capturedPieces: BoardPiece[] // Array of captured pieces with their info
   enPassantTarget: Square | null // Square where en passant capture is possible
   castlingRights: CastlingRights // Tracks which castling moves are still legal

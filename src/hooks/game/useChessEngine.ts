@@ -173,6 +173,7 @@ export const useChessEngine = () => {
     enPassantTarget: state.enPassantTarget,
     castlingRights: state.castlingRights,
     settings: state.settings,
+    lastMoveSquares: state.lastMoveSquares,
 
     chess,
 
