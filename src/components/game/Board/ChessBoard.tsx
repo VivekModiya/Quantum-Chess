@@ -2,6 +2,7 @@ import React from 'react'
 import * as THREE from 'three'
 
 import { BoardCoordinates } from '../Notations/Notations'
+import { shadowConfig } from '../../../config'
 
 interface ChessBoardProps {
   position?: [number, number, number]
@@ -182,7 +183,11 @@ export const Board: React.FC<ChessBoardProps> = ({
   return (
     <group ref={groupRef} position={position}>
       {/* Base/thickness of the board - adjusted size */}
-      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+      <mesh
+        position={[0, 0, 0]}
+        castShadow={shadowConfig}
+        receiveShadow={shadowConfig}
+      >
         <boxGeometry args={[totalBoardSize, 5, totalBoardSize]} />
         <meshStandardMaterial
           color={'#6d4013'}
@@ -192,7 +197,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       </mesh>
 
       {/* Border - Top */}
-      <mesh position={[0, 0, -borderOffset]} castShadow receiveShadow>
+      <mesh
+        position={[0, 0, -borderOffset]}
+        castShadow={shadowConfig}
+        receiveShadow={shadowConfig}
+      >
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
         <meshStandardMaterial
           color={borderColor}
@@ -202,7 +211,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       </mesh>
 
       {/* Border - Bottom */}
-      <mesh position={[0, 0, borderOffset]} castShadow receiveShadow>
+      <mesh
+        position={[0, 0, borderOffset]}
+        castShadow={shadowConfig}
+        receiveShadow={shadowConfig}
+      >
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
         <meshStandardMaterial
           color={borderColor}
@@ -212,7 +225,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       </mesh>
 
       {/* Border - Left */}
-      <mesh position={[-borderOffset, 0, 0]} castShadow receiveShadow>
+      <mesh
+        position={[-borderOffset, 0, 0]}
+        castShadow={shadowConfig}
+        receiveShadow={shadowConfig}
+      >
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
         <meshStandardMaterial
           color={borderColor}
@@ -222,7 +239,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       </mesh>
 
       {/* Border - Right */}
-      <mesh position={[borderOffset, 0, 0]} castShadow receiveShadow>
+      <mesh
+        position={[borderOffset, 0, 0]}
+        castShadow={shadowConfig}
+        receiveShadow={shadowConfig}
+      >
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
         <meshStandardMaterial
           color={borderColor}
@@ -236,8 +257,8 @@ export const Board: React.FC<ChessBoardProps> = ({
         <mesh
           position={[0, 2.55, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
-          receiveShadow
-          castShadow
+          receiveShadow={shadowConfig}
+          castShadow={shadowConfig}
         >
           <planeGeometry args={[80, 80]} />
           <meshStandardMaterial
@@ -253,7 +274,7 @@ export const Board: React.FC<ChessBoardProps> = ({
         <mesh
           position={[0, 2.52, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
-          receiveShadow
+          receiveShadow={shadowConfig}
         >
           <planeGeometry args={[totalBoardSize, totalBoardSize]} />
           <meshStandardMaterial

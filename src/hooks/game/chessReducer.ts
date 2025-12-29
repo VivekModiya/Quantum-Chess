@@ -335,10 +335,8 @@ export const chessReducer = (
         halfMoveClock: newHalfMoveClock,
       }
     }
-
     case 'RESET_GAME':
       return initialState
-
     case 'PROMOTE_PAWN': {
       const { pieceId, targetPiece } = action.payload
       const piece = state.board[pieceId]

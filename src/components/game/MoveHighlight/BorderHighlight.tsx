@@ -1,3 +1,5 @@
+import { shadowConfig } from '../../../config'
+
 export interface BorderHighlightProps {
   color: string
   position: [number, number, number]
@@ -18,7 +20,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
       <mesh
         position={[0, yPos, squareWidth / 2 - borderThickness / 2]}
         rotation={[Math.PI / 2, Math.PI, Math.PI / 2]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <cylinderGeometry
           args={[tubeRadius, tubeRadius, squareWidth - 2 * cornerRadius, 16]}
@@ -37,7 +39,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
       <mesh
         position={[0, yPos, -(squareWidth / 2) + borderThickness / 2]}
         rotation={[Math.PI / 2, Math.PI, Math.PI / 2]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <cylinderGeometry
           args={[tubeRadius, tubeRadius, squareWidth - 2 * cornerRadius, 16]}
@@ -56,7 +58,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
       <mesh
         position={[-(squareWidth / 2) + borderThickness / 2, yPos, 0]}
         rotation={[Math.PI / 2, 0, 0]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <cylinderGeometry
           args={[tubeRadius, tubeRadius, squareWidth - 2 * cornerRadius, 16]}
@@ -75,7 +77,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
       <mesh
         position={[squareWidth / 2 - borderThickness / 2, yPos, 0]}
         rotation={[Math.PI / 2, 0, 0]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <cylinderGeometry
           args={[tubeRadius, tubeRadius, squareWidth - 2 * cornerRadius, 16]}
@@ -98,7 +100,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
           squareWidth / 2 - cornerRadius - borderThickness / 2,
         ]}
         rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <torusGeometry args={[cornerRadius, tubeRadius, 16, 32, Math.PI / 2]} />
         <meshStandardMaterial
@@ -119,7 +121,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
           squareWidth / 2 - cornerRadius - borderThickness / 2,
         ]}
         rotation={[-Math.PI / 2, Math.PI, -Math.PI / 2]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <torusGeometry args={[cornerRadius, tubeRadius, 16, 32, Math.PI / 2]} />
         <meshStandardMaterial
@@ -140,7 +142,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
           -(squareWidth / 2) + cornerRadius + borderThickness / 2,
         ]}
         rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <torusGeometry args={[cornerRadius, tubeRadius, 16, 32, Math.PI / 2]} />
         <meshStandardMaterial
@@ -161,7 +163,7 @@ export const BorderHighlight = (props: BorderHighlightProps) => {
           -squareWidth / 2 + cornerRadius + borderThickness / 2,
         ]}
         rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow={true}
+        receiveShadow={shadowConfig}
       >
         <torusGeometry args={[cornerRadius, tubeRadius, 16, 32, Math.PI / 2]} />
         <meshStandardMaterial

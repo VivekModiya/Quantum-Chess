@@ -1,7 +1,7 @@
 import React from 'react'
-import { HighLightedMoves } from '../MoveHighlight'
 import { ChessPiece } from './Piece'
 import { useChess } from '../../../provider'
+import { CanvasHighlights } from '../MoveHighlight/CanvasHighlights'
 
 export const Pieces: React.FC = () => {
   const { capturedPieces, chess } = useChess()
@@ -11,7 +11,7 @@ export const Pieces: React.FC = () => {
       {chess.activePieces(capturedPieces).map(([pieceId]) => (
         <ChessPiece key={pieceId} pieceId={pieceId} />
       ))}
-      <HighLightedMoves />
+      <CanvasHighlights />
     </group>
   )
 }

@@ -5,6 +5,7 @@ import { useGLTF } from '@react-three/drei'
 import { ThreeEvent } from '@react-three/fiber'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
+import { shadowConfig } from '../../../config'
 
 interface PieceObjectProps {
   pieceId: string
@@ -111,8 +112,8 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
         child.material = newMaterial
 
         // Enable shadows on the mesh
-        child.castShadow = true
-        child.receiveShadow = true
+        child.castShadow = shadowConfig
+        child.receiveShadow = shadowConfig
       }
     })
 
@@ -177,8 +178,8 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       ref={pieceRef}
       position={adjustedPosition}
       rotation={[-Math.PI / 2, 0, pieceRotation]}
-      castShadow
-      receiveShadow
+      castShadow={shadowConfig}
+      receiveShadow={shadowConfig}
       frustumCulled={true}
       userData={{
         piece,

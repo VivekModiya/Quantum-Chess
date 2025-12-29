@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { Text3D } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import { useChess } from '../../../provider'
+import { shadowConfig } from '../../../config'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 const RANKS = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -83,8 +84,8 @@ export function BoardCoordinates() {
       position={position}
       rotation={rotation}
       material={material}
-      castShadow
-      receiveShadow
+      castShadow={shadowConfig}
+      receiveShadow={shadowConfig}
       {...TEXT_CONFIG}
     >
       {content}

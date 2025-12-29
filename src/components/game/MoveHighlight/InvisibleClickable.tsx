@@ -9,9 +9,13 @@ export const InvisibleClickable = (props: InvisibleClickableProps) => {
   const { handleClick } = props
 
   return (
-    <mesh onClick={handleClick} position={[0, 0, 0]} receiveShadow={true}>
-      <boxGeometry args={[10, 0.5, 10]} />
-      <meshBasicMaterial transparent opacity={0} />
+    <mesh
+      onClick={handleClick}
+      position={[0, 0, 0]}
+      rotation={[-Math.PI / 2, 0, 0]}
+    >
+      <planeGeometry args={[10, 10]} />
+      <meshBasicMaterial />
     </mesh>
   )
 }
