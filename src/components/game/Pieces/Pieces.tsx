@@ -8,6 +8,7 @@ export const Pieces: React.FC = () => {
 
   return (
     <group>
+      {/* @ts-ignore */}
       {chess.activePieces(capturedPieces).map(([pieceId]) => (
         <ChessPiece key={pieceId} pieceId={pieceId} />
       ))}

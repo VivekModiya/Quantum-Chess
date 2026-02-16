@@ -75,7 +75,6 @@ export function createInitialBoard(): BoardState {
         square: square as Square,
         piece: pieceInfo.type,
         color: pieceInfo.color,
-        isCaptured: false,
       }
     }
   })
@@ -94,7 +93,7 @@ export function getPieceAtSquare(
   square: Square
 ): BoardPiece | null {
   for (const piece of Object.values(board)) {
-    if (piece.square === square && !piece.isCaptured) {
+    if (piece.square === square) {
       return piece
     }
   }
@@ -112,7 +111,7 @@ export function getPieceIdAtSquare(
   square: Square
 ): string | null {
   for (const [pieceId, piece] of Object.entries(board)) {
-    if (piece.square === square && !piece.isCaptured) {
+    if (piece.square === square) {
       return pieceId
     }
   }
@@ -127,7 +126,7 @@ export function getPieceIdAtSquare(
 export function getActivePieces(
   board: BoardState
 ): Array<[string, BoardPiece]> {
-  return Object.entries(board).filter(([_, piece]) => !piece.isCaptured)
+  return Object.entries(board)
 }
 
 /**
@@ -136,9 +135,7 @@ export function getActivePieces(
  * @returns Array of piece IDs that are captured
  */
 export function getCapturedPieces(board: BoardState): string[] {
-  return Object.entries(board)
-    .filter(([_, piece]) => piece.isCaptured)
-    .map(([pieceId]) => pieceId)
+  return Object.entries(board).map(([pieceId]) => pieceId)
 }
 
 /**
@@ -159,12 +156,10 @@ export function boardToMap(board: BoardState): Map<Square, Piece | null> {
 
   // Set pieces
   Object.values(board).forEach(piece => {
-    if (!piece.isCaptured) {
-      boardMap.set(piece.square, {
-        type: piece.piece,
-        color: piece.color,
-      })
-    }
+    boardMap.set(piece.square, {
+      type: piece.piece,
+      color: piece.color,
+    })
   })
 
   return boardMap
