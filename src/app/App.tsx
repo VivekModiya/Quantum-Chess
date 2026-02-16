@@ -20,6 +20,7 @@ import {
 import styles from './index.module.scss'
 import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
 import { GameOverDialog } from '../components/ui/Portals/GameOverDialog'
+import { assetUrl } from '../utils'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
@@ -37,7 +38,7 @@ export const App = () => {
 
   React.useEffect(() => {
     ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
-      useGLTF.preload(`/models/${piece}.glb`)
+      useGLTF.preload(assetUrl(`models/${piece}.glb`))
     })
   }, [])
 

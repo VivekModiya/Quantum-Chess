@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
 import React, { useEffect } from 'react'
 import { usePubSub } from '../../../hooks'
+import { assetUrl } from '../../../utils'
 
 export const AudioComponent: React.FC = () => {
   const { camera } = useThree()
@@ -33,7 +34,7 @@ export const AudioComponent: React.FC = () => {
 
     // Load audio buffer
     const loader = new THREE.AudioLoader()
-    loader.load('/audio/move.mp3', buffer => {
+    loader.load(assetUrl('audio/move.mp3'), buffer => {
       sound.setBuffer(buffer)
       sound.setRefDistance(2)
       sound.setVolume(1.0)

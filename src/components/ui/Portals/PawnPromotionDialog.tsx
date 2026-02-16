@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { PieceType, PromotablePiece } from '../../../types'
 import { usePubSub } from '../../../hooks'
 import { useChess } from '../../../provider'
+import { assetUrl } from '../../../utils'
 import styles from './index.module.scss'
 
 const PROMOTABLE_PIECES: PieceType[] = ['queen', 'rook', 'bishop', 'knight']
@@ -87,7 +88,7 @@ export const PawnPromotionDialog = () => {
             tabIndex={0}
             ref={element => handleImageRef(element, index)}
             onFocus={handleImageFocus}
-            src={`/textures/${pieceColor}_${piece}.png`}
+            src={assetUrl(`textures/${pieceColor}_${piece}.png`)}
             className={`${styles.pieceImage} ${styles[pieceColor]}`}
             onClick={() => handlePieceClick(piece as PromotablePiece)}
           />

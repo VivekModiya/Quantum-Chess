@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { Text3D } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import { useChess } from '../../../provider'
+import { assetUrl } from '../../../utils'
 import { shadowConfig } from '../../../config'
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
@@ -36,7 +37,10 @@ export function BoardCoordinates() {
   const quarterText = textSize / 4
 
   // Create material
-  const texture = useLoader(THREE.TextureLoader, '/textures/fontTexture.jpg')
+  const texture = useLoader(
+    THREE.TextureLoader,
+    assetUrl('textures/fontTexture.jpg')
+  )
   texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.RepeatWrapping
 
@@ -78,7 +82,7 @@ export function BoardCoordinates() {
     <Text3D
       key={key}
       // @ts-ignore
-      font="/fonts/font.json"
+      font={assetUrl('fonts/font.json')}
       size={textSize}
       height={textHeight}
       position={position}

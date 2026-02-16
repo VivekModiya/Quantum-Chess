@@ -3,6 +3,7 @@ import * as THREE from 'three'
 
 import { BoardCoordinates } from '../Notations/Notations'
 import { shadowConfig } from '../../../config'
+import { assetUrl } from '../../../utils'
 
 interface ChessBoardProps {
   position?: [number, number, number]
@@ -30,7 +31,9 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       try {
         // Load single chess board image
-        const boardImage = await loadImage('/textures/boardTexture.jpg')
+        const boardImage = await loadImage(
+          assetUrl('textures/boardTexture.jpg')
+        )
 
         // Create canvas with optimized size
         const boardCanvas = document.createElement('canvas')

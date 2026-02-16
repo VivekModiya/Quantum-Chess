@@ -6,6 +6,7 @@ import { ThreeEvent } from '@react-three/fiber'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
 import { shadowConfig } from '../../../config'
+import { assetUrl } from '../../../utils'
 
 interface PieceObjectProps {
   pieceId: string
@@ -60,7 +61,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
   const x = -(file - 1) * 10 + 35
   const z = (rank - 1) * 10 - 35
 
-  const { scene } = useGLTF(`/models/${piece}.glb`)
+  const { scene } = useGLTF(assetUrl(`models/${piece}.glb`))
   const modelRef = React.useRef<THREE.Group>(null)
 
   // Memoize color calculations

@@ -3,6 +3,7 @@ import { useChess } from '../../../provider'
 import { BoardPiece, PieceType } from '../../../types'
 import styles from './index.module.scss'
 import { useState } from 'react'
+import { assetUrl } from '../../../utils'
 
 export const CapturedPieces = () => {
   const { capturedPieces } = useChess()
@@ -42,7 +43,7 @@ export const CapturedPieces = () => {
                 return (
                   <img
                     key={`${piece.piece}-${index}`}
-                    src={`/textures/black_${piece.piece}.png`}
+                    src={assetUrl(`textures/black_${piece.piece}.png`)}
                     alt={piece.piece}
                     className={`${styles.capturedPiece} ${styles.black} ${isPrevPieceSame ? styles.shiftPiece : ''}`}
                   />
@@ -60,7 +61,7 @@ export const CapturedPieces = () => {
                 return (
                   <img
                     key={`${piece.piece}-${index}`}
-                    src={`/textures/white_${piece.piece}.png`}
+                    src={assetUrl(`textures/white_${piece.piece}.png`)}
                     alt={piece.piece}
                     className={`${styles.capturedPiece} ${styles.white} ${isPrevPieceSame ? styles.shiftPiece : ''}`}
                   />

@@ -1,5 +1,7 @@
+import { assetUrl } from '../assets'
+
 const sounds: Record<string, HTMLAudioElement> = {
-  move: new Audio('/audio/move.mp3'),
+  move: new Audio(assetUrl('audio/move.mp3')),
 }
 
 Object.values(sounds).forEach(audio => {

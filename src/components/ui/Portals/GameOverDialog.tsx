@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { usePubSub } from '../../../hooks'
+import { assetUrl } from '../../../utils'
 import styles from './index.module.scss'
 
 type GameOverData =
@@ -81,7 +82,7 @@ export const GameOverDialog = () => {
         <div className={styles.headerContainer}>
           {gameOverData?.type === 'win' && (
             <img
-              src="/images/trophy-icon.webp"
+              src={assetUrl('images/trophy-icon.webp')}
               alt="Trophy"
               className={styles.trophyIcon}
             />
