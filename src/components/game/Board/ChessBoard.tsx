@@ -31,9 +31,6 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       try {
         // Load single chess board image
-        const boardImage = await loadImage(
-          assetUrl('textures/boardTexture.jpg')
-        )
 
         // Create canvas with optimized size
         const boardCanvas = document.createElement('canvas')
@@ -45,11 +42,23 @@ export const Board: React.FC<ChessBoardProps> = ({
         ctx.imageSmoothingQuality = 'high'
 
         // Draw the board image scaled to canvas size
-        ctx.drawImage(boardImage, 0, 0, 1024, 1024)
+        // ctx.drawImage(boardImage, 0, 0, 1024, 1024)
+        for (let row = 0; row < boardCanvas.width; row++) {
+          for (let col = 0; col < boardCanvas.height; col++) {
+            // Alternating pattern: light/dark
+            const isLight = (row + col) % 2 === 0
+            ctx.fillStyle = isLight ? '#ffffff' : '#000000'
+
+            // Calculate position and draw
+            const x = col * (boardCanvas.width / 8)
+            const y = row * (boardCanvas.height / 8)
+            ctx.fillRect(x, y, boardCanvas.height / 8, boardCanvas.height / 8)
+          }
+        }
 
         ctx.save()
         ctx.globalCompositeOperation = 'multiply'
-        ctx.fillStyle = 'rgba(109, 65, 0, 0.4)' // Adjust 0.4 to control darkness (0.0 = no change, 1.0 = black)
+        ctx.fillStyle = 'rgb(255, 255, 255)' // Adjust 0.4 to control darkness (0.0 = no change, 1.0 = black)
         ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height)
         ctx.restore()
 
@@ -99,8 +108,11 @@ export const Board: React.FC<ChessBoardProps> = ({
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = 'high'
 
-    const outer = '#b5783eff',
-      inner = '#814e2aff'
+    // const outer = '#b5783eff',
+    //   inner = '#814e2aff'
+
+    const outer = 'rgba(95, 77, 68, 0.26)' // Dark brown wood color
+    const inner = 'rgb(68, 47, 5)' // Lighter brown for inner frame
 
     // Top
     let grad = ctx.createLinearGradient(0, 0, 0, frameSize)

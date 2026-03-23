@@ -13,19 +13,14 @@ export const lightingConfig = {
   },
   chessBoardDirectional: {
     color: 0xffffff,
-    intensity: 5.0,
-    position: [35, 60, 40] as [number, number, number], // Angled for directional shadows
+    intensity: 4,
+    position: [0, 100, 0] as [number, number, number], // Angled for directional shadows
   },
   pieceDetail: {
     color: 0xfff8dc,
     intensity: 1.2, // Increased to add more fill light
     position: [-2, 8, 2] as [number, number, number],
     distance: 15,
-  },
-  roomGeneral: {
-    color: 0xb3d9ff,
-    intensity: 0.4,
-    position: [8, 12, 6] as [number, number, number],
   },
   accentLights: [
     {
@@ -40,8 +35,7 @@ export const lightingConfig = {
     },
   ],
   hemisphere: {
-    skyColor: '#623200',
-    groundColor: '#63441e',
+    skyColor: '#87CEEB', // Sky blue to match the procedural sky
     intensity: 2,
   },
 } as const

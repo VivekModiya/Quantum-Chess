@@ -66,8 +66,8 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 
   // Memoize color calculations
   const colorHash = React.useMemo(() => {
-    const blackPieceColor = [8, 4, 0] as [number, number, number]
-    const whitePieceColor = [124, 101, 63] as [number, number, number]
+    const blackPieceColor = [20, 12, 6] as [number, number, number]
+    const whitePieceColor = [100, 80, 50] as [number, number, number]
     return color === 'white' ? whitePieceColor : blackPieceColor
   }, [color])
 
@@ -108,7 +108,7 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 
         // Ensure the material settings preserve texture visibility
         newMaterial.metalness = 0.3
-        newMaterial.roughness = 0.7
+        newMaterial.roughness = 0.5
 
         child.material = newMaterial
 

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
 
 import { Canvas } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, Sky } from '@react-three/drei'
 
 import { ChessProvider } from '../provider'
 import { shadowConfig, renderConfig, cameraConfig } from '../config'
@@ -16,11 +16,13 @@ import {
   Subscribers,
   CapturedPieces,
   Settings,
+  Skybox,
 } from '../components'
 import styles from './index.module.scss'
 import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
 import { GameOverDialog } from '../components/ui/Portals/GameOverDialog'
 import { assetUrl } from '../utils'
+import { Clock } from '../components/game/Clock/Clock'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
@@ -50,14 +52,26 @@ export const App = () => {
           camera={cameraConfig}
           gl={renderConfig}
           shadows={shadowConfig}
-          style={{ background: '#a76100ff' }}
+          style={{ background: 'transparent' }}
           performance={{ min: 0.5 }}
           dpr={[1, 2]}
         >
           <Suspense fallback={<Loader />}>
+            <Sky
+              distance={450000}
+              sunPosition={[100, 100, 100]}
+              inclination={0.6}
+              azimuth={0.25}
+              turbidity={10}
+              rayleigh={3}
+              mieCoefficient={1}
+              mieDirectionalG={0.9}
+            />
+            <Skybox />
             <SceneLighting />
             <Board position={[0, 0, 0]} />
             <Pieces />
+            <Clock />
             <MovementControls
               isLocked={isLocked}
               setIsLocked={setIsLocked}

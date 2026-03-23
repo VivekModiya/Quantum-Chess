@@ -111,7 +111,7 @@ export const CanvasHighlights: React.FC = () => {
           drawSquareHighlight(ctx, x, y, '#4b4997', 0.5)
           break
         case 'lastMove':
-          drawRoundedBorderHighlight(ctx, x, y, '#8d4424ff', 24)
+          drawSquareHighlight(ctx, x, y, '#9f7a00', 0.4)
           break
         case 'check':
           drawSquareHighlight(ctx, x, y, '#e30000df', 1)

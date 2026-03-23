@@ -62,14 +62,6 @@ export const SceneLighting: React.FC = () => {
         decay={1.5}
       />
 
-      {/* Room general lighting */}
-      <directionalLight
-        position={lightingConfig.roomGeneral.position}
-        target-position={[0, 0, 0]}
-        color={lightingConfig.roomGeneral.color}
-        intensity={lightingConfig.roomGeneral.intensity}
-      />
-
       {/* Accent lights */}
       {lightingConfig.accentLights.map((config, index) => (
         <pointLight
