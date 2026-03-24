@@ -5,13 +5,17 @@ export interface ClockProps {}
 export const Clock = () => {
   return (
     <>
-      <mesh position={[50, 10, -20]} rotation={[0, 0, Math.PI / 1.3]}>
+      <mesh
+        position={[50, 10, -20]}
+        rotation={[0, 0, Math.PI / 1.3]}
+        renderOrder={100}
+      >
         <boxGeometry args={[0.2, 15, 30]} />
         <meshStandardMaterial
-          color={'#3a446c'}
-          emissive={'#0016be'}
-          emissiveIntensity={0.6}
-          opacity={0.7}
+          color={'#192761'}
+          emissive={'#000000'}
+          emissiveIntensity={0.3}
+          opacity={0.5}
           transparent={true}
           depthWrite={false}
         />
@@ -22,13 +26,17 @@ export const Clock = () => {
           position={[0.15, 3.5, -15]}
         />
       </mesh>
-      <mesh position={[50, 10, 20]} rotation={[0, 0, Math.PI / 1.3]}>
+      <mesh
+        position={[50, 10, 20]}
+        rotation={[0, 0, Math.PI / 1.3]}
+        renderOrder={100}
+      >
         <boxGeometry args={[0.2, 15, 30]} />
         <meshStandardMaterial
-          color={'#3a446c'}
-          emissive={'#0016be'}
-          emissiveIntensity={0.6}
-          opacity={0.7}
+          color={'#192761'}
+          emissive={'#000000'}
+          emissiveIntensity={0.3}
+          opacity={0.5}
           transparent={true}
           depthWrite={false}
         />

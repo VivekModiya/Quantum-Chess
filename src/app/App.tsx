@@ -7,6 +7,7 @@ import { ChessProvider } from '../provider'
 import { shadowConfig, renderConfig, cameraConfig } from '../config'
 import {
   Board,
+  CapturedPieces3D,
   Crosshair,
   Instructions,
   Loader,
@@ -71,6 +72,7 @@ export const App = () => {
             <SceneLighting />
             <Board position={[0, 0, 0]} />
             <Pieces />
+            <CapturedPieces3D />
             <Clock />
             <MovementControls
               isLocked={isLocked}

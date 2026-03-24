@@ -1,5 +1,13 @@
 import { Piece } from '../types/chess'
 
+export const PIECE_COLOR_RGB: Record<
+  'white' | 'black',
+  [number, number, number]
+> = {
+  white: [100, 80, 50],
+  black: [20, 12, 6],
+}
+
 export const DEFAULT_CHESS_POSITION: Record<string, Piece> = {
   a1: { type: 'rook', color: 'white' },
   b1: { type: 'knight', color: 'white' },

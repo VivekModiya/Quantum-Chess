@@ -6,6 +6,7 @@ import { ThreeEvent } from '@react-three/fiber'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
 import { shadowConfig } from '../../../config'
+import { PIECE_COLOR_RGB } from '../../../constants'
 import { assetUrl } from '../../../utils'
 
 interface PieceObjectProps {
@@ -14,7 +15,7 @@ interface PieceObjectProps {
   pieceRef: React.RefObject<THREE.Group<THREE.Object3DEventMap>> | null
 }
 
-const PIECE_SCALE = 1.2
+const PIECE_SCALE = 1.4
 
 export const PieceObject: React.FC<PieceObjectProps> = ({
   pieceId,
@@ -63,13 +64,10 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 
   const { scene } = useGLTF(assetUrl(`models/${piece}.glb`))
   const modelRef = React.useRef<THREE.Group>(null)
+  const [hovered, setHovered] = React.useState(false)
 
   // Memoize color calculations
-  const colorHash = React.useMemo(() => {
-    const blackPieceColor = [20, 12, 6] as [number, number, number]
-    const whitePieceColor = [100, 80, 50] as [number, number, number]
-    return color === 'white' ? whitePieceColor : blackPieceColor
-  }, [color])
+  const colorHash = React.useMemo(() => PIECE_COLOR_RGB[color], [color])
 
   // Clone and modify the loaded model with proper centering
   const { modifiedScene, centerOffset, yOffset } = React.useMemo(() => {
@@ -154,6 +152,28 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     }
   }, [modifiedScene])
 
+  // Brighten piece on hover by boosting emissive
+  React.useEffect(() => {
+    if (!modifiedScene) return
+    let intervalId: number
+    modifiedScene.traverse(child => {
+      if (child instanceof THREE.Mesh && child.material) {
+        const mat = child.material as THREE.MeshStandardMaterial
+        if (hovered) {
+          mat.emissive = new THREE.Color(0xFFAA00)
+          let i = 0
+          intervalId = setInterval(() => {
+            mat.emissiveIntensity = 0.2 - (i > 10 ? 20 - i : i) * 0.01
+            i = (i + 1) % 20
+          }, 70)
+        } else {
+          mat.emissiveIntensity = 0
+        }
+      }
+    })
+    return () => clearInterval(intervalId)
+  }, [hovered, modifiedScene])
+
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {
     return [
@@ -190,6 +210,11 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
         isSelected: false,
       }}
       onClick={e => handleClick(e)}
+      onPointerOver={e => {
+        e.stopPropagation()
+        setHovered(true)
+      }}
+      onPointerOut={() => setHovered(false)}
     >
       <group ref={modelRef} position={centerOffset}>
         <primitive object={modifiedScene} />
