@@ -10,9 +10,17 @@ import { PIECE_SQUARE_MAP } from '../../constants'
 
 export class ChessBoard {
   private board: BoardState
+  // O(1) square → pieceId index, built once in constructor
+  private squareIndex: Map<Square, string>
+  // Cached toMap() result — computed lazily, reused on repeated calls
+  private cachedMap: Map<Square, Piece | null> | null = null
 
   constructor(board: BoardState) {
     this.board = board
+    this.squareIndex = new Map()
+    for (const [pieceId, piece] of Object.entries(board)) {
+      this.squareIndex.set(piece.square, pieceId)
+    }
   }
 
   getState(): BoardState {
@@ -20,21 +28,13 @@ export class ChessBoard {
   }
 
   at(square: Square): BoardPiece | null {
-    for (const piece of Object.values(this.board)) {
-      if (piece.square === square) {
-        return piece
-      }
-    }
-    return null
+    const pieceId = this.squareIndex.get(square)
+    if (!pieceId) return null
+    return this.board[pieceId] ?? null
   }
 
   pieceIdAt(square: Square): string | null {
-    for (const [pieceId, piece] of Object.entries(this.board)) {
-      if (piece.square === square) {
-        return pieceId
-      }
-    }
-    return null
+    return this.squareIndex.get(square) ?? null
   }
 
   byId(pieceId: string): BoardPiece | undefined {
@@ -77,12 +77,14 @@ export class ChessBoard {
   }
 
   toMap(): Map<Square, Piece | null> {
+    if (this.cachedMap) return this.cachedMap
+
     const boardMap = new Map<Square, Piece | null>()
 
     // Initialize all squares to null
     for (let file = 0; file < 8; file++) {
       for (let rank = 1; rank <= 8; rank++) {
-        const square = String.fromCharCode(97 + file) + (rank + 1)
+        const square = (String.fromCharCode(97 + file) + rank) as Square
         boardMap.set(square, null)
       }
     }
@@ -95,6 +97,7 @@ export class ChessBoard {
       })
     })
 
+    this.cachedMap = boardMap
     return boardMap
   }
 

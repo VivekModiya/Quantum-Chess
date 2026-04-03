@@ -1,6 +1,7 @@
 import React from 'react'
 import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
+import { useSocket } from '../../provider/SocketProvider'
 import {
   playSound,
   isCheckmate,
@@ -10,11 +11,13 @@ import {
   isInsufficientMaterial,
 } from '../../utils'
 import { PieceColor } from '../../types'
+import type { BoardSnapshot } from '../../../shared/socketEvents'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
   const {
     chess,
+    board,
     getLegalMoves,
     selectedPiece,
     setSelectedPiece,
@@ -22,14 +25,120 @@ export const Subscribers = React.memo(() => {
     makeMove,
     promotePawn,
     resetGame,
+    restoreState,
     currentTurn,
     setCurrentLegalMoves,
     enPassantTarget,
     castlingRights,
+    capturedPieces,
     settings,
     positionHistory,
     halfMoveClock,
+    moveHistory,
+    lastMoveSquares,
   } = useChess()
+
+  const {
+    playerColor,
+    gameMode,
+    doSendMove,
+    lastOpponentMove,
+    clearLastOpponentMove,
+    gameState,
+  } = useSocket()
+
+  // Keep a ref to the latest moveHistory so we can read SAN inside subscriber closures
+  const moveHistoryRef = React.useRef(moveHistory)
+  moveHistoryRef.current = moveHistory
+
+  /** Build a BoardSnapshot from current chess state (call AFTER dispatch completes). */
+  const buildSnapshotRef = React.useRef<() => BoardSnapshot>(() => ({
+    board: {},
+    capturedPieces: [],
+    castlingRights: {
+      whiteKingside: true,
+      whiteQueenside: true,
+      blackKingside: true,
+      blackQueenside: true,
+    },
+    enPassantTarget: null,
+    halfMoveClock: 0,
+    positionHistory: [],
+    lastMoveSquares: null,
+    currentTurn: 'white' as const,
+  }))
+
+  // Keep the ref always pointing to a function that reads the latest state.
+  // We use a ref so the subscriber closures don't need to re-subscribe on
+  // every state change — they just call buildSnapshotRef.current().
+  buildSnapshotRef.current = () => ({
+    board,
+    capturedPieces,
+    castlingRights,
+    enPassantTarget,
+    halfMoveClock,
+    positionHistory,
+    lastMoveSquares,
+    currentTurn,
+  })
+
+  // On reconnection / initial load, restore board from server snapshot.
+  const hasRestored = React.useRef(false)
+  React.useEffect(() => {
+    if (
+      !hasRestored.current &&
+      gameState &&
+      gameState.snapshot &&
+      moveHistory.length === 0
+    ) {
+      hasRestored.current = true
+
+      // Convert server moves to MoveHistoryEntry[] for move list display
+      const serverMoves = gameState.moves ?? []
+      const restoredMoveHistory = serverMoves.map((m, i) => ({
+        pieceId: '',
+        piece: 'pawn' as const,
+        color: (i % 2 === 0 ? 'white' : 'black') as 'white' | 'black',
+        from: m.from,
+        to: m.to,
+        promotion: m.promotion as any,
+        timestamp: 0,
+        ...(m.san ? { san: m.san } : {}),
+      }))
+
+      restoreState({
+        ...gameState.snapshot,
+        moveHistory: restoredMoveHistory,
+      })
+    }
+  }, [gameState, moveHistory.length, restoreState])
+
+  // Handle opponent moves coming from the server
+  React.useEffect(() => {
+    if (!lastOpponentMove) return
+
+    const { from, to } = lastOpponentMove
+
+    // Find the piece at the 'from' square and apply the move
+    const pieceId = chess.pieceIdAt(from)
+    if (pieceId) {
+      const piece = chess.byId(pieceId)
+      if (piece) {
+        makeMove(from, to, () => {
+          publish('make_sound', undefined)
+          publish('move_completed', {
+            fromSquare: from,
+            toSquare: to,
+            pieceId,
+            pieceType: piece.piece || '',
+            pieceColor: piece.color || '',
+          })
+        })
+      }
+    }
+
+    clearLastOpponentMove()
+  }, [lastOpponentMove, clearLastOpponentMove, chess, makeMove, publish])
 
   React.useEffect(() => {
     const unsubscribe = [
@@ -40,6 +149,12 @@ export const Subscribers = React.memo(() => {
       subscribe('piece_selected', ({ pieceId }) => {
         const pieceData = chess.byId(pieceId)
         if (!pieceData) return
+
+        // Spectators cannot interact with pieces
+        if (gameMode === 'spectator') return
+
+        // Enforce: player can only select their own color pieces
+        if (playerColor && pieceData.color !== playerColor) return
 
         // Deselect if clicking the same piece, or select if it's the current turn
         if (selectedPiece === pieceId) {
@@ -52,13 +167,20 @@ export const Subscribers = React.memo(() => {
       subscribe('make_move', ({ toSquare }) => {
         if (!selectedPiece) return
 
+        // Spectators cannot make moves
+        if (gameMode === 'spectator') return
+
         const fromSquare = getPieceSquare(selectedPiece)
         if (fromSquare && toSquare) {
           const pieceInfo = chess.byId(selectedPiece)
           const color = pieceInfo?.color
           const type = pieceInfo?.piece
 
-          // Make the move first
+          // Enforce: only move on your own turn
+          if (playerColor && color !== playerColor) return
+          if (playerColor && currentTurn !== playerColor) return
+
+          // Make the move first (locally)
           makeMove(fromSquare, toSquare, () => {
             publish('make_sound', undefined)
             publish('move_completed', {
@@ -68,6 +190,16 @@ export const Subscribers = React.memo(() => {
               pieceType: type || '',
               pieceColor: color || '',
             })
+
+            // Build snapshot AFTER the move has been applied (inside onComplete)
+            // and send to server so it can persist the latest board state.
+            const snapshot = buildSnapshotRef.current()
+            const lastEntry =
+              moveHistoryRef.current[moveHistoryRef.current.length - 1]
+            doSendMove(
+              { from: fromSquare, to: toSquare, san: lastEntry?.san },
+              snapshot
+            )
           })
 
           setSelectedPiece(null)
@@ -95,9 +227,6 @@ export const Subscribers = React.memo(() => {
           }
 
           // Check for checkmate or stalemate after move
-          // Note: currentTurn has already switched to the next player in the reducer
-          // So currentTurn is the player who needs to move now (potential victim)
-          // pieceColor is the player who just moved (potential winner)
           const boardMap = chess.toMap()
 
           const isInCheckmate = isCheckmate(
@@ -164,6 +293,7 @@ export const Subscribers = React.memo(() => {
     makeMove,
     promotePawn,
     resetGame,
+    restoreState,
     currentTurn,
     subscribe,
     publish,
@@ -173,6 +303,9 @@ export const Subscribers = React.memo(() => {
     settings,
     positionHistory,
     halfMoveClock,
+    playerColor,
+    gameMode,
+    doSendMove,
   ])
   return null
 })

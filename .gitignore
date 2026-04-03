@@ -33,3 +33,5 @@ yalc.lock
 .env
 *.icloud
 .node-version
+
+server/data/games

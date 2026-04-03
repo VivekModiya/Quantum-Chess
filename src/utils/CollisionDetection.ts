@@ -11,6 +11,14 @@ class CollisionDetection {
 
   private raycaster: THREE.Raycaster = new THREE.Raycaster()
 
+  // Pre-allocated Vector3 pool to avoid per-frame GC pressure
+  private _directionToNewPos = new THREE.Vector3()
+  private _moveVector = new THREE.Vector3()
+  private _testPosX = new THREE.Vector3()
+  private _testPosY = new THREE.Vector3()
+  private _testPosZ = new THREE.Vector3()
+  private _axisVec = new THREE.Vector3()
+
   public checkCollision(newPosition: THREE.Vector3): boolean {
     // Check cylindrical room boundaries
     const distanceFromCenter = Math.sqrt(
@@ -42,13 +50,10 @@ class CollisionDetection {
   ): boolean {
     if (!roomObjects || roomObjects.length === 0) return false
 
-    const directionToNewPos = newPosition
-      .clone()
-      .sub(currentPosition)
-      .normalize()
+    this._directionToNewPos.copy(newPosition).sub(currentPosition).normalize()
     const distance = currentPosition.distanceTo(newPosition)
 
-    this.raycaster.set(currentPosition, directionToNewPos)
+    this.raycaster.set(currentPosition, this._directionToNewPos)
 
     // Get all objects that could be collided with
     const collidableObjects: THREE.Mesh[] = []
@@ -90,12 +95,18 @@ class CollisionDetection {
     }
 
     // Try moving in individual axes to allow sliding along walls
-    const moveVector = attemptedPosition.clone().sub(currentPosition)
+    this._moveVector.copy(attemptedPosition).sub(currentPosition)
 
     const testPositions = [
-      currentPosition.clone().add(new THREE.Vector3(moveVector.x, 0, 0)), // X only
-      currentPosition.clone().add(new THREE.Vector3(0, moveVector.y, 0)), // Y only
-      currentPosition.clone().add(new THREE.Vector3(0, 0, moveVector.z)), // Z only
+      this._testPosX
+        .copy(currentPosition)
+        .add(this._axisVec.set(this._moveVector.x, 0, 0)), // X only
+      this._testPosY
+        .copy(currentPosition)
+        .add(this._axisVec.set(0, this._moveVector.y, 0)), // Y only
+      this._testPosZ
+        .copy(currentPosition)
+        .add(this._axisVec.set(0, 0, this._moveVector.z)), // Z only
     ]
 
     for (const testPos of testPositions) {

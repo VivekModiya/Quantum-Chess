@@ -2,7 +2,12 @@ import React, { useCallback, useReducer, useMemo } from 'react'
 
 import { chessReducer, initialState } from './chessReducer'
 import { BoardPiece, PromotablePiece, Square } from '../../types'
-import { GameSettings } from '../../types/chess'
+import {
+  BoardState,
+  CastlingRights,
+  GameSettings,
+  LastMoveSquares,
+} from '../../types/chess'
 import {
   ChessBoard,
   generateLegalMoves,
@@ -175,41 +180,92 @@ export const useChessEngine = () => {
     setCurrentLegalMoves(null)
   }, [])
 
+  const restoreState = useCallback(
+    (payload: {
+      board: BoardState
+      capturedPieces: BoardPiece[]
+      castlingRights: CastlingRights
+      enPassantTarget: string | null
+      halfMoveClock: number
+      positionHistory: string[]
+      lastMoveSquares: LastMoveSquares | null
+      currentTurn: 'white' | 'black'
+      moveHistory?: import('../../types/chess').MoveHistoryEntry[]
+    }) => {
+      dispatch({ type: 'RESTORE_STATE', payload })
+      setSelectedPiece(null)
+      setCurrentLegalMoves(null)
+    },
+    []
+  )
+
   const updateSettings = useCallback((settings: Partial<GameSettings>) => {
     dispatch({ type: 'UPDATE_SETTINGS', payload: settings })
   }, [])
 
-  return {
-    board: state.board,
-    currentTurn: state.currentTurn,
-    selectedPiece,
-    currentLegalMoves,
-    capturedPieces: state.capturedPieces,
-    enPassantTarget: state.enPassantTarget,
-    castlingRights: state.castlingRights,
-    settings: state.settings,
-    lastMoveSquares: state.lastMoveSquares,
-    kingInCheckSquare,
-    moveHistory: state.moveHistory,
-    positionHistory: state.positionHistory,
-    halfMoveClock: state.halfMoveClock,
+  return useMemo(
+    () => ({
+      board: state.board,
+      currentTurn: state.currentTurn,
+      selectedPiece,
+      currentLegalMoves,
+      capturedPieces: state.capturedPieces,
+      enPassantTarget: state.enPassantTarget,
+      castlingRights: state.castlingRights,
+      settings: state.settings,
+      lastMoveSquares: state.lastMoveSquares,
+      kingInCheckSquare,
+      moveHistory: state.moveHistory,
+      positionHistory: state.positionHistory,
+      halfMoveClock: state.halfMoveClock,
 
-    chess,
+      chess,
 
-    makeMove,
-    promotePawn,
-    resetGame,
-    updateSettings,
-    setSelectedPiece: _setSelectedPiece,
-    setCurrentLegalMoves,
+      makeMove,
+      promotePawn,
+      resetGame,
+      restoreState,
+      updateSettings,
+      setSelectedPiece: _setSelectedPiece,
+      setCurrentLegalMoves,
 
-    getPiece,
-    getLegalMoves,
-    getPieceSquare,
+      getPiece,
+      getLegalMoves,
+      getPieceSquare,
 
-    // Piece ref management
-    setPieceRef,
-    getPieceRef,
-    removePieceRef,
-  }
+      // Piece ref management
+      setPieceRef,
+      getPieceRef,
+      removePieceRef,
+    }),
+    [
+      state.board,
+      state.currentTurn,
+      selectedPiece,
+      currentLegalMoves,
+      state.capturedPieces,
+      state.enPassantTarget,
+      state.castlingRights,
+      state.settings,
+      state.lastMoveSquares,
+      kingInCheckSquare,
+      state.moveHistory,
+      state.positionHistory,
+      state.halfMoveClock,
+      chess,
+      makeMove,
+      promotePawn,
+      resetGame,
+      restoreState,
+      updateSettings,
+      _setSelectedPiece,
+      setCurrentLegalMoves,
+      getPiece,
+      getLegalMoves,
+      getPieceSquare,
+      setPieceRef,
+      getPieceRef,
+      removePieceRef,
+    ]
+  )
 }

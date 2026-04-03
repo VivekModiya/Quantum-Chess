@@ -25,6 +25,14 @@ export const useMovement = (
   const prevTimeRef = useRef<number>(performance.now())
   const collisionDetection = useRef(new CollisionDetection())
 
+  // Pre-allocated Vector3 pool to avoid per-frame GC pressure
+  const _cameraDirection = useRef(new THREE.Vector3())
+  const _cameraRight = useRef(new THREE.Vector3())
+  const _upVector = useRef(new THREE.Vector3(0, 1, 0))
+  const _moveVector = useRef(new THREE.Vector3())
+  const _horizontalDir = useRef(new THREE.Vector3())
+  const _tempVec = useRef(new THREE.Vector3())
+
   const onKeyDown = useCallback((event: KeyboardEvent): void => {
     switch (event.code) {
       case 'KeyW':
@@ -109,18 +117,14 @@ export const useMovement = (
     const controls = controlsRef.current
     const movement = movementRef.current
 
-    // Get the camera's forward direction
-    const cameraDirection = new THREE.Vector3()
+    // Reuse pre-allocated Vector3 instances
+    const cameraDirection = _cameraDirection.current
     controls.getDirection(cameraDirection)
 
-    // Get the camera's right direction
-    const cameraRight = new THREE.Vector3()
-    cameraRight
-      .crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0))
-      .normalize()
+    const cameraRight = _cameraRight.current
+    cameraRight.crossVectors(cameraDirection, _upVector.current).normalize()
 
-    // Calculate movement based on camera orientation
-    const moveVector = new THREE.Vector3()
+    const moveVector = _moveVector.current.set(0, 0, 0)
     const moveSpeed = 75.0
 
     if (movement.moveForward || movement.moveBackward) {
@@ -128,14 +132,13 @@ export const useMovement = (
 
       if (movement.isFlying) {
         // In fly mode, move in the exact direction the camera is looking (including pitch)
-        moveVector.add(
-          cameraDirection
-            .clone()
-            .multiplyScalar(forwardMultiplier * moveSpeed * delta)
-        )
+        _tempVec.current
+          .copy(cameraDirection)
+          .multiplyScalar(forwardMultiplier * moveSpeed * delta)
+        moveVector.add(_tempVec.current)
       } else {
         // In ground mode, move only in horizontal plane
-        const horizontalDirection = cameraDirection.clone()
+        const horizontalDirection = _horizontalDir.current.copy(cameraDirection)
         horizontalDirection.y = 0
         horizontalDirection.normalize()
         moveVector.add(
@@ -148,9 +151,10 @@ export const useMovement = (
 
     if (movement.moveLeft || movement.moveRight) {
       const rightMultiplier = movement.moveRight ? 1 : -1
-      moveVector.add(
-        cameraRight.clone().multiplyScalar(rightMultiplier * moveSpeed * delta)
-      )
+      _tempVec.current
+        .copy(cameraRight)
+        .multiplyScalar(rightMultiplier * moveSpeed * delta)
+      moveVector.add(_tempVec.current)
     }
 
     // Vertical movement (Q/E keys) - works in both modes
@@ -160,8 +164,11 @@ export const useMovement = (
     }
 
     // Get current position and calculate new position
-    const currentPosition = controls.getObject().position.clone()
-    const attemptedPosition = currentPosition.clone().add(moveVector)
+    const currentPosition = controls.getObject().position
+    // Use _tempVec for attemptedPosition
+    const attemptedPosition = _tempVec.current
+      .copy(currentPosition)
+      .add(moveVector)
 
     let validPosition: THREE.Vector3
 

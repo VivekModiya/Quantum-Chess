@@ -21,7 +21,7 @@ const BOARD_CONFIG = {
 const TEXT_CONFIG = {
   bevelEnabled: true,
   bevelSize: 0.1,
-  bevelSegments: 5,
+  bevelSegments: 1,
   bevelThickness: 0.5,
 }
 

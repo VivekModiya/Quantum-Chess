@@ -1,4 +1,4 @@
-import { Text3D } from '@react-three/drei'
+import { Center, Text3D } from '@react-three/drei'
 import { assetUrl } from '../../../utils'
 
 export interface DigitsProps {
@@ -25,24 +25,24 @@ export const Digits = (props: DigitsProps) => {
   }
 
   return (
-    <Text3D
-      font={assetUrl('fonts/digital.json')}
-      size={size}
-      height={height}
-      position={position}
-      rotation={[0, Math.PI / 2, Math.PI]}
-      {...TEXT_CONFIG}
-    >
-      {displayValue}
-      <meshStandardMaterial
-        color="#ffffff"
-        roughness={0.5}
-        metalness={0}
-        emissive="#ffffff"
-        emissiveIntensity={0.3}
-        transparent={false}
-        depthWrite={true}
-      />
-    </Text3D>
+    <Center position={position} rotation={[0, Math.PI / 2, Math.PI]}>
+      <Text3D
+        font={assetUrl('fonts/digital.json')}
+        size={size}
+        height={height}
+        {...TEXT_CONFIG}
+      >
+        {displayValue}
+        <meshStandardMaterial
+          color="#ffffff"
+          roughness={0.5}
+          metalness={0}
+          emissive="#ffffff"
+          emissiveIntensity={0.3}
+          transparent={false}
+          depthWrite={true}
+        />
+      </Text3D>
+    </Center>
   )
 }

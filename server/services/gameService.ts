@@ -1,5 +1,5 @@
 import { generateId } from '../utils/idGenerator.js'
-import { readGame, writeGame } from './storageService.js'
+import { getGame, persistGame } from './gameCache.js'
 import type {
   ColorChoice,
   CreateGameRequest,
@@ -26,6 +26,8 @@ export function createGame(req: CreateGameRequest): CreateGameResponse {
   const playerId = generateId()
   const assignedColor = resolveColor(color)
 
+  const timeMs = timeControl * 60 * 1000
+
   const game: GameRecord = {
     id: gameId,
     status: 'waiting',
@@ -36,10 +38,18 @@ export function createGame(req: CreateGameRequest): CreateGameResponse {
       black:
         assignedColor === 'black' ? { playerId, joinedAt: Date.now() } : null,
     },
+    moves: [],
+    timers: { white: timeMs, black: timeMs },
+    currentTurn: 'white',
+    lastMoveTimestamp: null,
+    result: null,
+    drawOffer: null,
+    snapshot: null,
+    pgn: '',
     createdAt: Date.now(),
   }
 
-  writeGame(game)
+  persistGame(game)
 
   return { gameId, playerId, assignedColor }
 }
@@ -47,7 +57,7 @@ export function createGame(req: CreateGameRequest): CreateGameResponse {
 export type JoinGameError = { code: 'NOT_FOUND' } | { code: 'GAME_FULL' }
 
 export function joinGame(gameId: string): JoinGameResponse | JoinGameError {
-  const game = readGame(gameId)
+  const game = getGame(gameId)
 
   if (!game) return { code: 'NOT_FOUND' }
   if (game.status !== 'waiting') return { code: 'GAME_FULL' }
@@ -59,7 +69,7 @@ export function joinGame(gameId: string): JoinGameResponse | JoinGameError {
   game.players[assignedColor] = { playerId, joinedAt: Date.now() }
   game.status = 'active'
 
-  writeGame(game)
+  persistGame(game)
 
   return { gameId, playerId, assignedColor }
 }

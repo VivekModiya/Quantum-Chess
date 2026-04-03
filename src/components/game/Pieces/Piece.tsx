@@ -8,33 +8,35 @@ interface ChessPieceProps {
   pieceId: string
 }
 
-export const ChessPiece: React.FC<ChessPieceProps> = ({ pieceId }) => {
-  const { publish } = usePubSub()
+export const ChessPiece: React.FC<ChessPieceProps> = React.memo(
+  ({ pieceId }) => {
+    const { publish } = usePubSub()
 
-  const { setPieceRef, currentLegalMoves, chess } = useChess()
+    const { setPieceRef, currentLegalMoves, chess } = useChess()
 
-  const pieceRef = React.useRef<THREE.Group>(null)
+    const pieceRef = React.useRef<THREE.Group>(null)
 
-  React.useEffect(() => {
-    setPieceRef(pieceId, pieceRef)
-  }, [])
+    React.useEffect(() => {
+      setPieceRef(pieceId, pieceRef)
+    }, [])
 
-  const handleClick = (e: ThreeEvent<MouseEvent>) => {
-    const { square } = chess.byId(pieceId) ?? {}
-    // If the current piece is being captured then it will be captured
-    if (square && currentLegalMoves?.includes(square)) {
-      publish('make_move', { toSquare: square })
+    const handleClick = (e: ThreeEvent<MouseEvent>) => {
+      const { square } = chess.byId(pieceId) ?? {}
+      // If the current piece is being captured then it will be captured
+      if (square && currentLegalMoves?.includes(square)) {
+        publish('make_move', { toSquare: square })
+      }
+      // else piece will be
+      e.stopPropagation()
+      publish('piece_selected', { pieceId })
     }
-    // else piece will be
-    e.stopPropagation()
-    publish('piece_selected', { pieceId })
-  }
 
-  return (
-    <PieceObject
-      handleClick={handleClick}
-      pieceId={pieceId}
-      pieceRef={pieceRef}
-    />
-  )
-}
+    return (
+      <PieceObject
+        handleClick={handleClick}
+        pieceId={pieceId}
+        pieceRef={pieceRef}
+      />
+    )
+  }
+)

@@ -8,12 +8,14 @@ interface MovementControlsProps {
   isLocked: boolean
   setIsLocked: (locked: boolean) => void
   onResetView?: (resetFn: () => void) => void
+  initialPosition?: [number, number, number]
 }
 
 export const MovementControls: React.FC<MovementControlsProps> = ({
   isLocked,
   setIsLocked,
   onResetView,
+  initialPosition = [0, 900, -900],
 }) => {
   const { camera, gl } = useThree()
   const pointerLockControlsRef = useRef<any>(null)
@@ -57,7 +59,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
           // Start animation from current position to default
           const currentPosition = camera.position.clone()
           const currentTarget = orbitControlsRef.current.target.clone()
-          const targetPosition = new THREE.Vector3(0, 900, -900)
+          const targetPosition = new THREE.Vector3(...initialPosition)
           const targetCenter = new THREE.Vector3(0, 0, 0)
 
           animationRef.current = {
@@ -171,9 +173,15 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
 
   // Animation loop
   useFrame(() => {
+    // Early exit when nothing to do
+    const isAnimating = animationRef.current?.isAnimating
+    const isFpsActive =
+      controlMode === 'fps' && isLocked && pointerLockControlsRef.current
+    if (!isAnimating && !isFpsActive) return
+
     // Handle camera reset animation
-    if (animationRef.current?.isAnimating && orbitControlsRef.current) {
-      const animation = animationRef.current
+    if (isAnimating && orbitControlsRef.current) {
+      const animation = animationRef.current!
       const elapsed = performance.now() - animation.startTime
       const progress = Math.min(elapsed / animation.duration, 1)
 

@@ -6,6 +6,9 @@ import type { GameRecord } from '../types/game.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const GAMES_DIR = path.resolve(__dirname, '../data/games')
 
+// Ensure directory exists once at startup
+fs.mkdirSync(GAMES_DIR, { recursive: true })
+
 function gamePath(gameId: string): string {
   return path.join(GAMES_DIR, `${gameId}.json`)
 }
@@ -18,8 +21,10 @@ export function readGame(gameId: string): GameRecord | null {
 }
 
 export function writeGame(game: GameRecord): void {
-  fs.mkdirSync(GAMES_DIR, { recursive: true })
-  fs.writeFileSync(gamePath(game.id), JSON.stringify(game, null, 2), 'utf-8')
+  // Use async write to avoid blocking the event loop on every move
+  fs.promises
+    .writeFile(gamePath(game.id), JSON.stringify(game, null, 2), 'utf-8')
+    .catch(err => console.error('Failed to persist game', game.id, err))
 }
 
 export function gameExists(gameId: string): boolean {

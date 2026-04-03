@@ -1,8 +1,8 @@
 import React from 'react'
 import * as THREE from 'three'
 
-import { useGLTF } from '@react-three/drei'
-import { ThreeEvent } from '@react-three/fiber'
+import { useGLTF, useTexture } from '@react-three/drei'
+import { ThreeEvent, useFrame } from '@react-three/fiber'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
 import { shadowConfig } from '../../../config'
@@ -64,7 +64,32 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
 
   const { scene } = useGLTF(assetUrl(`models/${piece}.glb`))
   const modelRef = React.useRef<THREE.Group>(null)
-  const [hovered, setHovered] = React.useState(false)
+  const hoveredRef = React.useRef(false)
+  const emissiveIntensityRef = React.useRef(0)
+  const pulseTimeRef = React.useRef(0)
+
+  // Load wood textures — configured once, shared across all pieces
+  const woodTextures = useTexture({
+    map: assetUrl('textures/WoodFloor064_1K-JPG_Color.jpg'),
+    normalMap: assetUrl('textures/WoodFloor064_1K-JPG_NormalGL.jpg'),
+    roughnessMap: assetUrl('textures/WoodFloor064_1K-JPG_Roughness.jpg'),
+  })
+
+  // Configure texture wrapping once (no-op after first call since same texture objects are reused by useTexture)
+  React.useMemo(() => {
+    ;[
+      woodTextures.map,
+      woodTextures.normalMap,
+      woodTextures.roughnessMap,
+    ].forEach(tex => {
+      if (tex.wrapS !== THREE.RepeatWrapping) {
+        tex.wrapS = THREE.RepeatWrapping
+        tex.wrapT = THREE.RepeatWrapping
+        tex.repeat.set(2, 2)
+        tex.needsUpdate = true
+      }
+    })
+  }, [woodTextures])
 
   // Memoize color calculations
   const colorHash = React.useMemo(() => PIECE_COLOR_RGB[color], [color])
@@ -89,24 +114,25 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       if (child instanceof THREE.Mesh && child.material) {
         const material = child.material as THREE.MeshStandardMaterial
 
+        // Clone material only (not textures) — share texture instances across all pieces
         const newMaterial = material.clone()
-
-        if (newMaterial.map) {
-          newMaterial.map.minFilter = THREE.LinearFilter
-          newMaterial.map.magFilter = THREE.LinearFilter
-          newMaterial.map.generateMipmaps = false
-          newMaterial.map.needsUpdate = true
-        }
+        newMaterial.map = woodTextures.map
+        newMaterial.normalMap = woodTextures.normalMap
+        newMaterial.roughnessMap = woodTextures.roughnessMap
 
         if (!newMaterial.userData.originalColor) {
           newMaterial.userData.originalColor = newMaterial.color.clone()
         }
 
-        newMaterial.color.setRGB(colorHash[0], colorHash[1], colorHash[2])
+        // Tint the wood texture with the piece color (values are 0-255 range, convert to 0-1)
+        newMaterial.color.setRGB(
+          colorHash[0] / 255,
+          colorHash[1] / 255,
+          colorHash[2] / 255
+        )
 
-        // Ensure the material settings preserve texture visibility
-        newMaterial.metalness = 0.3
-        newMaterial.roughness = 0.5
+        newMaterial.metalness = 0.1
+        newMaterial.roughness = 0.7
 
         child.material = newMaterial
 
@@ -132,15 +158,14 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     const yOffset = -rotatedBox.min.y
 
     return { modifiedScene: clonedScene, centerOffset, yOffset }
-  }, [scene, colorHash])
+  }, [scene, colorHash, woodTextures])
 
-  // Cleanup effect to dispose of materials and geometries when component unmounts
+  // Cleanup effect to dispose of cloned materials when component unmounts (shared textures are NOT disposed)
   React.useEffect(() => {
     return () => {
       if (modifiedScene) {
         modifiedScene.traverse(child => {
           if (child instanceof THREE.Mesh) {
-            child.geometry?.dispose()
             if (Array.isArray(child.material)) {
               child.material.forEach(mat => mat.dispose())
             } else {
@@ -152,27 +177,30 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
     }
   }, [modifiedScene])
 
-  // Brighten piece on hover by boosting emissive
-  React.useEffect(() => {
+  // Pulsing brightness loop while hovered, smooth fade-out when not
+  useFrame((_, delta) => {
     if (!modifiedScene) return
-    let intervalId: number
+    let next: number
+    if (hoveredRef.current) {
+      pulseTimeRef.current += delta * 3
+      next = 0.05 + 0.15 * (0.5 + 0.5 * Math.sin(pulseTimeRef.current))
+    } else {
+      pulseTimeRef.current = 0
+      const current = emissiveIntensityRef.current
+      next = THREE.MathUtils.lerp(current, 0, 1 - Math.exp(-6 * delta))
+      if (next < 0.001) next = 0
+    }
+    if (Math.abs(next - emissiveIntensityRef.current) < 0.0005) return
+    emissiveIntensityRef.current = next
+    const emissiveColor = color === 'black' ? 0x997022 : 0xff9900
     modifiedScene.traverse(child => {
       if (child instanceof THREE.Mesh && child.material) {
         const mat = child.material as THREE.MeshStandardMaterial
-        if (hovered) {
-          mat.emissive = new THREE.Color(0xFFAA00)
-          let i = 0
-          intervalId = setInterval(() => {
-            mat.emissiveIntensity = 0.2 - (i > 10 ? 20 - i : i) * 0.01
-            i = (i + 1) % 20
-          }, 70)
-        } else {
-          mat.emissiveIntensity = 0
-        }
+        mat.emissive.set(emissiveColor)
+        mat.emissiveIntensity = next * (color === 'black' ? 1 : 5)
       }
     })
-    return () => clearInterval(intervalId)
-  }, [hovered, modifiedScene])
+  })
 
   // Calculate final positioning
   const adjustedPosition = React.useMemo(() => {
@@ -212,9 +240,11 @@ export const PieceObject: React.FC<PieceObjectProps> = ({
       onClick={e => handleClick(e)}
       onPointerOver={e => {
         e.stopPropagation()
-        setHovered(true)
+        hoveredRef.current = true
       }}
-      onPointerOut={() => setHovered(false)}
+      onPointerLeave={() => {
+        hoveredRef.current = false
+      }}
     >
       <group ref={modelRef} position={centerOffset}>
         <primitive object={modifiedScene} />

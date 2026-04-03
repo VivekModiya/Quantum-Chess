@@ -4,7 +4,9 @@ import { Canvas } from '@react-three/fiber'
 import { useGLTF, Sky } from '@react-three/drei'
 
 import { ChessProvider } from '../provider'
-import { shadowConfig, renderConfig, cameraConfig } from '../config'
+import { useSocket } from '../provider/SocketProvider'
+import { shadowConfig, renderConfig, getCameraPosition } from '../config'
+import type { CameraRole } from '../config/camera'
 import {
   Board,
   CapturedPieces3D,
@@ -22,12 +24,28 @@ import {
 import styles from './index.module.scss'
 import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
 import { GameOverDialog } from '../components/ui/Portals/GameOverDialog'
+import { GameControls } from '../components/ui/GameControls'
 import { assetUrl } from '../utils'
 import { Clock } from '../components/game/Clock/Clock'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
   const resetViewRef = React.useRef<(() => void) | null>(null)
+
+  const { playerColor, gameMode, timers } = useSocket()
+
+  // Determine camera role
+  const cameraRole: CameraRole =
+    gameMode === 'spectator' ? 'spectator' : (playerColor ?? 'white')
+  const initialPosition = getCameraPosition(cameraRole)
+
+  // Camera config with player-specific position
+  const playerCameraConfig = {
+    fov: 50,
+    near: 0.1,
+    far: 1000,
+    position: initialPosition as [number, number, number],
+  }
 
   const handleResetView = React.useCallback(() => {
     if (resetViewRef.current) {
@@ -50,7 +68,7 @@ export const App = () => {
       <div className={styles.app}>
         <Subscribers />
         <Canvas
-          camera={cameraConfig}
+          camera={playerCameraConfig}
           gl={renderConfig}
           shadows={shadowConfig}
           style={{ background: 'transparent' }}
@@ -73,11 +91,12 @@ export const App = () => {
             <Board position={[0, 0, 0]} />
             <Pieces />
             <CapturedPieces3D />
-            <Clock />
+            <Clock whiteTime={timers?.white} blackTime={timers?.black} />
             <MovementControls
               isLocked={isLocked}
               setIsLocked={setIsLocked}
               onResetView={setResetViewFn}
+              initialPosition={initialPosition}
             />
           </Suspense>
         </Canvas>
@@ -91,6 +110,7 @@ export const App = () => {
         <CapturedPieces />
         <PawnPromotionDialog />
         <GameOverDialog />
+        <GameControls />
       </div>
     </ChessProvider>
   )

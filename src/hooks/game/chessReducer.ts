@@ -15,6 +15,7 @@ import {
   getCastlingRookMove,
   generatePositionHash,
 } from '../../utils/calculations/calculate'
+import { generateSAN } from '../../utils/calculations/san'
 import { animatePieceMove } from '../../utils'
 
 const movePieceToSquare = (
@@ -303,6 +304,28 @@ export const chessReducer = (
         : undefined
 
       // Create move history entry
+      const isEP = isEnPassantCapture(
+        { type: piece.piece as any, color: piece.color },
+        to,
+        state.enPassantTarget
+      )
+
+      // Generate SAN for PGN
+      const san = generateSAN({
+        piece: piece.piece,
+        color: piece.color,
+        from,
+        to,
+        isCapture: capturedPieces.length > 0,
+        isCastling,
+        isEnPassant: isEP,
+        boardAfterMove: boardAfterMoveChess.toMap(),
+        boardBeforeMove: chess.toMap(),
+        castlingRights: newCastlingRights,
+        enPassantTarget: newEnPassantTarget,
+        nextTurn,
+      })
+
       const moveHistoryEntry: MoveHistoryEntry = {
         pieceId,
         piece: piece.piece,
@@ -310,15 +333,12 @@ export const chessReducer = (
         from,
         to,
         capturedPiece: capturedPieces[0],
-        isEnPassant: isEnPassantCapture(
-          { type: piece.piece, color: piece.color },
-          to,
-          state.enPassantTarget
-        ),
+        isEnPassant: isEP,
         isCastling,
         castlingRookMove,
         enPassantTarget: newEnPassantTarget,
         timestamp: Date.now(),
+        san,
       }
 
       return {
@@ -337,6 +357,24 @@ export const chessReducer = (
     }
     case 'RESET_GAME':
       return initialState
+
+    case 'RESTORE_STATE': {
+      // Directly restore board state from a server snapshot (no replay needed).
+      const p = action.payload
+      return {
+        ...state,
+        board: p.board,
+        currentTurn: p.currentTurn,
+        lastMove: null,
+        lastMoveSquares: p.lastMoveSquares,
+        capturedPieces: p.capturedPieces,
+        enPassantTarget: p.enPassantTarget,
+        castlingRights: p.castlingRights,
+        moveHistory: p.moveHistory ?? [],
+        positionHistory: p.positionHistory,
+        halfMoveClock: p.halfMoveClock,
+      }
+    }
     case 'PROMOTE_PAWN': {
       const { pieceId, targetPiece } = action.payload
       const piece = state.board[pieceId]

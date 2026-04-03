@@ -67,6 +67,8 @@ export interface MoveHistoryEntry {
   promotion?: PieceType
   enPassantTarget?: Square | null
   timestamp: number
+  /** Standard Algebraic Notation */
+  san?: string
 }
 
 export interface ChessState {
@@ -97,6 +99,20 @@ export type ChessAction =
       }
     }
   | { type: 'RESET_GAME' }
+  | {
+      type: 'RESTORE_STATE'
+      payload: {
+        board: BoardState
+        capturedPieces: BoardPiece[]
+        castlingRights: CastlingRights
+        enPassantTarget: Square | null
+        halfMoveClock: number
+        positionHistory: string[]
+        lastMoveSquares: LastMoveSquares | null
+        currentTurn: PieceColor
+        moveHistory?: MoveHistoryEntry[]
+      }
+    }
   | {
       type: 'PROMOTE_PAWN'
       payload: { pieceId: string; targetPiece: PieceType }

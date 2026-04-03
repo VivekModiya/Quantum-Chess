@@ -4,8 +4,8 @@ export const PIECE_COLOR_RGB: Record<
   'white' | 'black',
   [number, number, number]
 > = {
-  white: [100, 80, 50],
-  black: [20, 12, 6],
+  white: [250, 250, 400],
+  black: [10, 10, 40],
 }
 
 export const DEFAULT_CHESS_POSITION: Record<string, Piece> = {

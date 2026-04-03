@@ -6,6 +6,17 @@ export default defineConfig({
   server: {
     host: true,
     port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
   base: './',
   assetsInclude: ['**/*.glb'], // <-- add this

@@ -13,12 +13,18 @@
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outdir=dist-server --packages=external --minify"
   },
   "dependencies": {
+    "@radix-ui/react-separator": "^1.1.8",
+    "@radix-ui/react-toggle-group": "^1.1.11",
     "@react-three/drei": "^10.7.4",
     "@react-three/fiber": "^9.3.0",
     "@react-three/postprocessing": "^3.0.4",
+    "@types/react-router-dom": "^5.3.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "gsap": "^3.13.0"
+    "gsap": "^3.13.0",
+    "react-router-dom": "^7.13.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

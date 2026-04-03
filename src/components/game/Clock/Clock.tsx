@@ -1,10 +1,24 @@
 import { Digits } from './Digits'
 
-export interface ClockProps {}
+export interface ClockProps {
+  whiteTime?: number // remaining ms
+  blackTime?: number // remaining ms
+}
 
-export const Clock = () => {
+function formatTime(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
+export const Clock = ({ whiteTime, blackTime }: ClockProps) => {
+  const whiteDisplay = whiteTime != null ? formatTime(whiteTime) : '--:--'
+  const blackDisplay = blackTime != null ? formatTime(blackTime) : '--:--'
+
   return (
     <>
+      {/* White clock (negative Z side) */}
       <mesh
         position={[50, 10, -20]}
         rotation={[0, 0, Math.PI / 1.3]}
@@ -20,12 +34,13 @@ export const Clock = () => {
           depthWrite={false}
         />
         <Digits
-          value="12:34"
+          value={whiteDisplay}
           size={8}
           height={0.05}
-          position={[0.15, 3.5, -15]}
+          position={[0.15, 0, 0]}
         />
       </mesh>
+      {/* Black clock (positive Z side) */}
       <mesh
         position={[50, 10, 20]}
         rotation={[0, 0, Math.PI / 1.3]}
@@ -41,10 +56,10 @@ export const Clock = () => {
           depthWrite={false}
         />
         <Digits
-          value="12:34"
+          value={blackDisplay}
           size={8}
           height={0.05}
-          position={[0.15, 3.5, -15]}
+          position={[0.15, 0, 0]}
         />
       </mesh>
     </>

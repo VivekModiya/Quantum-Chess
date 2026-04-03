@@ -625,19 +625,35 @@ export const isStalemate = (
     return false
   }
 
-  // Check if any piece has legal moves
-  const allLegalMoves = getAllLegalMoves(
-    board,
-    color,
-    enPassantTarget,
-    castlingRights
-  )
+  // Short-circuit: stop as soon as any piece has a legal move
+  return !hasAnyLegalMove(board, color, enPassantTarget, castlingRights)
+}
 
-  if (allLegalMoves.length > 0) {
-    return false
+/**
+ * Returns true if the given color has at least one legal move.
+ * Short-circuits immediately on first found — avoids generating all moves.
+ */
+export const hasAnyLegalMove = (
+  board: Map<string, Piece | null>,
+  color: PieceColor,
+  enPassantTarget?: string | null,
+  castlingRights?: CastlingRights
+): boolean => {
+  for (const [square, piece] of board.entries()) {
+    if (piece?.color === color) {
+      const legalMoves = generateLegalMoves(
+        square,
+        piece,
+        board,
+        enPassantTarget,
+        castlingRights
+      )
+      if (legalMoves.length > 0) {
+        return true
+      }
+    }
   }
-
-  return true
+  return false
 }
 
 export const getAllLegalMoves = (
