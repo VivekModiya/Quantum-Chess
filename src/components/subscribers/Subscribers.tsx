@@ -3,12 +3,12 @@ import { usePubSub } from '../../hooks'
 import { useChess } from '../../provider'
 import { useSocket } from '../../provider/SocketProvider'
 import {
-  playSound,
   isCheckmate,
   isStalemate,
   isThreefoldRepetition,
   isFiftyMoveRule,
   isInsufficientMaterial,
+  assetUrl,
 } from '../../utils'
 import { PieceColor } from '../../types'
 import type { BoardSnapshot } from '../../../shared/socketEvents'
@@ -276,7 +276,7 @@ export const Subscribers = React.memo(() => {
       ),
       subscribe('make_sound', () => {
         if (settings.soundEffects) {
-          playSound('move')
+          new Audio(assetUrl('audio/move.mp3')).play().catch(() => {})
         }
       }),
       subscribe('game_reset', () => {

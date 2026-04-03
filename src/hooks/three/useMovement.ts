@@ -106,10 +106,7 @@ export const useMovement = (
   }, [onKeyDown, onKeyUp])
 
   const updateMovement = useCallback((): void => {
-    if (!controlsRef.current) {
-      console.log('Canceled')
-      return
-    }
+    if (!controlsRef.current) return
 
     const time = performance.now()
     const delta = (time - prevTimeRef.current) / 1000
