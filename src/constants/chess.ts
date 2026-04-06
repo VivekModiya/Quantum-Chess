@@ -1,12 +1,72 @@
 import { Piece } from '../types/chess'
 
-export const PIECE_COLOR_RGB: Record<
-  'white' | 'black',
-  [number, number, number]
-> = {
-  white: [250, 250, 400],
-  black: [10, 10, 40],
+export const PIECE_COLOR_RGB: Record<'white' | 'black', string> = {
+  white: '#ccccff',
+  black: '#000000',
 }
+
+export const PIECE_EMISSIVE: Record<
+  'white' | 'black',
+  { color: number; intensity: number }
+> = {
+  white: { color: 0xffffff, intensity: 0.15 },
+  black: { color: 0xff0000, intensity: 0.4 },
+}
+
+// Board geometry & visual config
+export const BOARD = {
+  SIZE: 80,
+  Y_OFFSET: 2.55,
+  SQUARE_COLORS: { light: '#ffffff', dark: '#000000' },
+  BORDER_COLOR: 0x654321,
+  BASE_COLOR: '#6d4013',
+} as const
+
+// Highlight overlay colors & alphas per highlight type
+export const HIGHLIGHT_COLORS = {
+  selected: { color: '#a07b00', alpha: 0.5 },
+  move: { color: '#743800bc', alpha: 1 },
+  capture: { color: '#4b4997', alpha: 0.5 },
+  lastMove: { color: '#9f7a00', alpha: 0.4 },
+  check: { color: '#e30000df', alpha: 1 },
+} as const
+
+// Fresnel rim shader config
+export const PIECE_RIM = {
+  color: { white: '#a0a0a0', black: '#ffffff' } as Record<
+    'white' | 'black',
+    string
+  >,
+  power: 4.0,
+} as const
+
+// Hover pulse & fade animation config
+export const PIECE_HOVER_ANIM = {
+  pulseSpeed: 3,
+  pulseMin: 0.05,
+  pulseAmp: 0.15,
+  sinFreq: 1.5,
+  fadeSpeed: 6,
+  snapThreshold: 0.0005,
+  emissiveScale: 30,
+} as const
+
+// Default piece material properties
+export const PIECE_MATERIAL = {
+  metalness: 0,
+  roughness: 0.0,
+  displacementScale: 0.0,
+  textureRepeat: 2,
+} as const
+
+// 3D clock display config
+export const CLOCK_CONFIG = {
+  activeColor: '#d40000',
+  idleColor: '#ffffff',
+  bgColor: '#192761',
+  emissiveIntensity: 0.3,
+  opacity: 0.5,
+} as const
 
 export const DEFAULT_CHESS_POSITION: Record<string, Piece> = {
   a1: { type: 'rook', color: 'white' },

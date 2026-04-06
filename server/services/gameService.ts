@@ -16,10 +16,6 @@ function resolveColor(choice: ColorChoice): PlayerColor {
   return choice
 }
 
-function oppositeColor(color: PlayerColor): PlayerColor {
-  return color === 'white' ? 'black' : 'white'
-}
-
 export function createGame(req: CreateGameRequest): CreateGameResponse {
   const { timeControl, color } = req
   const gameId = generateId()

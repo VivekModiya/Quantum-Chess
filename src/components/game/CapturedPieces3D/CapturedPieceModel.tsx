@@ -58,7 +58,7 @@ export const CapturedPieceModel: React.FC<CapturedPieceModelProps> = ({
           newMaterial.userData.originalColor = newMaterial.color.clone()
         }
 
-        newMaterial.color.setRGB(colorHash[0], colorHash[1], colorHash[2])
+        newMaterial.color.set(colorHash)
         newMaterial.metalness = 0.3
         newMaterial.roughness = 0.5
         child.material = newMaterial

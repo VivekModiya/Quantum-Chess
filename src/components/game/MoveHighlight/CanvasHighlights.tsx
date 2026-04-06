@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
 import { parseSquare } from '../../../utils/calculations/calculate'
-import { INDEX_TO_FILE } from '../../../constants'
+import { INDEX_TO_FILE, HIGHLIGHT_COLORS } from '../../../constants'
 import { InvisibleClickable } from './InvisibleClickable'
 
 const CANVAS_SIZE = 1024
@@ -102,19 +102,49 @@ export const CanvasHighlights: React.FC = () => {
 
       switch (type) {
         case 'selected':
-          drawSquareHighlight(ctx, x, y, '#a07b00', 0.5)
+          drawSquareHighlight(
+            ctx,
+            x,
+            y,
+            HIGHLIGHT_COLORS.selected.color,
+            HIGHLIGHT_COLORS.selected.alpha
+          )
           break
         case 'move':
-          drawCircleHighlight(ctx, x, y, '#743800bc', 1)
+          drawCircleHighlight(
+            ctx,
+            x,
+            y,
+            HIGHLIGHT_COLORS.move.color,
+            HIGHLIGHT_COLORS.move.alpha
+          )
           break
         case 'capture':
-          drawSquareHighlight(ctx, x, y, '#4b4997', 0.5)
+          drawSquareHighlight(
+            ctx,
+            x,
+            y,
+            HIGHLIGHT_COLORS.capture.color,
+            HIGHLIGHT_COLORS.capture.alpha
+          )
           break
         case 'lastMove':
-          drawSquareHighlight(ctx, x, y, '#9f7a00', 0.4)
+          drawSquareHighlight(
+            ctx,
+            x,
+            y,
+            HIGHLIGHT_COLORS.lastMove.color,
+            HIGHLIGHT_COLORS.lastMove.alpha
+          )
           break
         case 'check':
-          drawSquareHighlight(ctx, x, y, '#e30000df', 1)
+          drawSquareHighlight(
+            ctx,
+            x,
+            y,
+            HIGHLIGHT_COLORS.check.color,
+            HIGHLIGHT_COLORS.check.alpha
+          )
           break
       }
     })

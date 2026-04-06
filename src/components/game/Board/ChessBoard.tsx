@@ -3,7 +3,7 @@ import * as THREE from 'three'
 
 import { BoardCoordinates } from '../Notations/Notations'
 import { shadowConfig } from '../../../config'
-import { assetUrl } from '../../../utils'
+import { BOARD } from '../../../constants'
 
 interface ChessBoardProps {
   position?: [number, number, number]
@@ -37,7 +37,9 @@ export const Board: React.FC<ChessBoardProps> = ({
           for (let col = 0; col < boardCanvas.height; col++) {
             // Alternating pattern: light/dark
             const isLight = (row + col) % 2 === 0
-            ctx.fillStyle = isLight ? '#ffffff' : '#000000'
+            ctx.fillStyle = isLight
+              ? BOARD.SQUARE_COLORS.light
+              : BOARD.SQUARE_COLORS.dark
 
             // Calculate position and draw
             const x = col * (boardCanvas.width / 8)
@@ -179,11 +181,11 @@ export const Board: React.FC<ChessBoardProps> = ({
   }, [boardTexture, frameTexture])
 
   // Calculate dimensions based on frameWidth
-  const totalBoardSize = 80 + frameWidth * 2
-  const borderOffset = 80 / 2 + 0.25
+  const totalBoardSize = BOARD.SIZE + frameWidth * 2
+  const borderOffset = BOARD.SIZE / 2 + 0.25
 
   // Border color
-  const borderColor = 0x654321 // Dark brown wood color
+  const borderColor = BOARD.BORDER_COLOR
 
   return (
     <group ref={groupRef} position={position}>
@@ -195,7 +197,7 @@ export const Board: React.FC<ChessBoardProps> = ({
       >
         <boxGeometry args={[totalBoardSize, 5, totalBoardSize]} />
         <meshStandardMaterial
-          color={'#6d4013'}
+          color={BOARD.BASE_COLOR}
           roughness={0.9}
           metalness={0.1}
         />
@@ -260,12 +262,12 @@ export const Board: React.FC<ChessBoardProps> = ({
       {/* Board top with squares - keep at 80x80 */}
       {boardTex && (
         <mesh
-          position={[0, 2.55, 0]}
+          position={[0, BOARD.Y_OFFSET, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
           receiveShadow={shadowConfig}
           castShadow={shadowConfig}
         >
-          <planeGeometry args={[80, 80]} />
+          <planeGeometry args={[BOARD.SIZE, BOARD.SIZE]} />
           <meshStandardMaterial
             map={boardTex}
             roughness={0.7}

@@ -32,7 +32,7 @@ export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
   const resetViewRef = React.useRef<(() => void) | null>(null)
 
-  const { playerColor, gameMode, timers } = useSocket()
+  const { playerColor, gameMode, timers, gameState } = useSocket()
 
   // Determine camera role
   const cameraRole: CameraRole =
@@ -91,7 +91,11 @@ export const App = () => {
             <Board position={[0, 0, 0]} />
             <Pieces />
             <CapturedPieces3D />
-            <Clock whiteTime={timers?.white} blackTime={timers?.black} />
+            <Clock
+              whiteTime={timers?.white}
+              blackTime={timers?.black}
+              activeSide={gameState?.currentTurn}
+            />
             <MovementControls
               isLocked={isLocked}
               setIsLocked={setIsLocked}
