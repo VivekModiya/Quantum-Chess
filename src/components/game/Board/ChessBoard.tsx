@@ -1,9 +1,11 @@
 import React from 'react'
 import * as THREE from 'three'
 
+import { useTexture } from '@react-three/drei'
 import { BoardCoordinates } from '../Notations/Notations'
 import { shadowConfig } from '../../../config'
 import { BOARD } from '../../../constants'
+import { assetUrl } from '../../../utils'
 
 interface ChessBoardProps {
   position?: [number, number, number]
@@ -16,78 +18,23 @@ export const Board: React.FC<ChessBoardProps> = ({
 }) => {
   const groupRef = React.useRef<THREE.Group>(null)
 
-  // Create board texture using canvas
-  const boardTexture = React.useMemo(() => {
-    const createBoardTexture = async (): Promise<THREE.CanvasTexture> => {
-      try {
-        // Load single chess board image
+  // Load tile textures for the board surface
+  const tileTextures = useTexture({
+    map: assetUrl('textures/Tiles074_1K-JPG_Color.jpg'),
+    normalMap: assetUrl('textures/Tiles074_1K-JPG_NormalGL.jpg'),
+    roughnessMap: assetUrl('textures/Tiles074_1K-JPG_Roughness.jpg'),
+    displacementMap: assetUrl('textures/Tiles074_1K-JPG_Displacement.jpg'),
+  })
 
-        // Create canvas with optimized size
-        const boardCanvas = document.createElement('canvas')
-        boardCanvas.width = 1024
-        boardCanvas.height = 1024
-        const ctx = boardCanvas.getContext('2d')!
-
-        ctx.imageSmoothingEnabled = true
-        ctx.imageSmoothingQuality = 'high'
-
-        // Draw the board image scaled to canvas size
-        // ctx.drawImage(boardImage, 0, 0, 1024, 1024)
-        for (let row = 0; row < boardCanvas.width; row++) {
-          for (let col = 0; col < boardCanvas.height; col++) {
-            // Alternating pattern: light/dark
-            const isLight = (row + col) % 2 === 0
-            ctx.fillStyle = isLight
-              ? BOARD.SQUARE_COLORS.light
-              : BOARD.SQUARE_COLORS.dark
-
-            // Calculate position and draw
-            const x = col * (boardCanvas.width / 8)
-            const y = row * (boardCanvas.height / 8)
-            ctx.fillRect(x, y, boardCanvas.height / 8, boardCanvas.height / 8)
-          }
-        }
-
-        ctx.save()
-        ctx.globalCompositeOperation = 'multiply'
-        ctx.fillStyle = 'rgb(255, 255, 255)' // Adjust 0.4 to control darkness (0.0 = no change, 1.0 = black)
-        ctx.fillRect(0, 0, boardCanvas.width, boardCanvas.height)
-        ctx.restore()
-
-        // Create texture from canvas
-        const texture = new THREE.CanvasTexture(boardCanvas)
-        texture.minFilter = THREE.LinearMipmapLinearFilter
-        texture.magFilter = THREE.LinearFilter
-        texture.anisotropy = 16
-        texture.encoding = THREE.sRGBEncoding
-        texture.generateMipmaps = true
-        texture.wrapS = THREE.ClampToEdgeWrapping
-        texture.wrapT = THREE.ClampToEdgeWrapping
-
-        return texture
-      } catch (error) {
-        console.error('Error loading board texture:', error)
-
-        // Fallback: create a simple procedural board
-        const boardCanvas = document.createElement('canvas')
-        boardCanvas.width = 2048
-        boardCanvas.height = 2048
-
-        const texture = new THREE.CanvasTexture(boardCanvas)
-        texture.minFilter = THREE.LinearMipmapLinearFilter
-        texture.magFilter = THREE.LinearFilter
-        texture.anisotropy = 16
-        texture.encoding = THREE.sRGBEncoding
-        texture.generateMipmaps = true
-        texture.wrapS = THREE.ClampToEdgeWrapping
-        texture.wrapT = THREE.ClampToEdgeWrapping
-
-        return texture
-      }
-    }
-
-    return createBoardTexture()
-  }, [])
+  // Configure tile textures
+  React.useMemo(() => {
+    Object.values(tileTextures).forEach(texture => {
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+      texture.repeat.set(8 / 6, 8 / 6)
+      texture.needsUpdate = true
+    })
+  }, [tileTextures])
 
   const frameTexture = React.useMemo(() => {
     const canvas = document.createElement('canvas')
@@ -168,17 +115,13 @@ export const Board: React.FC<ChessBoardProps> = ({
     return texture
   }, [frameWidth])
 
-  const [boardTex, setBoardTex] = React.useState<THREE.CanvasTexture | null>(
-    null
-  )
   const [frameTex, setFrameTex] = React.useState<THREE.CanvasTexture | null>(
     null
   )
 
   React.useEffect(() => {
-    boardTexture.then(setBoardTex)
     setFrameTex(frameTexture)
-  }, [boardTexture, frameTexture])
+  }, [frameTexture])
 
   // Calculate dimensions based on frameWidth
   const totalBoardSize = BOARD.SIZE + frameWidth * 2
@@ -259,22 +202,22 @@ export const Board: React.FC<ChessBoardProps> = ({
         />
       </mesh>
 
-      {/* Board top with squares - keep at 80x80 */}
-      {boardTex && (
-        <mesh
-          position={[0, BOARD.Y_OFFSET, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          receiveShadow={shadowConfig}
-          castShadow={shadowConfig}
-        >
-          <planeGeometry args={[BOARD.SIZE, BOARD.SIZE]} />
-          <meshStandardMaterial
-            map={boardTex}
-            roughness={0.7}
-            metalness={0.2}
-          />
-        </mesh>
-      )}
+      {/* Board top with tile texture - keep at 80x80 */}
+      <mesh
+        position={[0, BOARD.Y_OFFSET, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={shadowConfig}
+        castShadow={shadowConfig}
+      >
+        <planeGeometry args={[BOARD.SIZE, BOARD.SIZE]} />
+        <meshStandardMaterial
+          map={tileTextures.map}
+          normalMap={tileTextures.normalMap}
+          // roughnessMap={tileTextures.roughnessMap}
+          displacementMap={tileTextures.displacementMap}
+          roughness={0}
+        />
+      </mesh>
 
       {/* Board frame - adjusted to use totalBoardSize */}
       {frameTex && (
