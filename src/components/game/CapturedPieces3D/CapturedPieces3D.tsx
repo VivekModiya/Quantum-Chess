@@ -1,8 +1,8 @@
 import React from 'react'
 
 import { useChess } from '../../../provider'
-import { BoardPiece, PieceType } from '../../../types'
-import { CapturedPieceModel } from './CapturedPieceModel'
+import { BoardPiece, PieceColor, PieceType } from '../../../types'
+import { PieceModel } from '../Pieces/PieceModel'
 
 // Both groups sit beside the board at the same X offset, one row each.
 // Black's side is negative Z (ranks 7-8), white's side is positive Z (ranks 1-2).
@@ -22,6 +22,14 @@ const WHITE_CAPTURED_Z_START = -40
 const Z_SPACING = 5
 
 const PIECE_ORDER: PieceType[] = ['pawn', 'bishop', 'knight', 'rook', 'queen']
+
+const CAPTURED_PIECE_SCALE = 0.7
+
+function getPieceRotation(color: PieceColor, piece: PieceType): number {
+  if (color === 'black' && piece === 'knight') return Math.PI
+  if (piece === 'bishop') return color === 'black' ? Math.PI / 2 : -Math.PI / 2
+  return 0
+}
 
 // Single shelf spanning both capture areas
 const SHELF_Z_LENGTH =
@@ -83,22 +91,38 @@ export const CapturedPieces3D: React.FC = () => {
   return (
     <group>
       <CaptureShelf />
-      {sortedWhiteCaptured.map((p, i) => (
-        <CapturedPieceModel
-          key={`white-captured-${i}-${p.piece}`}
-          color={p.color}
-          piece={p.piece}
-          position={computePosition(i, WHITE_CAPTURED_Z_START, -1)}
-        />
-      ))}
-      {sortedBlackCaptured.map((p, i) => (
-        <CapturedPieceModel
-          key={`black-captured-${i}-${p.piece}`}
-          color={p.color}
-          piece={p.piece}
-          position={computePosition(i, BLACK_CAPTURED_Z_START, 1)}
-        />
-      ))}
+      {sortedWhiteCaptured.map((p, i) => {
+        const pos = computePosition(i, WHITE_CAPTURED_Z_START, -1)
+        return (
+          <PieceModel
+            key={`white-captured-${i}-${p.piece}`}
+            color={p.color}
+            piece={p.piece}
+            boardX={pos[0]}
+            boardZ={pos[2]}
+            pieceRotation={getPieceRotation(p.color, p.piece)}
+            scale={CAPTURED_PIECE_SCALE}
+            interactive={false}
+            showRim={true}
+          />
+        )
+      })}
+      {sortedBlackCaptured.map((p, i) => {
+        const pos = computePosition(i, BLACK_CAPTURED_Z_START, 1)
+        return (
+          <PieceModel
+            key={`black-captured-${i}-${p.piece}`}
+            color={p.color}
+            piece={p.piece}
+            boardX={pos[0]}
+            boardZ={pos[2]}
+            pieceRotation={getPieceRotation(p.color, p.piece)}
+            scale={CAPTURED_PIECE_SCALE}
+            interactive={false}
+            showRim={true}
+          />
+        )
+      })}
     </group>
   )
 }

@@ -111,7 +111,6 @@ export const App = () => {
         />
         <Crosshair isVisible={isLocked} />
         <Settings />
-        <CapturedPieces />
         <PawnPromotionDialog />
         <GameOverDialog />
         <GameControls />
