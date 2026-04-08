@@ -77,7 +77,7 @@ export const SceneLighting: React.FC = () => {
       {/* Hemisphere light */}
       <hemisphereLight
         color={lightingConfig.hemisphere.skyColor}
-        groundColor={lightingConfig.hemisphere.groundColor}
+        groundColor={lightingConfig.hemisphere.skyColor}
         intensity={lightingConfig.hemisphere.intensity}
         position={[0, 20, 0]}
       />
