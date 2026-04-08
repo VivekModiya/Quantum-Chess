@@ -17,20 +17,23 @@ import {
   Pieces,
   SceneLighting,
   Subscribers,
-  CapturedPieces,
   Settings,
   Skybox,
 } from '../components'
 import styles from './index.module.scss'
-import { PawnPromotionDialog } from '../components/ui/Portals/PawnPromotionDialog'
 import { GameOverDialog } from '../components/ui/Portals/GameOverDialog'
 import { GameControls } from '../components/ui/GameControls'
 import { assetUrl } from '../utils'
 import { Clock } from '../components/game/Clock/Clock'
+import { usePubSub } from '../hooks'
+import { PawnPromotion3D } from '../components'
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
+  const [isPromotionOpen, setIsPromotionOpen] = React.useState(false)
   const resetViewRef = React.useRef<(() => void) | null>(null)
+
+  const pubSub = usePubSub()
 
   const { playerColor, gameMode, timers, gameState } = useSocket()
 
@@ -56,6 +59,19 @@ export const App = () => {
   const setResetViewFn = React.useCallback((fn: () => void) => {
     resetViewRef.current = fn
   }, [])
+
+  React.useEffect(() => {
+    const unsubOpen = pubSub.subscribe('open_promotion_dialog', () =>
+      setIsPromotionOpen(true)
+    )
+    const unsubSelect = pubSub.subscribe('promotion_piece_selected', () =>
+      setIsPromotionOpen(false)
+    )
+    return () => {
+      unsubOpen()
+      unsubSelect()
+    }
+  }, [pubSub])
 
   React.useEffect(() => {
     ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
@@ -101,7 +117,9 @@ export const App = () => {
               setIsLocked={setIsLocked}
               onResetView={setResetViewFn}
               initialPosition={initialPosition}
+              isPromotionOpen={isPromotionOpen}
             />
+            <PawnPromotion3D />
           </Suspense>
         </Canvas>
         <Instructions
@@ -111,9 +129,33 @@ export const App = () => {
         />
         <Crosshair isVisible={isLocked} />
         <Settings />
-        <PawnPromotionDialog />
         <GameOverDialog />
         <GameControls />
+        {import.meta.env.DEV && (
+          <button
+            style={{
+              position: 'fixed',
+              bottom: '20px',
+              right: '20px',
+              zIndex: 9999,
+              padding: '8px 16px',
+              cursor: 'pointer',
+              background: '#3d1a00',
+              color: '#fff9ed',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '13px',
+            }}
+            onClick={() =>
+              pubSub.publish('open_promotion_dialog', {
+                pieceId: 'debug-piece',
+                toSquare: 'a1',
+              })
+            }
+          >
+            Test Promotion
+          </button>
+        )}
       </div>
     </ChessProvider>
   )

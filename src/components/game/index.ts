@@ -1,4 +1,5 @@
 export * from './Board'
 export * from './CapturedPieces3D'
 export * from './Notations'
+export * from './PawnPromotion3D'
 export * from './Pieces'

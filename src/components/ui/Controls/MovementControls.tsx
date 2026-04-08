@@ -9,6 +9,7 @@ interface MovementControlsProps {
   setIsLocked: (locked: boolean) => void
   onResetView?: (resetFn: () => void) => void
   initialPosition?: [number, number, number]
+  isPromotionOpen?: boolean
 }
 
 export const MovementControls: React.FC<MovementControlsProps> = ({
@@ -16,6 +17,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
   setIsLocked,
   onResetView,
   initialPosition = [0, 900, -900],
+  isPromotionOpen = false,
 }) => {
   const { camera, gl } = useThree()
   const pointerLockControlsRef = useRef<any>(null)
@@ -76,6 +78,17 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
       onResetView(resetView)
     }
   }, [onResetView, camera, controlMode])
+
+  // Exit FPS mode when promotion dialog opens
+  useEffect(() => {
+    if (isPromotionOpen && controlMode === 'fps') {
+      if (pointerLockControlsRef.current) {
+        pointerLockControlsRef.current.unlock()
+      }
+      setControlMode('orbit')
+      setIsLocked(false)
+    }
+  }, [isPromotionOpen, controlMode, setIsLocked])
 
   // Handle shift key to toggle between FPS and orbit mode
   useEffect(() => {
@@ -234,6 +247,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
         <OrbitControls
           ref={orbitControlsRef}
           camera={camera}
+          enabled={!isPromotionOpen}
           enablePan={true}
           enableZoom={true}
           enableRotate={true}
