@@ -15,7 +15,7 @@ const PROMOTABLE_PIECES: PromotablePiece[] = [
 ]
 
 // Horizontal spacing of the 4 pieces inside the box
-const PIECE_X_POSITIONS = [-9, -3, 3, 9]
+const PIECE_X_POSITIONS = [-12, -4, 4, 12]
 
 interface PromotionData {
   toSquare: Square
@@ -90,15 +90,15 @@ export const PawnPromotion3D: React.FC = () => {
   return (
     <group ref={groupRef} visible={false}>
       {/* Outer dark wooden border */}
-      <mesh position={[0, 6, 0]}>
-        <boxGeometry args={[28, 14, 2]} />
+      <mesh position={[0, 9, 0]}>
+        <boxGeometry args={[40, 20, 2]} />
         <meshStandardMaterial color="#3d1a00" />
       </mesh>
 
       {/* Inner cream panel — positioned slightly in front along group +Z */}
-      <mesh position={[0, 6, 0.6]}>
-        <boxGeometry args={[26.5, 12.5, 1]} />
-        <meshStandardMaterial color="#fff9ed" />
+      <mesh position={[0, 9, 0.6]}>
+        <boxGeometry args={[38, 18, 1]} />
+        <meshStandardMaterial color="#00000053" />
       </mesh>
 
       {/* 4 promotion pieces — boardZ=1.5 puts them in front of the panel */}
@@ -108,11 +108,11 @@ export const PawnPromotion3D: React.FC = () => {
           piece={piece}
           color={pieceColor}
           boardX={PIECE_X_POSITIONS[i]}
-          boardZ={1.5}
+          boardZ={1}
           pieceRotation={0}
-          scale={0.4}
+          scale={1}
           interactive={true}
-          showRim={false}
+          showRim={true}
           handleClick={(e: ThreeEvent<MouseEvent>) => {
             e.stopPropagation()
             handlePieceClick(piece)
