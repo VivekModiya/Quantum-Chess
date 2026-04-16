@@ -10,7 +10,7 @@ import {
   isInsufficientMaterial,
   assetUrl,
 } from '../../utils'
-import { PieceColor } from '../../types'
+import { PieceColor, PromotablePiece, Square } from '../../types'
 import type { BoardSnapshot } from '../../../shared/socketEvents'
 
 export const Subscribers = React.memo(() => {
@@ -50,6 +50,14 @@ export const Subscribers = React.memo(() => {
   // Keep a ref to the latest moveHistory so we can read SAN inside subscriber closures
   const moveHistoryRef = React.useRef(moveHistory)
   moveHistoryRef.current = moveHistory
+
+  // Holds from/to/san for a pawn promotion move until the player selects a piece.
+  // Cleared after the deferred doSendMove is fired via the moveHistory useEffect.
+  const pendingPromotionSendRef = React.useRef<{
+    from: string
+    to: string
+    san: string | undefined
+  } | null>(null)
 
   /** Build a BoardSnapshot from current chess state (call AFTER dispatch completes). */
   const buildSnapshotRef = React.useRef<() => BoardSnapshot>(() => ({
@@ -132,13 +140,46 @@ export const Subscribers = React.memo(() => {
             pieceId,
             pieceType: piece.piece || '',
             pieceColor: piece.color || '',
+            // Skip the promotion dialog — we apply it directly below.
+            skipPromotion: true,
           })
+          // Apply the opponent's promotion locally without opening the dialog.
+          if (lastOpponentMove.promotion) {
+            promotePawn(
+              to as Square,
+              lastOpponentMove.promotion as PromotablePiece,
+              pieceId
+            )
+          }
         })
       }
     }
 
     clearLastOpponentMove()
-  }, [lastOpponentMove, clearLastOpponentMove, chess, makeMove, publish])
+  }, [
+    lastOpponentMove,
+    clearLastOpponentMove,
+    chess,
+    makeMove,
+    publish,
+    promotePawn,
+  ])
+
+  // Once PROMOTE_PAWN updates moveHistory with the chosen piece, send the
+  // deferred promotion move to the server (with snapshot reflecting the
+  // promoted piece on the board).
+  React.useEffect(() => {
+    if (!pendingPromotionSendRef.current) return
+    const lastMove = moveHistory[moveHistory.length - 1]
+    if (lastMove?.promotion) {
+      const { from, to, san } = pendingPromotionSendRef.current
+      doSendMove(
+        { from, to, san, promotion: lastMove.promotion },
+        buildSnapshotRef.current()
+      )
+      pendingPromotionSendRef.current = null
+    }
+  }, [moveHistory, doSendMove])
 
   React.useEffect(() => {
     const unsubscribe = [
@@ -191,15 +232,31 @@ export const Subscribers = React.memo(() => {
               pieceColor: color || '',
             })
 
-            // Build snapshot AFTER the move has been applied (inside onComplete)
-            // and send to server so it can persist the latest board state.
-            const snapshot = buildSnapshotRef.current()
             const lastEntry =
               moveHistoryRef.current[moveHistoryRef.current.length - 1]
-            doSendMove(
-              { from: fromSquare, to: toSquare, san: lastEntry?.san },
-              snapshot
-            )
+            const toRank = parseInt(toSquare[1], 10)
+            const isPawnPromotion =
+              type === 'pawn' &&
+              ((color === 'white' && toRank === 8) ||
+                (color === 'black' && toRank === 1))
+
+            if (isPawnPromotion) {
+              // Defer socket send until the player selects a promotion piece.
+              // The useEffect watching moveHistory will fire it once PROMOTE_PAWN
+              // has updated the last moveHistory entry with the chosen piece.
+              pendingPromotionSendRef.current = {
+                from: fromSquare,
+                to: toSquare,
+                san: lastEntry?.san,
+              }
+            } else {
+              // Non-promotion move: send immediately with current board snapshot.
+              const snapshot = buildSnapshotRef.current()
+              doSendMove(
+                { from: fromSquare, to: toSquare, san: lastEntry?.san },
+                snapshot
+              )
+            }
           })
 
           setSelectedPiece(null)
@@ -207,9 +264,11 @@ export const Subscribers = React.memo(() => {
       }),
       subscribe(
         'move_completed',
-        ({ toSquare, pieceId, pieceType, pieceColor }) => {
-          // Handle pawn promotion after move animation completes
-          if (pieceType === 'pawn') {
+        ({ toSquare, pieceId, pieceType, pieceColor, skipPromotion }) => {
+          // Handle pawn promotion after move animation completes.
+          // skipPromotion is true for opponent moves — promotion is applied
+          // directly in the lastOpponentMove effect without opening the dialog.
+          if (!skipPromotion && pieceType === 'pawn') {
             const coords = chess.coords(toSquare)
             const rank = coords?.rank
 

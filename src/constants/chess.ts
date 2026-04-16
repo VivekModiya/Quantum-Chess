@@ -16,10 +16,11 @@ export const PIECE_EMISSIVE: Record<
 // Board geometry & visual config
 export const BOARD = {
   SIZE: 80,
-  Y_OFFSET: 2.55,
+  Y_OFFSET: 2.2,
   SQUARE_COLORS: { light: '#ffffff', dark: '#000000' },
-  BORDER_COLOR: 0x654321,
-  BASE_COLOR: '#6d4013',
+  BORDER_COLOR: '#ffffff',
+  BASE_COLOR: '#c9af96',
+  FRAME_COLOR: '#5c5c5c',
 } as const
 
 // Highlight overlay colors & alphas per highlight type

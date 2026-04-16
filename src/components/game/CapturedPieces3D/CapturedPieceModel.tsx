@@ -37,9 +37,9 @@ export const CapturedPieceModel: React.FC<CapturedPieceModelProps> = ({
 
     const clonedScene = scene.clone()
     clonedScene.scale.set(
-      (0.2 + BASE_SCALE * 0.8) * pieceScale,
-      (0.2 + BASE_SCALE) * pieceScale,
-      (0.2 + BASE_SCALE * 0.8) * pieceScale
+      BASE_SCALE * pieceScale,
+      BASE_SCALE * pieceScale,
+      BASE_SCALE * pieceScale
     )
 
     clonedScene.traverse(child => {

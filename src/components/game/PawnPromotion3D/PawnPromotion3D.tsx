@@ -15,8 +15,7 @@ const PROMOTABLE_PIECES: PromotablePiece[] = [
 ]
 
 // Horizontal spacing of the 4 pieces inside the box
-const PIECE_X_POSITIONS = [-12, -4, 4, 12]
-
+const PIECE_X_POSITIONS = [-15, -5, 5, 15]
 interface PromotionData {
   toSquare: Square
   pieceId: string
@@ -26,6 +25,12 @@ export const PawnPromotion3D: React.FC = () => {
   const [promotionData, setPromotionData] = useState<PromotionData | null>(null)
   const groupRef = useRef<THREE.Group>(null)
   const scaleRef = useRef(0)
+  const pieceGroupRefs = useRef<(THREE.Group | null)[]>([
+    null,
+    null,
+    null,
+    null,
+  ])
 
   const pubSub = usePubSub()
   const { chess } = useChess()
@@ -36,35 +41,35 @@ export const PawnPromotion3D: React.FC = () => {
 
   const isOpen = Boolean(promotionData)
 
-  // When the dialog opens, snapshot camera position/orientation and position
-  // the group 50 units in front of the camera. Since camera movement is locked
-  // while the dialog is open, no per-frame tracking is needed.
+  const positionDialog = () => {
+    if (!groupRef.current) return
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
+      camera.quaternion
+    )
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion)
+    groupRef.current.position
+      .copy(camera.position)
+      .addScaledVector(forward, 50)
+      .addScaledVector(up, -5)
+    groupRef.current.quaternion.copy(camera.quaternion)
+  }
+
   useEffect(() => {
     const unsub = pubSub.subscribe(
       'open_promotion_dialog',
       ({ pieceId, toSquare }) => {
-        if (groupRef.current) {
-          const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
-            camera.quaternion
-          )
-          const up = new THREE.Vector3(0, 1, 0).applyQuaternion(
-            camera.quaternion
-          )
-          groupRef.current.position
-            .copy(camera.position)
-            .addScaledVector(forward, 50)
-            .addScaledVector(up, -5)
-          groupRef.current.quaternion.copy(camera.quaternion)
-        }
+        positionDialog()
         setPromotionData({ pieceId, toSquare })
       }
     )
     return unsub
   }, [pubSub, camera])
 
-  // Animate scale 0 → 1 on open, 1 → 0 on close
+  // Animate scale + rotate pieces
   useFrame((_, delta) => {
     if (!groupRef.current) return
+
+    // Scale animation
     const target = isOpen ? 1 : 0
     const next = THREE.MathUtils.lerp(
       scaleRef.current,
@@ -75,6 +80,13 @@ export const PawnPromotion3D: React.FC = () => {
     const clamped = Math.max(0, next)
     groupRef.current.visible = clamped > 0.01
     groupRef.current.scale.setScalar(clamped)
+
+    // Rotate pieces while dialog is visible — each at a slightly different speed
+    if (clamped > 0.01) {
+      pieceGroupRefs.current.forEach((ref, i) => {
+        if (ref) ref.rotation.y += delta * (0.55 + i * 0.08)
+      })
+    }
   })
 
   const handlePieceClick = (piece: PromotablePiece) => {
@@ -88,37 +100,69 @@ export const PawnPromotion3D: React.FC = () => {
   }
 
   return (
-    <group ref={groupRef} visible={false}>
-      {/* Outer dark wooden border */}
-      <mesh position={[0, 9, 0]}>
-        <boxGeometry args={[40, 20, 2]} />
-        <meshStandardMaterial color="#3d1a00" />
-      </mesh>
+    <>
+      {/* ── Main promotion dialog ── */}
+      <group ref={groupRef} visible={false}>
+        {/* Backdrop — large semi-transparent dark overlay */}
+        <mesh position={[0, 9, -8]} renderOrder={-1}>
+          <planeGeometry args={[600, 450]} />
+          <meshBasicMaterial
+            color="#00020a"
+            opacity={0.82}
+            transparent
+            depthWrite={false}
+            side={THREE.FrontSide}
+          />
+        </mesh>
 
-      {/* Inner cream panel — positioned slightly in front along group +Z */}
-      <mesh position={[0, 9, 0.6]}>
-        <boxGeometry args={[38, 18, 1]} />
-        <meshStandardMaterial color="#00000053" />
-      </mesh>
+        {/* Outer embossed golden frame */}
+        <mesh position={[0, 9, -6]}>
+          <boxGeometry args={[58, 29.6, 2]} />
+          <meshStandardMaterial color="#850000" metalness={0} roughness={0} />
+        </mesh>
 
-      {/* 4 promotion pieces — boardZ=1.5 puts them in front of the panel */}
-      {PROMOTABLE_PIECES.map((piece, i) => (
-        <PieceModel
-          key={piece}
-          piece={piece}
-          color={pieceColor}
-          boardX={PIECE_X_POSITIONS[i]}
-          boardZ={1}
-          pieceRotation={0}
-          scale={1}
-          interactive={true}
-          showRim={true}
-          handleClick={(e: ThreeEvent<MouseEvent>) => {
-            e.stopPropagation()
-            handlePieceClick(piece)
-          }}
-        />
-      ))}
-    </group>
+        {/* Main panel surface */}
+        <mesh position={[0, 9, -4.6]}>
+          <boxGeometry args={[55, 27, 0.8]} />
+          <meshStandardMaterial color="#000000" metalness={0} roughness={0} />
+        </mesh>
+
+        {/* Rotating piece groups */}
+        {PROMOTABLE_PIECES.map((piece, i) => (
+          <group
+            key={piece}
+            position={[PIECE_X_POSITIONS[i], 0, 2.2]}
+            ref={el => {
+              pieceGroupRefs.current[i] = el
+            }}
+          >
+            <mesh position={[0, -0.3, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[4.5, 48]} />
+              <meshBasicMaterial
+                color="#ffc3c3"
+                opacity={0.1}
+                transparent
+                depthWrite={false}
+              />
+            </mesh>
+
+            <PieceModel
+              piece={piece}
+              color={pieceColor}
+              boardX={0}
+              boardZ={0}
+              pieceRotation={0}
+              scale={1}
+              interactive={true}
+              showRim={true}
+              handleClick={(e: ThreeEvent<MouseEvent>) => {
+                e.stopPropagation()
+                handlePieceClick(piece)
+              }}
+            />
+          </group>
+        ))}
+      </group>
+    </>
   )
 }

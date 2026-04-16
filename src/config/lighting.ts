@@ -1,7 +1,7 @@
 export const shadowConfig = false // Enable shadows with default settings (PCFSoftShadowMap)
 
 export const lightingConfig = {
-  ambient: { color: 0x050505, intensity: 1 }, // Increased to lighten shadows
+  ambient: { color: 0x404040, intensity: 1.5 }, // Brighter ambient to illuminate board sides
   primarySpotlight: {
     color: 0xffffff,
     intensity: 10,
@@ -15,6 +15,11 @@ export const lightingConfig = {
     color: 0xffffff,
     intensity: 4,
     position: [0, 100, 0] as [number, number, number], // Angled for directional shadows
+  },
+  underBoardDirectional: {
+    color: 0xffffff,
+    intensity: 2,
+    position: [0, -50, 0] as [number, number, number],
   },
   pieceDetail: {
     color: 0xfff8dc,

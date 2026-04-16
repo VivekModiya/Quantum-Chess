@@ -62,6 +62,13 @@ export const SceneLighting: React.FC = () => {
         decay={1.5}
       />
 
+      {/* Under board directional light */}
+      <directionalLight
+        position={lightingConfig.underBoardDirectional.position}
+        color={lightingConfig.underBoardDirectional.color}
+        intensity={lightingConfig.underBoardDirectional.intensity}
+      />
+
       {/* Accent lights */}
       {lightingConfig.accentLights.map((config, index) => (
         <pointLight

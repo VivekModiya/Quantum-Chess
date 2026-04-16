@@ -32,7 +32,7 @@ interface PieceModelProps {
   showRim?: boolean
 }
 
-const PIECE_SCALE = 1.3
+const PIECE_SCALE = 1.5
 
 const RIM_VERT = /* glsl */ `
   varying vec3 vNormal;
@@ -132,9 +132,9 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
 
         const clonedScene = scene.clone()
         clonedScene.scale.set(
-          (0.2 + PIECE_SCALE * 0.8) * scale,
-          (0.2 + PIECE_SCALE) * scale,
-          (0.2 + PIECE_SCALE * 0.8) * scale
+          PIECE_SCALE * scale,
+          PIECE_SCALE * scale,
+          PIECE_SCALE * scale
         )
 
         clonedScene.traverse(child => {

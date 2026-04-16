@@ -36,99 +36,45 @@ export const Board: React.FC<ChessBoardProps> = ({
     })
   }, [tileTextures])
 
-  const frameTexture = React.useMemo(() => {
-    const canvas = document.createElement('canvas')
-    const frameSize = frameWidth * 32
-    const boardSize = 1024
-    const total = boardSize + frameSize * 2
+  // Load wood textures for the border
+  const borderTextures = useTexture({
+    map: assetUrl('textures/Wood062_1K-JPG_Color.jpg'),
+    normalMap: assetUrl('textures/Wood062_1K-JPG_NormalGL.jpg'),
+    roughnessMap: assetUrl('textures/Wood062_1K-JPG_Roughness.jpg'),
+    aoMap: assetUrl('textures/Wood062_1K-JPG_AmbientOcclusion.jpg'),
+  })
 
-    canvas.width = canvas.height = total
-    const ctx = canvas.getContext('2d')!
-    ctx.imageSmoothingEnabled = true
-    ctx.imageSmoothingQuality = 'high'
+  // Configure border textures to repeat
+  React.useMemo(() => {
+    Object.values(borderTextures).forEach(texture => {
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+      texture.repeat.set(3, 3)
+      texture.needsUpdate = true
+    })
+  }, [borderTextures])
 
-    // const outer = '#b5783eff',
-    //   inner = '#814e2aff'
+  // Load wood textures for the base
+  const baseTextures = useTexture({
+    map: assetUrl('textures/Wood078_1K-JPG_Color.jpg'),
+    normalMap: assetUrl('textures/Wood078_1K-JPG_NormalGL.jpg'),
+    roughnessMap: assetUrl('textures/Wood078_1K-JPG_Roughness.jpg'),
+    aoMap: assetUrl('textures/Wood078_1K-JPG_AmbientOcclusion.jpg'),
+  })
 
-    const outer = 'rgba(95, 77, 68, 0.26)' // Dark brown wood color
-    const inner = 'rgb(68, 47, 5)' // Lighter brown for inner frame
-
-    // Top
-    let grad = ctx.createLinearGradient(0, 0, 0, frameSize)
-    grad.addColorStop(0, outer)
-    grad.addColorStop(1, inner)
-    ctx.fillStyle = grad
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(frameSize, frameSize)
-    ctx.lineTo(total - frameSize, frameSize)
-    ctx.lineTo(total, 0)
-    ctx.closePath()
-    ctx.fill()
-
-    // Left
-    grad = ctx.createLinearGradient(0, 0, frameSize, 0)
-    grad.addColorStop(0, outer)
-    grad.addColorStop(1, inner)
-    ctx.fillStyle = grad
-    ctx.beginPath()
-    ctx.moveTo(0, 0)
-    ctx.lineTo(frameSize, frameSize)
-    ctx.lineTo(frameSize, total - frameSize)
-    ctx.lineTo(0, total)
-    ctx.closePath()
-    ctx.fill()
-
-    // Bottom
-    grad = ctx.createLinearGradient(0, total - frameSize, 0, total)
-    grad.addColorStop(0, inner)
-    grad.addColorStop(1, outer)
-    ctx.fillStyle = grad
-    ctx.beginPath()
-    ctx.moveTo(0, total)
-    ctx.lineTo(frameSize, total - frameSize)
-    ctx.lineTo(total - frameSize, total - frameSize)
-    ctx.lineTo(total, total)
-    ctx.closePath()
-    ctx.fill()
-
-    // Right
-    grad = ctx.createLinearGradient(total - frameSize, 0, total, 0)
-    grad.addColorStop(0, inner)
-    grad.addColorStop(1, outer)
-    ctx.fillStyle = grad
-    ctx.beginPath()
-    ctx.moveTo(total, total)
-    ctx.lineTo(total - frameSize, total - frameSize)
-    ctx.lineTo(total - frameSize, frameSize)
-    ctx.lineTo(total, 0)
-    ctx.closePath()
-    ctx.fill()
-
-    const texture = new THREE.CanvasTexture(canvas)
-    texture.minFilter = THREE.LinearMipmapLinearFilter
-    texture.magFilter = THREE.LinearFilter
-    texture.anisotropy = 16
-    texture.encoding = THREE.sRGBEncoding
-    texture.generateMipmaps = true
-    texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping
-    return texture
-  }, [frameWidth])
-
-  const [frameTex, setFrameTex] = React.useState<THREE.CanvasTexture | null>(
-    null
-  )
-
-  React.useEffect(() => {
-    setFrameTex(frameTexture)
-  }, [frameTexture])
+  // Configure base textures to repeat
+  React.useMemo(() => {
+    Object.values(baseTextures).forEach(texture => {
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+      texture.repeat.set(4, 4)
+      texture.needsUpdate = true
+    })
+  }, [baseTextures])
 
   // Calculate dimensions based on frameWidth
   const totalBoardSize = BOARD.SIZE + frameWidth * 2
   const borderOffset = BOARD.SIZE / 2 + 0.25
-
-  // Border color
-  const borderColor = BOARD.BORDER_COLOR
 
   return (
     <group ref={groupRef} position={position}>
@@ -141,8 +87,10 @@ export const Board: React.FC<ChessBoardProps> = ({
         <boxGeometry args={[totalBoardSize, 5, totalBoardSize]} />
         <meshStandardMaterial
           color={BOARD.BASE_COLOR}
-          roughness={0.9}
-          metalness={0.1}
+          map={baseTextures.map}
+          normalMap={baseTextures.normalMap}
+          roughnessMap={baseTextures.roughnessMap}
+          aoMap={baseTextures.aoMap}
         />
       </mesh>
 
@@ -154,9 +102,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       >
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
         <meshStandardMaterial
-          color={borderColor}
-          roughness={0.8}
-          metalness={0.1}
+          color={BOARD.FRAME_COLOR}
+          map={borderTextures.map}
+          normalMap={borderTextures.normalMap}
+          roughnessMap={borderTextures.roughnessMap}
+          aoMap={borderTextures.aoMap}
         />
       </mesh>
 
@@ -168,9 +118,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       >
         <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
         <meshStandardMaterial
-          color={borderColor}
-          roughness={0.8}
-          metalness={0.1}
+          color={BOARD.FRAME_COLOR}
+          map={borderTextures.map}
+          normalMap={borderTextures.normalMap}
+          roughnessMap={borderTextures.roughnessMap}
+          aoMap={borderTextures.aoMap}
         />
       </mesh>
 
@@ -182,9 +134,11 @@ export const Board: React.FC<ChessBoardProps> = ({
       >
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
         <meshStandardMaterial
-          color={borderColor}
-          roughness={0.8}
-          metalness={0.1}
+          color={BOARD.FRAME_COLOR}
+          map={borderTextures.map}
+          normalMap={borderTextures.normalMap}
+          roughnessMap={borderTextures.roughnessMap}
+          aoMap={borderTextures.aoMap}
         />
       </mesh>
 
@@ -196,44 +150,43 @@ export const Board: React.FC<ChessBoardProps> = ({
       >
         <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
         <meshStandardMaterial
-          color={borderColor}
-          roughness={0.8}
-          metalness={0.1}
+          color={BOARD.FRAME_COLOR}
+          map={borderTextures.map}
+          normalMap={borderTextures.normalMap}
+          roughnessMap={borderTextures.roughnessMap}
+          aoMap={borderTextures.aoMap}
         />
       </mesh>
 
       {/* Board top with tile texture - keep at 80x80 */}
       <mesh
         position={[0, BOARD.Y_OFFSET, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
         receiveShadow={shadowConfig}
         castShadow={shadowConfig}
       >
-        <planeGeometry args={[BOARD.SIZE, BOARD.SIZE]} />
+        <boxGeometry args={[BOARD.SIZE, 1, BOARD.SIZE]} />
         <meshStandardMaterial
           map={tileTextures.map}
           normalMap={tileTextures.normalMap}
-          // roughnessMap={tileTextures.roughnessMap}
-          displacementMap={tileTextures.displacementMap}
           roughness={0}
         />
       </mesh>
 
       {/* Board frame - adjusted to use totalBoardSize */}
-      {frameTex && (
-        <mesh
-          position={[0, 2.52, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          receiveShadow={shadowConfig}
-        >
-          <planeGeometry args={[totalBoardSize, totalBoardSize]} />
-          <meshStandardMaterial
-            map={frameTex}
-            roughness={0.7}
-            metalness={0.2}
-          />
-        </mesh>
-      )}
+      <mesh
+        position={[0, 2.52, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={shadowConfig}
+      >
+        <planeGeometry args={[totalBoardSize, totalBoardSize]} />
+        <meshStandardMaterial
+          color={BOARD.FRAME_COLOR}
+          map={borderTextures.map}
+          normalMap={borderTextures.normalMap}
+          roughnessMap={borderTextures.roughnessMap}
+          aoMap={borderTextures.aoMap}
+        />
+      </mesh>
       <BoardCoordinates />
     </group>
   )

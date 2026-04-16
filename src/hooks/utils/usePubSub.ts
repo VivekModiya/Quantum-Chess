@@ -16,6 +16,8 @@ export interface EventProps {
     pieceId: string
     pieceType: string
     pieceColor: string
+    /** Set to true for opponent moves so the promotion dialog is not opened locally. */
+    skipPromotion?: boolean
   }
   piece_moved: { fromSquare: string; toSquare: string; pieceId: string }
   game_reset: {}

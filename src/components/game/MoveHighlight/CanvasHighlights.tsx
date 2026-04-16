@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { useChess } from '../../../provider'
 import { usePubSub } from '../../../hooks'
 import { parseSquare } from '../../../utils/calculations/calculate'
-import { INDEX_TO_FILE, HIGHLIGHT_COLORS } from '../../../constants'
+import { INDEX_TO_FILE, HIGHLIGHT_COLORS, BOARD } from '../../../constants'
 import { InvisibleClickable } from './InvisibleClickable'
 
 const CANVAS_SIZE = 1024
@@ -187,7 +187,10 @@ export const CanvasHighlights: React.FC = () => {
     <>
       {/* Canvas texture overlay */}
       {textureRef.current && (
-        <mesh position={[0, 2.56, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <mesh
+          position={[0, BOARD.Y_OFFSET + 0.6, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
           <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
           <meshBasicMaterial
             map={textureRef.current}

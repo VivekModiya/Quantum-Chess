@@ -131,6 +131,7 @@ export const App = () => {
         <Settings />
         <GameOverDialog />
         <GameControls />
+        {/* Test promotion button — commented out, uncomment for manual testing
         {import.meta.env.DEV && (
           <button
             style={{
@@ -156,6 +157,7 @@ export const App = () => {
             Test Promotion
           </button>
         )}
+        */}
       </div>
     </ChessProvider>
   )
