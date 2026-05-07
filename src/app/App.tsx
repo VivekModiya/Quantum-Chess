@@ -12,7 +12,6 @@ import {
   CapturedPieces3D,
   Crosshair,
   Instructions,
-  Loader,
   MovementControls,
   Pieces,
   SceneLighting,
@@ -27,10 +26,27 @@ import { assetUrl } from '../utils'
 import { Clock } from '../components/game/Clock/Clock'
 import { usePubSub } from '../hooks'
 import { PawnPromotion3D } from '../components'
+import { GameIntroAnimation } from '../components/game/GameIntroAnimation/GameIntroAnimation'
+import { CubeLoader } from '../components/ui/Loading/CubeLoader'
+
+// Fires onReady once after Suspense resolves (assets loaded)
+const SceneReady: React.FC<{ onReady: () => void }> = ({ onReady }) => {
+  const called = React.useRef(false)
+  React.useEffect(() => {
+    if (!called.current) {
+      called.current = true
+      onReady()
+    }
+  }, [onReady])
+  return null
+}
 
 export const App = () => {
   const [isLocked, setIsLocked] = React.useState<boolean>(false)
   const [isPromotionOpen, setIsPromotionOpen] = React.useState(false)
+  const [isIntroPlaying, setIsIntroPlaying] = React.useState(false)
+  const [sceneReady, setSceneReady] = React.useState(false)
+  const introDecidedRef = React.useRef(false)
   const resetViewRef = React.useRef<(() => void) | null>(null)
 
   const pubSub = usePubSub()
@@ -73,6 +89,15 @@ export const App = () => {
     }
   }, [pubSub])
 
+  // Decide whether to play intro animation on first gameState arrival
+  React.useEffect(() => {
+    if (introDecidedRef.current || !gameState) return
+    introDecidedRef.current = true
+    if (gameState.moves.length === 0) {
+      setIsIntroPlaying(true)
+    }
+  }, [gameState])
+
   React.useEffect(() => {
     ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
       useGLTF.preload(assetUrl(`models/${piece}.glb`))
@@ -91,7 +116,7 @@ export const App = () => {
           performance={{ min: 0.5 }}
           dpr={[1, 2]}
         >
-          <Suspense fallback={<Loader />}>
+          <Suspense fallback={null}>
             <Sky
               distance={450000}
               sunPosition={[200, 200, 0]}
@@ -118,10 +143,19 @@ export const App = () => {
               onResetView={setResetViewFn}
               initialPosition={initialPosition}
               isPromotionOpen={isPromotionOpen}
+              animating={isIntroPlaying}
             />
+            {isIntroPlaying && (
+              <GameIntroAnimation
+                initialPosition={initialPosition}
+                onComplete={() => setIsIntroPlaying(false)}
+              />
+            )}
             <PawnPromotion3D />
+            <SceneReady onReady={() => setSceneReady(true)} />
           </Suspense>
         </Canvas>
+        {!sceneReady && <CubeLoader />}
         <Instructions
           isVisible={true}
           isFPPMode={isLocked}

@@ -1,1 +1,2 @@
-export * from './ProgressLoader';
+export * from './ProgressLoader'
+export * from './CubeLoader'

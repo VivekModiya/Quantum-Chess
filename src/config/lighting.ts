@@ -14,11 +14,11 @@ export const lightingConfig = {
   chessBoardDirectional: {
     color: 0xffffff,
     intensity: 4,
-    position: [0, 100, 0] as [number, number, number], // Angled for directional shadows
+    position: [0, 100, -10] as [number, number, number], // Angled for directional shadows
   },
   underBoardDirectional: {
     color: 0xffffff,
-    intensity: 2,
+    intensity: 1,
     position: [0, -50, 0] as [number, number, number],
   },
   pieceDetail: {

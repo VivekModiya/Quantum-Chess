@@ -60,7 +60,9 @@ export const ShareGameDialog: React.FC<ShareGameDialogProps> = ({
             </h2>
           </div>
           <div className={styles.shareMeta}>
-            <span className={styles.shareMetaPill}>Room {gameId.slice(0, 8)}</span>
+            <span className={styles.shareMetaPill}>
+              Room {gameId.slice(0, 8)}
+            </span>
             <span className={styles.shareMetaPill}>{seatLabel}</span>
           </div>
         </div>
@@ -71,29 +73,27 @@ export const ShareGameDialog: React.FC<ShareGameDialogProps> = ({
           <label className={styles.shareLabel} htmlFor="share-room-url">
             Invite URL
           </label>
-          <input
-            ref={inputRef}
-            id="share-room-url"
-            className={styles.shareInput}
-            value={inviteUrl}
-            readOnly
-            onFocus={event => event.target.select()}
-          />
+          <div className={styles.shareInputGroup}>
+            <input
+              ref={inputRef}
+              id="share-room-url"
+              className={styles.shareInput}
+              value={inviteUrl}
+              readOnly
+              onFocus={event => event.target.select()}
+            />
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={onCopy}
+            >
+              {copyState === 'copied' ? 'Copied' : 'Copy invite'}
+            </button>
+          </div>
         </div>
 
         <div className={styles.shareActions}>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onCopy}
-          >
-            {copyState === 'copied' ? 'Copied' : 'Copy invite'}
-          </button>
-          <button
-            type="button"
-            className={styles.ghostButton}
-            onClick={onBack}
-          >
+          <button type="button" className={styles.ghostButton} onClick={onBack}>
             Back to setup
           </button>
           <button

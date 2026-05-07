@@ -2,9 +2,9 @@
   --lobby-ink: #f4ecdc;
   --lobby-muted: rgba(244, 236, 220, 0.55);
   --lobby-panel: rgba(11, 15, 20, 0.82);
-  --lobby-line: rgba(205, 172, 113, 0.18);
-  --lobby-accent: #d0a85c;
-  --lobby-accent-strong: #f1ca89;
+  --lobby-line: rgba(113, 124, 205, 0.18);
+  --lobby-accent: #5c6fd0;
+  --lobby-accent-strong: #8989f1;
   --lobby-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .active {
-  background: rgba(208, 168, 92, 0.16);
+  background: rgba(92, 98, 208, 0.16);
   color: var(--lobby-accent-strong);
 }
 
@@ -146,12 +146,12 @@
 }
 
 .toggleItem:hover {
-  border-color: rgba(208, 168, 92, 0.25);
+  border-color: rgba(92, 102, 208, 0.25);
 }
 
 .toggleItem[data-state='on'] {
-  background: rgba(208, 168, 92, 0.14);
-  border-color: rgba(241, 202, 137, 0.32);
+  background: rgba(94, 92, 208, 0.14);
+  border-color: rgba(142, 137, 241, 0.32);
 }
 
 .toggleLabel {
@@ -170,7 +170,6 @@
 }
 
 .input {
-  width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
@@ -189,8 +188,8 @@
 }
 
 .input:focus {
-  border-color: rgba(241, 202, 137, 0.36);
-  box-shadow: 0 0 0 3px rgba(208, 168, 92, 0.1);
+  border-color: rgba(137, 147, 241, 0.36);
+  box-shadow: 0 0 0 3px rgba(92, 98, 208, 0.1);
 }
 
 .primaryButton {
@@ -203,8 +202,8 @@
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  background: linear-gradient(135deg, #c1964d, #f1ca89);
-  color: #14100a;
+  background: linear-gradient(135deg, #4d4fc1, #898cf1);
+  color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -334,7 +333,6 @@
 }
 
 .shareInput {
-  width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
@@ -346,11 +344,18 @@
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease;
+  flex-grow: 1;
 }
 
 .shareInput:focus {
-  border-color: rgba(241, 202, 137, 0.36);
-  box-shadow: 0 0 0 3px rgba(208, 168, 92, 0.1);
+  border-color: rgba(137, 147, 241, 0.36);
+  box-shadow: 0 0 0 3px rgba(92, 102, 208, 0.1);
+}
+
+.shareInputGroup {
+  display: flex;
+  gap: 8px;
+  width: 100%;
 }
 
 .shareActions {

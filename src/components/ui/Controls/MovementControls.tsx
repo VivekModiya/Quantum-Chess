@@ -10,6 +10,7 @@ interface MovementControlsProps {
   onResetView?: (resetFn: () => void) => void
   initialPosition?: [number, number, number]
   isPromotionOpen?: boolean
+  animating?: boolean
 }
 
 export const MovementControls: React.FC<MovementControlsProps> = ({
@@ -18,6 +19,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
   onResetView,
   initialPosition = [0, 900, -900],
   isPromotionOpen = false,
+  animating = false,
 }) => {
   const { camera, gl } = useThree()
   const pointerLockControlsRef = useRef<any>(null)
@@ -248,7 +250,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
           ref={orbitControlsRef}
           makeDefault
           camera={camera}
-          enabled={!isPromotionOpen}
+          enabled={!isPromotionOpen && !animating}
           enablePan={true}
           enableZoom={true}
           enableRotate={true}

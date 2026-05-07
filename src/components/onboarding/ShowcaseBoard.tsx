@@ -66,12 +66,12 @@ export const ShowcaseBoard: React.FC<ShowcaseBoardProps> = ({
     })
   }, [borderTextures])
 
-  // Load wood textures for the base
+  // Load piece texture for the base (same as chess pieces)
   const baseTextures = useTexture({
-    map: getAssetUrl('textures/Wood078_1K-JPG_Color.jpg'),
-    normalMap: getAssetUrl('textures/Wood078_1K-JPG_NormalGL.jpg'),
-    roughnessMap: getAssetUrl('textures/Wood078_1K-JPG_Roughness.jpg'),
-    aoMap: getAssetUrl('textures/Wood078_1K-JPG_AmbientOcclusion.jpg'),
+    map: getAssetUrl('textures/Texture_White__Color.jpg'),
+    normalMap: getAssetUrl('textures/Texture_White_NormalGL.jpg'),
+    roughnessMap: getAssetUrl('textures/Texture_White_Roughness.jpg'),
+    aoMap: getAssetUrl('textures/Texture_White_AmbientOcclusion.jpg'),
   })
 
   // Configure base textures

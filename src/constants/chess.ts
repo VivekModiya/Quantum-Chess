@@ -19,7 +19,7 @@ export const BOARD = {
   Y_OFFSET: 2.9,
   SQUARE_COLORS: { light: '#ffffff', dark: '#000000' },
   BORDER_COLOR: '#ffffff',
-  BASE_COLOR: '#cacaca',
+  BASE_COLOR: '#9d9d9d',
   FRAME_COLOR: '#000000',
 } as const
 

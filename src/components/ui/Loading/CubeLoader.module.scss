@@ -1,0 +1,125 @@
+$size: 80px;
+$duration: 2s;
+$cube-color: #2255ff;
+$border-color: #000000;
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #000000;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.scene {
+  position: relative;
+  height: #{$size * 2.75};
+  width: #{$size * 2.75};
+  display: grid;
+  place-items: center;
+}
+
+.cubeWrapper {
+  transform-style: preserve-3d;
+  animation: bouncing $duration infinite;
+}
+
+.cube {
+  transform-style: preserve-3d;
+  transform: rotateX(45deg) rotateZ(45deg);
+  animation: rotation $duration infinite;
+}
+
+.cubeFaces {
+  transform-style: preserve-3d;
+  height: $size;
+  width: $size;
+  position: relative;
+  transform-origin: 0 0;
+  transform: translateZ(#{$size * -0.5});
+}
+
+.cubeFace {
+  position: absolute;
+  inset: 0;
+  background: $cube-color;
+  border: solid 1px $border-color;
+}
+
+.shadow {
+  transform: translateZ(-#{$size});
+  animation: bouncingShadow $duration infinite;
+}
+
+.top {
+  transform: translateZ(#{$size});
+}
+
+.front {
+  transform-origin: 0 50%;
+  transform: rotateY(-90deg);
+}
+
+.back {
+  transform-origin: 0 50%;
+  transform: rotateY(-90deg) translateZ(-#{$size});
+}
+
+.right {
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg) translateY(-#{$size});
+}
+
+.left {
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg) translateY(-#{$size}) translateZ(#{$size});
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotateX(45deg) rotateY(0deg) rotateZ(45deg);
+    animation-timing-function: cubic-bezier(0.17, 0.84, 0.44, 1);
+  }
+  50% {
+    transform: rotateX(45deg) rotateY(0deg) rotateZ(225deg);
+    animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+  }
+  100% {
+    transform: rotateX(45deg) rotateY(0deg) rotateZ(405deg);
+    animation-timing-function: cubic-bezier(0.17, 0.84, 0.44, 1);
+  }
+}
+
+@keyframes bouncing {
+  0% {
+    transform: translateY(#{$size * -0.5});
+    animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+  }
+  45% {
+    transform: translateY(#{$size * 0.5});
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  100% {
+    transform: translateY(#{$size * -0.5});
+    animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+  }
+}
+
+@keyframes bouncingShadow {
+  0% {
+    transform: translateZ(-#{$size}) scale(1.3);
+    animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+    opacity: 0.05;
+  }
+  45% {
+    transform: translateZ(0);
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateZ(-#{$size}) scale(1.3);
+    animation-timing-function: cubic-bezier(0.76, 0.05, 0.86, 0.06);
+    opacity: 0.05;
+  }
+}

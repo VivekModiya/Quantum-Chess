@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
-import { Text3D, useTexture } from '@react-three/drei'
+import { Text3D } from '@react-three/drei'
 import { useChess } from '../../../provider'
 import { assetUrl } from '../../../utils'
 import { shadowConfig } from '../../../config'
@@ -35,26 +35,14 @@ export function BoardCoordinates() {
   const halfText = textSize / 2
   const quarterText = textSize / 4
 
-  // Create material
-  const woodTextures = useTexture({
-    map: assetUrl('textures/Wood078_1K-JPG_Color.jpg'),
-    normalMap: assetUrl('textures/Wood078_1K-JPG_NormalGL.jpg'),
-    roughnessMap: assetUrl('textures/Wood078_1K-JPG_Roughness.jpg'),
-    aoMap: assetUrl('textures/Wood078_1K-JPG_AmbientOcclusion.jpg'),
-  })
-
   const { settings } = useChess()
 
   const material = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        map: woodTextures.map,
-        normalMap: woodTextures.normalMap,
-        roughnessMap: woodTextures.roughnessMap,
-        aoMap: woodTextures.aoMap,
-        color: new THREE.Color(0.25, 0.15, 0.15),
+        color: new THREE.Color(0, 0, 0),
       }),
-    [woodTextures]
+    []
   )
 
   // Calculate positions

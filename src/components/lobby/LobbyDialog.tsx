@@ -127,7 +127,6 @@ export const LobbyDialog: React.FC<LobbyDialogProps> = ({ isVisible }) => {
       persistPlayerSession(result)
       setPendingGame({ ...result, inviteUrl })
       setCopyState('idle')
-      void handleCopyInvite(inviteUrl)
     } catch (err) {
       setCreateError(
         err instanceof Error ? err.message : 'Failed to create game'

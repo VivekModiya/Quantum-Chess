@@ -54,12 +54,9 @@ export const Board: React.FC<ChessBoardProps> = ({
     })
   }, [borderTextures])
 
-  // Load wood textures for the base
+  // Load piece texture for the base (same as chess pieces)
   const baseTextures = useTexture({
-    map: assetUrl('textures/Wood078_1K-JPG_Color.jpg'),
-    normalMap: assetUrl('textures/Wood078_1K-JPG_NormalGL.jpg'),
-    roughnessMap: assetUrl('textures/Wood078_1K-JPG_Roughness.jpg'),
-    aoMap: assetUrl('textures/Wood078_1K-JPG_AmbientOcclusion.jpg'),
+    map: assetUrl('textures/Texture_White__Color.jpg'),
   })
 
   // Configure base textures to repeat
@@ -88,9 +85,9 @@ export const Board: React.FC<ChessBoardProps> = ({
         <meshStandardMaterial
           color={BOARD.BASE_COLOR}
           map={baseTextures.map}
-          normalMap={baseTextures.normalMap}
-          roughnessMap={baseTextures.roughnessMap}
-          aoMap={baseTextures.aoMap}
+          roughness={1}
+          metalness={1}
+          envMapIntensity={0}
         />
       </mesh>
 

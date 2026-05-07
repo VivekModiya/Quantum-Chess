@@ -4,6 +4,7 @@ import { SocketProvider } from '../../provider/SocketProvider'
 import { App } from '../../app/App'
 import { joinGame } from '../../api/gameApi'
 import type { PlayerColor } from '../../../shared/socketEvents'
+import { CubeLoader } from '../../components/ui/Loading/CubeLoader'
 
 interface LocationState {
   playerId?: string
@@ -79,11 +80,7 @@ export const GamePage = () => {
   }
 
   if (loading) {
-    return (
-      <div style={{ color: '#fff', padding: 40, textAlign: 'center' }}>
-        Joining game…
-      </div>
-    )
+    return <CubeLoader />
   }
 
   return (
