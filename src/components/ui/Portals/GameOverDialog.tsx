@@ -1,57 +1,40 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { usePubSub } from '../../../hooks'
 import { assetUrl } from '../../../utils'
 import { createGame } from '../../../api/gameApi'
 import { useSocket } from '../../../provider/SocketProvider'
 import styles from './index.module.scss'
 
-type GameOverData =
-  | {
-      type: 'win'
-      subType: 'resignation' | 'checkmate' | 'abandoned'
-      winner: 'white' | 'black'
-    }
-  | {
-      type: 'stalemate'
-      subType: 'stalemate'
-    }
-  | {
-      type: 'draw'
-      subType: 'agreement' | 'repetition' | '50 moves' | 'insufficient material'
-    }
-  | {
-      type: 'aborted'
-      subType: 'aborted'
-    }
-
 export const GameOverDialog = () => {
-  const [gameOverData, setGameOverData] = useState<GameOverData | null>(null)
-  const [isCreatingRematch, setIsCreatingRematch] = useState(false)
-  const pubSub = usePubSub()
+  const [isCreatingGame, setIsCreatingGame] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
   const navigate = useNavigate()
-  const { playerColor } = useSocket()
+  const {
+    playerColor,
+    gameResult,
+    gameMode,
+    rematchStatus,
+    doRematchRequest,
+    doAcceptRematch,
+    doDeclineRematch,
+  } = useSocket()
 
-  const isDialogOpen = Boolean(gameOverData)
+  const isDialogOpen = Boolean(gameResult) && !dismissed
 
   const handleClose = () => {
-    setGameOverData(null)
+    setDismissed(true)
   }
 
   const handleBackToLobby = () => {
-    handleClose()
     navigate('/')
   }
 
-  const handlePlayAgain = async () => {
-    setIsCreatingRematch(true)
+  const handleNewGame = async () => {
+    setIsCreatingGame(true)
     try {
-      // Create new game with same settings (10 min, random color for simplicity)
       const result = await createGame(10, 'random')
       localStorage.setItem(`playerId_${result.gameId}`, result.playerId)
       localStorage.setItem(`playerColor_${result.gameId}`, result.assignedColor)
-
-      // Navigate to new game
       navigate(`/game/${result.gameId}`, {
         state: {
           playerId: result.playerId,
@@ -60,41 +43,22 @@ export const GameOverDialog = () => {
       })
     } catch (err) {
       console.error('Failed to create new game:', err)
-      // If play again fails, go back to lobby
       handleBackToLobby()
     } finally {
-      setIsCreatingRematch(false)
+      setIsCreatingGame(false)
     }
   }
 
-  useEffect(() => {
-    const unsubscribe = pubSub.subscribe('game_over', (data: GameOverData) => {
-      setGameOverData(data)
-    })
-
-    return unsubscribe
-  }, [pubSub])
-
   const getTitle = () => {
-    if (!gameOverData) return ''
+    if (!gameResult) return ''
 
-    if (gameOverData.type === 'win' && gameOverData.subType === 'checkmate') {
-      return gameOverData.winner === 'white' ? 'White Wins!' : 'Black Wins!'
-    } else if (
-      gameOverData.type === 'win' &&
-      gameOverData.subType === 'resignation'
-    ) {
-      return gameOverData.winner === 'white' ? 'White Wins!' : 'Black Wins!'
-    } else if (
-      gameOverData.type === 'win' &&
-      gameOverData.subType === 'abandoned'
-    ) {
-      return gameOverData.winner === 'white' ? 'White Wins!' : 'Black Wins!'
-    } else if (gameOverData.type === 'stalemate') {
+    if (gameResult.type === 'win') {
+      return gameResult.winner === 'white' ? 'White Wins!' : 'Black Wins!'
+    } else if (gameResult.type === 'stalemate') {
       return 'Stalemate'
-    } else if (gameOverData.type === 'draw') {
+    } else if (gameResult.type === 'draw') {
       return 'Draw'
-    } else if (gameOverData.type === 'aborted') {
+    } else if (gameResult.type === 'aborted') {
       return 'Game Aborted'
     }
 
@@ -102,38 +66,89 @@ export const GameOverDialog = () => {
   }
 
   const getSubTitle = () => {
-    if (!gameOverData) return ''
+    if (!gameResult) return ''
 
-    const subtitles: Record<string, string> = {
-      'win-checkmate': 'by checkmate',
-      'win-resignation': 'by resignation',
-      'win-abandoned': 'by abandonment',
-      'stalemate-stalemate': 'by stalemate',
-      'draw-agreement': 'by agreement',
-      'draw-repetition': 'by threefold repetition',
-      'draw-50 moves': 'by fifty-move rule',
-      'draw-insufficient material': 'by insufficient material',
-      'aborted-aborted': 'game ended without moves',
+    if (gameResult.type === 'win') {
+      const reasons: Record<string, string> = {
+        checkmate: 'by checkmate',
+        timeout: 'on time',
+        resignation: 'by resignation',
+        abandoned: 'by abandonment',
+      }
+      return reasons[gameResult.reason] || ''
+    } else if (gameResult.type === 'stalemate') {
+      return 'by stalemate'
+    } else if (gameResult.type === 'draw') {
+      const reasons: Record<string, string> = {
+        agreement: 'by agreement',
+        repetition: 'by threefold repetition',
+        '50 moves': 'by fifty-move rule',
+        'insufficient material': 'by insufficient material',
+      }
+      return reasons[gameResult.reason] || ''
+    } else if (gameResult.type === 'aborted') {
+      return 'game ended without moves'
     }
-
-    return subtitles[`${gameOverData.type}-${gameOverData.subType}`] || ''
+    return ''
   }
 
   const getEmoji = () => {
-    if (!gameOverData) return ''
+    if (!gameResult) return ''
 
-    if (gameOverData.type === 'win') {
-      // Check if current player won
-      const didIWin = gameOverData.winner === playerColor
+    if (gameResult.type === 'win') {
+      const didIWin = gameResult.winner === playerColor
       return didIWin ? '🎉' : '😔'
-    } else if (
-      gameOverData.type === 'draw' ||
-      gameOverData.type === 'stalemate'
-    ) {
+    } else if (gameResult.type === 'draw' || gameResult.type === 'stalemate') {
       return '🤝'
     } else {
       return '🚫'
     }
+  }
+
+  const renderRematchButton = () => {
+    if (gameMode === 'spectator') return null
+
+    if (rematchStatus === 'sent') {
+      return (
+        <button className={styles.rematchButton} disabled>
+          <span className={styles.spinner}></span>
+          Waiting for opponent...
+        </button>
+      )
+    }
+
+    if (rematchStatus === 'received') {
+      return (
+        <div className={styles.rematchActions}>
+          <button
+            className={styles.acceptRematchButton}
+            onClick={doAcceptRematch}
+          >
+            Accept Rematch
+          </button>
+          <button
+            className={styles.declineRematchButton}
+            onClick={doDeclineRematch}
+          >
+            Decline
+          </button>
+        </div>
+      )
+    }
+
+    if (rematchStatus === 'declined') {
+      return (
+        <button className={styles.rematchButton} disabled>
+          Rematch Declined
+        </button>
+      )
+    }
+
+    return (
+      <button className={styles.rematchButton} onClick={doRematchRequest}>
+        Rematch
+      </button>
+    )
   }
 
   const dialogClassName = `${styles.gameOverDialog} ${isDialogOpen ? styles.showDialog : ''}`
@@ -152,7 +167,7 @@ export const GameOverDialog = () => {
 
         <div className={styles.headerContainer}>
           <div className={styles.emojiIcon}>{getEmoji()}</div>
-          {gameOverData?.type === 'win' && (
+          {gameResult?.type === 'win' && (
             <img
               src={assetUrl('images/trophy-icon.webp')}
               alt="Trophy"
@@ -166,21 +181,20 @@ export const GameOverDialog = () => {
         </div>
 
         <div className={styles.buttonGroup}>
+          {renderRematchButton()}
+
           <button
             className={styles.playAgainButton}
-            onClick={handlePlayAgain}
-            disabled={isCreatingRematch}
+            onClick={handleNewGame}
+            disabled={isCreatingGame}
           >
-            {isCreatingRematch ? (
+            {isCreatingGame ? (
               <>
                 <span className={styles.spinner}></span>
                 Creating...
               </>
             ) : (
-              <>
-                <span>🚀</span>
-                Play Again
-              </>
+              'New Game'
             )}
           </button>
 
@@ -188,7 +202,6 @@ export const GameOverDialog = () => {
             className={styles.backToLobbyButton}
             onClick={handleBackToLobby}
           >
-            <span>🏠</span>
             Back to Lobby
           </button>
         </div>

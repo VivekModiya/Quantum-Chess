@@ -1,26 +1,26 @@
 import { Piece } from '../types/chess'
 
 export const PIECE_COLOR_RGB: Record<'white' | 'black', string> = {
-  white: '#ccccff',
-  black: '#000000',
+  white: '#c5ba9c',
+  black: '#5a3b00',
 }
 
 export const PIECE_EMISSIVE: Record<
   'white' | 'black',
-  { color: number; intensity: number }
+  { color: string; intensity: number }
 > = {
-  white: { color: 0xffffff, intensity: 0.15 },
-  black: { color: 0xff0000, intensity: 0.4 },
+  white: { color: '#ffffff', intensity: 0 },
+  black: { color: '#ff9b2f', intensity: 0 },
 }
 
 // Board geometry & visual config
 export const BOARD = {
   SIZE: 80,
-  Y_OFFSET: 2.2,
+  Y_OFFSET: 2.9,
   SQUARE_COLORS: { light: '#ffffff', dark: '#000000' },
   BORDER_COLOR: '#ffffff',
-  BASE_COLOR: '#c9af96',
-  FRAME_COLOR: '#5c5c5c',
+  BASE_COLOR: '#cacaca',
+  FRAME_COLOR: '#000000',
 } as const
 
 // Highlight overlay colors & alphas per highlight type
@@ -38,7 +38,7 @@ export const PIECE_RIM = {
     'white' | 'black',
     string
   >,
-  power: 4.0,
+  power: 0.1,
 } as const
 
 // Hover pulse & fade animation config
@@ -49,15 +49,15 @@ export const PIECE_HOVER_ANIM = {
   sinFreq: 1.5,
   fadeSpeed: 6,
   snapThreshold: 0.0005,
-  emissiveScale: 30,
+  emissiveScale: 1,
 } as const
 
 // Default piece material properties
 export const PIECE_MATERIAL = {
-  metalness: 0,
-  roughness: 0.0,
+  metalness: 0.5,
+  roughness: 0.9,
   displacementScale: 0.0,
-  textureRepeat: 2,
+  textureRepeat: 0,
 } as const
 
 // 3D clock display config

@@ -25,9 +25,14 @@ import {
   sendAcceptDraw,
   sendDeclineDraw,
   sendAbort,
+  sendRematchRequest,
+  sendAcceptRematch,
+  sendDeclineRematch,
 } from '../services/socketService'
 
 export type GameMode = 'player' | 'spectator'
+
+export type RematchStatus = 'idle' | 'sent' | 'received' | 'declined'
 
 interface SocketContextType {
   connected: boolean
@@ -39,6 +44,7 @@ interface SocketContextType {
   timers: TimerData | null
   gameResult: GameResult | null
   pgn: string
+  rematchStatus: RematchStatus
   // Actions
   doSendMove: (move: MoveData, snapshot?: BoardSnapshot) => void
   doResign: () => void
@@ -46,6 +52,9 @@ interface SocketContextType {
   doAcceptDraw: () => void
   doDeclineDraw: () => void
   doAbort: () => void
+  doRematchRequest: () => void
+  doAcceptRematch: () => void
+  doDeclineRematch: () => void
   // Move received from opponent
   lastOpponentMove: MoveData | null
   clearLastOpponentMove: () => void
@@ -76,6 +85,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
   const [lastOpponentMove, setLastOpponentMove] = useState<MoveData | null>(
     null
   )
+  const [rematchStatus, setRematchStatus] = useState<RematchStatus>('idle')
 
   const gameMode: GameMode = playerId ? 'player' : 'spectator'
   const playerColorRef = useRef(playerColor)
@@ -178,6 +188,27 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       setDrawOffered(null)
     })
 
+    sock.on('rematch_requested', () => {
+      setRematchStatus('received')
+    })
+
+    sock.on(
+      'rematch_accepted',
+      ({ newGameId, playerId: newPlayerId, assignedColor }) => {
+        // Store session for the new game
+        localStorage.setItem(`playerId_${newGameId}`, newPlayerId)
+        localStorage.setItem(`playerColor_${newGameId}`, assignedColor)
+        // Navigate will be handled by the component reading this
+        setRematchStatus('idle')
+        // Use window.location for a clean navigation to the new game
+        window.location.href = `/game/${newGameId}`
+      }
+    )
+
+    sock.on('rematch_declined', () => {
+      setRematchStatus('declined')
+    })
+
     return () => {
       if (sockRef.current) {
         sockRef.current.removeAllListeners()
@@ -203,12 +234,24 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       timers,
       gameResult,
       pgn,
+      rematchStatus,
       doSendMove: sendMove,
       doResign: sendResign,
       doDrawOffer: sendDrawOffer,
       doAcceptDraw: sendAcceptDraw,
       doDeclineDraw: sendDeclineDraw,
       doAbort: sendAbort,
+      doRematchRequest: () => {
+        sendRematchRequest()
+        setRematchStatus('sent')
+      },
+      doAcceptRematch: () => {
+        sendAcceptRematch()
+      },
+      doDeclineRematch: () => {
+        sendDeclineRematch()
+        setRematchStatus('idle')
+      },
       lastOpponentMove,
       clearLastOpponentMove,
     }),
@@ -222,6 +265,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({
       timers,
       gameResult,
       pgn,
+      rematchStatus,
       lastOpponentMove,
       clearLastOpponentMove,
     ]

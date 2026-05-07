@@ -39,8 +39,14 @@ export const lightingConfig = {
       intensity: 0.28,
     },
   ],
+  // Soft sunrise directional light from the side
+  sunriseSideLight: {
+    color: 0xffaa66, // warm golden-orange
+    intensity: 5,
+    position: [120, 100, 0] as [number, number, number], // low angle from the side
+  },
   hemisphere: {
-    skyColor: '#87CEEB', // Sky blue to match the procedural sky
+    skyColor: '#FFD4A0', // Warm sunrise sky tone
     intensity: 2,
   },
 } as const

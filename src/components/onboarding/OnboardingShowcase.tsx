@@ -7,6 +7,18 @@ import { ShowcaseBoard } from './ShowcaseBoard'
 import { assetUrl } from '../../utils'
 import styles from './index.module.scss'
 
+// Notifies parent when Suspense content has mounted (assets loaded)
+const LoadFence: React.FC<{ onReady: () => void }> = ({ onReady }) => {
+  const called = useRef(false)
+  React.useEffect(() => {
+    if (!called.current) {
+      called.current = true
+      onReady()
+    }
+  }, [onReady])
+  return null
+}
+
 // Camera tour component that animates around the board
 const CameraTour: React.FC<{ onTourComplete: () => void }> = ({
   onTourComplete,
@@ -48,10 +60,23 @@ const CameraTour: React.FC<{ onTourComplete: () => void }> = ({
   return null
 }
 
+const StaticCamera: React.FC = () => {
+  const { camera } = useThree()
+
+  React.useEffect(() => {
+    camera.position.set(0, 80, 80)
+    camera.lookAt(0, 0, 0)
+  }, [camera])
+
+  return null
+}
+
 // Showcase scene with initial chess setup
-const ShowcaseScene: React.FC<{ onTourComplete: () => void }> = ({
-  onTourComplete,
-}) => {
+const ShowcaseScene: React.FC<{
+  onTourComplete: () => void
+  onAssetsReady: () => void
+  playTour: boolean
+}> = ({ onTourComplete, onAssetsReady, playTour }) => {
   // Preload chess piece models
   React.useEffect(() => {
     ;['rook', 'knight', 'bishop', 'queen', 'king', 'pawn'].forEach(piece => {
@@ -61,7 +86,12 @@ const ShowcaseScene: React.FC<{ onTourComplete: () => void }> = ({
 
   return (
     <>
-      <CameraTour onTourComplete={onTourComplete} />
+      <LoadFence onReady={onAssetsReady} />
+      {playTour ? (
+        <CameraTour onTourComplete={onTourComplete} />
+      ) : (
+        <StaticCamera />
+      )}
       <Sky
         distance={450000}
         sunPosition={[120, 120, 120]}
@@ -72,27 +102,33 @@ const ShowcaseScene: React.FC<{ onTourComplete: () => void }> = ({
       <Skybox />
       <SceneLighting />
       <ShowcaseBoard position={[0, 0, 0]} />
-      {/* Simplified board without chess pieces for smooth showcase experience */}
     </>
   )
 }
 
 interface OnboardingShowcaseProps {
   onShowcaseComplete: () => void
+  playTour?: boolean
+  showOverlay?: boolean
 }
 
 export const OnboardingShowcase: React.FC<OnboardingShowcaseProps> = ({
   onShowcaseComplete,
+  playTour = true,
+  showOverlay = true,
 }) => {
-  const [tourComplete, setTourComplete] = React.useState(false)
+  const [assetsLoaded, setAssetsLoaded] = React.useState(false)
 
   const handleTourComplete = () => {
-    setTourComplete(true)
-    // Small delay before showing dialog for smooth transition
+    if (!playTour) return
     setTimeout(() => {
       onShowcaseComplete()
     }, 300)
   }
+
+  const handleAssetsReady = React.useCallback(() => {
+    setAssetsLoaded(true)
+  }, [])
 
   return (
     <div className={styles.showcaseContainer}>
@@ -101,7 +137,7 @@ export const OnboardingShowcase: React.FC<OnboardingShowcaseProps> = ({
           fov: 60,
           near: 0.1,
           far: 1000,
-          position: [120, 100, 120], // Starting position
+          position: [120, 100, 120],
         }}
         gl={{
           antialias: true,
@@ -121,26 +157,22 @@ export const OnboardingShowcase: React.FC<OnboardingShowcaseProps> = ({
         dpr={[1, 2]}
       >
         <React.Suspense fallback={null}>
-          <ShowcaseScene onTourComplete={handleTourComplete} />
+          <ShowcaseScene
+            onTourComplete={handleTourComplete}
+            onAssetsReady={handleAssetsReady}
+            playTour={playTour}
+          />
         </React.Suspense>
       </Canvas>
 
-      {/* Overlay text during showcase */}
-      <div
-        className={`${styles.showcaseOverlay} ${tourComplete ? styles.fadeOut : ''}`}
-      >
-        <div className={styles.welcomeText}>
-          <h1 className={styles.title}>Welcome to 3D Chess</h1>
-          <p className={styles.subtitle}>
-            Preparing your magical chess experience...
-          </p>
-          <div className={styles.loadingDots}>
-            <span></span>
-            <span></span>
-            <span></span>
+      {/* Standard loading spinner — only visible while assets load */}
+      {showOverlay && !assetsLoaded && (
+        <div className={styles.showcaseOverlay}>
+          <div className={styles.loader}>
+            <div className={styles.spinnerRing} />
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

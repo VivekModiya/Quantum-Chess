@@ -44,8 +44,8 @@ export const App = () => {
 
   // Camera config with player-specific position
   const playerCameraConfig = {
-    fov: 50,
-    near: 0.1,
+    fov: 25,
+    near: 1,
     far: 1000,
     position: initialPosition as [number, number, number],
   }
@@ -84,8 +84,8 @@ export const App = () => {
       <div className={styles.app}>
         <Subscribers />
         <Canvas
-          camera={playerCameraConfig}
-          gl={renderConfig}
+          camera={{ ...playerCameraConfig, zoom: 1 }}
+          gl={{ ...renderConfig, logarithmicDepthBuffer: true }}
           shadows={shadowConfig}
           style={{ background: 'transparent' }}
           performance={{ min: 0.5 }}
@@ -94,13 +94,13 @@ export const App = () => {
           <Suspense fallback={<Loader />}>
             <Sky
               distance={450000}
-              sunPosition={[100, 100, 100]}
-              inclination={0.6}
+              sunPosition={[200, 200, 0]}
+              inclination={0.49}
               azimuth={0.25}
-              turbidity={10}
-              rayleigh={3}
-              mieCoefficient={1}
-              mieDirectionalG={0.9}
+              turbidity={4}
+              rayleigh={2}
+              mieCoefficient={0.005}
+              mieDirectionalG={0.8}
             />
             <Skybox />
             <SceneLighting />

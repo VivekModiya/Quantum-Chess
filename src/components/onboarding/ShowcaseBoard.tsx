@@ -139,7 +139,7 @@ export const ShowcaseBoard: React.FC<ShowcaseBoardProps> = ({
         return (
           <mesh
             key={i}
-            position={[x, SHOWCASE_BOARD.Y_OFFSET + 0.375, z]}
+            position={[x, SHOWCASE_BOARD.Y_OFFSET + 0.42, z]}
             receiveShadow
           >
             <boxGeometry args={[10, 0.01, 10]} />
@@ -151,6 +151,9 @@ export const ShowcaseBoard: React.FC<ShowcaseBoardProps> = ({
               }
               transparent
               opacity={0.8}
+              polygonOffset
+              polygonOffsetFactor={-1}
+              polygonOffsetUnits={-1}
             />
           </mesh>
         )

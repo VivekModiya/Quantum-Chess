@@ -7,7 +7,6 @@ import { shadowConfig } from '../../../config'
 import {
   PIECE_COLOR_RGB,
   PIECE_EMISSIVE,
-  PIECE_RIM,
   PIECE_HOVER_ANIM,
   PIECE_MATERIAL,
   BOARD,
@@ -28,34 +27,68 @@ interface PieceModelProps {
   scale?: number
   /** Enable hover pulse animation (default true) */
   interactive?: boolean
-  /** Show rim glow overlay (default true) */
-  showRim?: boolean
 }
 
 const PIECE_SCALE = 1.5
 
-const RIM_VERT = /* glsl */ `
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-    vViewDir = normalize(-mvPos.xyz);
-    gl_Position = projectionMatrix * mvPos;
-  }
-`
+/** Outline thickness in model-space units */
+const OUTLINE_THICKNESS = 0.02
+const OUTLINE_COLOR: Record<PieceColor, string> = {
+  black: '#ae8e67',
+  white: '#979797',
+}
 
-const RIM_FRAG = /* glsl */ `
-  uniform vec3 uBorderColor;
-  uniform float uRimPower;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-  void main() {
-    float rim = 1.0 - max(dot(vNormal, vViewDir), 0.0);
-    rim = pow(rim, uRimPower);
-    gl_FragColor = vec4(uBorderColor, rim);
-  }
-`
+/**
+ * Build an inverted-hull outline group from a source scene.
+ * For each mesh: clone geometry, push vertices along normals,
+ * and apply a flat BackSide material.
+ */
+function buildOutlineHull(
+  source: THREE.Group,
+  outlineColor: string,
+  thickness: number
+): THREE.Group {
+  const hull = new THREE.Group()
+
+  // Match the source scene's scale so outline aligns with the piece
+  hull.scale.copy(source.scale)
+
+  source.traverse(child => {
+    if (!(child instanceof THREE.Mesh) || !child.geometry) return
+
+    const geo = child.geometry.clone()
+    const posAttr = geo.getAttribute('position')
+    const normAttr = geo.getAttribute('normal')
+
+    if (!posAttr || !normAttr) return
+
+    // Push each vertex outward along its normal
+    for (let i = 0; i < posAttr.count; i++) {
+      posAttr.setXYZ(
+        i,
+        posAttr.getX(i) + normAttr.getX(i) * thickness,
+        posAttr.getY(i) + normAttr.getY(i) * thickness,
+        posAttr.getZ(i) + normAttr.getZ(i) * thickness
+      )
+    }
+    posAttr.needsUpdate = true
+
+    const mat = new THREE.MeshBasicMaterial({
+      color: outlineColor,
+      side: THREE.BackSide,
+    })
+
+    const mesh = new THREE.Mesh(geo, mat)
+    // Copy transform from source mesh
+    mesh.position.copy(child.position)
+    mesh.rotation.copy(child.rotation)
+    mesh.scale.copy(child.scale)
+    mesh.renderOrder = -2
+    hull.add(mesh)
+  })
+
+  return hull
+}
 
 export const PieceModel: React.FC<PieceModelProps> = React.memo(
   ({
@@ -69,11 +102,12 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
     userData,
     scale = 1,
     interactive = true,
-    showRim = true,
   }) => {
     const { scene } = useGLTF(assetUrl(`models/${piece}.glb`))
     const modelRef = React.useRef<THREE.Group>(null)
     const hoveredRef = React.useRef(false)
+    const outlineGroupRef = React.useRef<THREE.Group>(null)
+
     // BASE_EMISSIVE is the tracking-ref value; actual material intensity = BASE_EMISSIVE * PIECE_HOVER_ANIM.emissiveScale
     const BASE_EMISSIVE =
       PIECE_EMISSIVE[color].intensity / PIECE_HOVER_ANIM.emissiveScale
@@ -89,11 +123,11 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
       displacementMap: assetUrl('textures/Texture_White_Displacement.jpg'),
     })
     const blackTextures = useTexture({
-      map: assetUrl('textures/Texture_Black_Color.jpg'),
-      normalMap: assetUrl('textures/Texture_Black_NormalGL.jpg'),
-      roughnessMap: assetUrl('textures/Texture_Black_Roughness.jpg'),
-      emissiveMap: assetUrl('textures/Texture_Black_Emission.jpg'),
-      displacementMap: assetUrl('textures/Texture_Black_Displacement.jpg'),
+      map: assetUrl('textures/Texture_White__Color.jpg'),
+      normalMap: assetUrl('textures/Texture_White_NormalGL.jpg'),
+      roughnessMap: assetUrl('textures/Texture_White_Roughness.jpg'),
+      aoMap: assetUrl('textures/Texture_White_AmbientOcclusion.jpg'),
+      displacementMap: assetUrl('textures/Texture_White_Displacement.jpg'),
     })
     const pieceTextures = color === 'white' ? whiteTextures : blackTextures
 
@@ -120,12 +154,12 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
     const colorHash = React.useMemo(() => PIECE_COLOR_RGB[color], [color])
 
     // Clone and modify the loaded model with proper centering
-    const { modifiedScene, rimScene, centerOffset, yOffset } =
+    const { modifiedScene, outlineScene, centerOffset, yOffset } =
       React.useMemo(() => {
         if (!scene)
           return {
             modifiedScene: null,
-            rimScene: null,
+            outlineScene: null,
             centerOffset: new THREE.Vector3(),
             yOffset: 0,
           }
@@ -146,16 +180,8 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
             newMaterial.map = pieceTextures.map
             newMaterial.normalMap = pieceTextures.normalMap
             newMaterial.roughnessMap = pieceTextures.roughnessMap
-            if (color === 'black' && 'emissiveMap' in pieceTextures) {
-              newMaterial.emissiveMap = (
-                pieceTextures as typeof blackTextures
-              ).emissiveMap
-            }
             newMaterial.emissive.set(PIECE_EMISSIVE[color].color)
             newMaterial.emissiveIntensity = PIECE_EMISSIVE[color].intensity
-            if (color === 'white' && 'aoMap' in pieceTextures) {
-              newMaterial.aoMap = (pieceTextures as typeof whiteTextures).aoMap
-            }
             newMaterial.displacementScale = PIECE_MATERIAL.displacementScale
             newMaterial.displacementMap = (
               pieceTextures as typeof whiteTextures
@@ -176,33 +202,13 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
             // Enable shadows on the mesh
             child.castShadow = shadowConfig
             child.receiveShadow = shadowConfig
+            child.renderOrder = -1
           }
         })
 
         const box = new THREE.Box3().setFromObject(clonedScene)
         const center = box.getCenter(new THREE.Vector3())
         const centerOffset = new THREE.Vector3(-center.x, -center.y, -center.z)
-
-        // Build rim overlay — same geometry, shader-based fresnel rim, transparent interior
-        let rimClone: THREE.Group | null = null
-        if (showRim) {
-          const rimColor = PIECE_RIM.color[color]
-          rimClone = clonedScene.clone()
-          rimClone.traverse(child => {
-            if (child instanceof THREE.Mesh) {
-              child.material = new THREE.ShaderMaterial({
-                uniforms: {
-                  uBorderColor: { value: new THREE.Color(rimColor) },
-                  uRimPower: { value: PIECE_RIM.power },
-                },
-                vertexShader: RIM_VERT,
-                fragmentShader: RIM_FRAG,
-                transparent: true,
-                depthWrite: false,
-              })
-            }
-          })
-        }
 
         // Create a temporary group to calculate post-rotation bounds
         const tempGroup = new THREE.Group()
@@ -215,13 +221,20 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
         const rotatedBox = new THREE.Box3().setFromObject(tempGroup)
         const yOffset = -rotatedBox.min.y
 
+        // Build inverted-hull outline geometry
+        const outlineScene = buildOutlineHull(
+          clonedScene,
+          OUTLINE_COLOR[color],
+          OUTLINE_THICKNESS
+        )
+
         return {
           modifiedScene: clonedScene,
-          rimScene: rimClone,
+          outlineScene,
           centerOffset,
           yOffset,
         }
-      }, [scene, colorHash, pieceTextures, color, scale, showRim])
+      }, [scene, colorHash, pieceTextures, color, scale])
 
     // Cleanup effect to dispose of cloned materials when component unmounts (shared textures are NOT disposed)
     React.useEffect(() => {
@@ -237,9 +250,10 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
             }
           })
         }
-        if (rimScene) {
-          rimScene.traverse(child => {
+        if (outlineScene) {
+          outlineScene.traverse(child => {
             if (child instanceof THREE.Mesh) {
+              child.geometry?.dispose()
               if (Array.isArray(child.material)) {
                 child.material.forEach(mat => mat.dispose())
               } else {
@@ -249,11 +263,12 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
           })
         }
       }
-    }, [modifiedScene, rimScene])
+    }, [modifiedScene, outlineScene])
 
     // Pulsing brightness loop while hovered, smooth fade-out when not
     useFrame((_, delta) => {
       if (!interactive || !modifiedScene) return
+
       let next: number
       if (hoveredRef.current) {
         pulseTimeRef.current += delta * PIECE_HOVER_ANIM.pulseSpeed
@@ -265,6 +280,7 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
       } else {
         pulseTimeRef.current = 0
         const current = emissiveIntensityRef.current
+        if (current === BASE_EMISSIVE) return
         next = THREE.MathUtils.lerp(
           current,
           BASE_EMISSIVE,
@@ -273,11 +289,6 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
         if (Math.abs(next - BASE_EMISSIVE) < PIECE_HOVER_ANIM.snapThreshold)
           next = BASE_EMISSIVE
       }
-      if (
-        Math.abs(next - emissiveIntensityRef.current) <
-        PIECE_HOVER_ANIM.snapThreshold
-      )
-        return
       emissiveIntensityRef.current = next
       modifiedScene.traverse(child => {
         if (child instanceof THREE.Mesh && child.material) {
@@ -327,7 +338,11 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
       >
         <group ref={modelRef} position={centerOffset}>
           <primitive object={modifiedScene} />
-          {rimScene && <primitive object={rimScene} />}
+          {outlineScene && (
+            <group ref={outlineGroupRef}>
+              <primitive object={outlineScene} />
+            </group>
+          )}
         </group>
       </group>
     )

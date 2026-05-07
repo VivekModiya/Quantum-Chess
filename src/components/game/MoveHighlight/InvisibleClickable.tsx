@@ -15,7 +15,7 @@ export const InvisibleClickable = (props: InvisibleClickableProps) => {
       rotation={[-Math.PI / 2, 0, 0]}
     >
       <planeGeometry args={[10, 10]} />
-      <meshBasicMaterial />
+      <meshBasicMaterial visible={false} />
     </mesh>
   )
 }

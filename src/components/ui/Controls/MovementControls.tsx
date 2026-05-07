@@ -246,6 +246,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
       {controlMode === 'orbit' && (
         <OrbitControls
           ref={orbitControlsRef}
+          makeDefault
           camera={camera}
           enabled={!isPromotionOpen}
           enablePan={true}
@@ -254,7 +255,7 @@ export const MovementControls: React.FC<MovementControlsProps> = ({
           enableDamping={true}
           dampingFactor={0.1}
           minDistance={1}
-          maxDistance={100}
+          maxDistance={500}
         />
       )}
 

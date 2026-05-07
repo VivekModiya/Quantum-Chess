@@ -42,6 +42,7 @@ export function createGame(req: CreateGameRequest): CreateGameResponse {
     drawOffer: null,
     snapshot: null,
     pgn: '',
+    rematchRequest: null,
     createdAt: Date.now(),
   }
 

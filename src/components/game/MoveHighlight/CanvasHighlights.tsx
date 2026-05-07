@@ -188,7 +188,7 @@ export const CanvasHighlights: React.FC = () => {
       {/* Canvas texture overlay */}
       {textureRef.current && (
         <mesh
-          position={[0, BOARD.Y_OFFSET + 0.6, 0]}
+          position={[0, BOARD.Y_OFFSET + 0.1, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
           <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
@@ -197,13 +197,16 @@ export const CanvasHighlights: React.FC = () => {
             transparent={true}
             opacity={1}
             depthWrite={false}
+            polygonOffset
+            polygonOffsetFactor={-2}
+            polygonOffsetUnits={-2}
           />
         </mesh>
       )}
 
       {/* Invisible clickable canvas overlay */}
       {allPositions.map(({ position, square }) => {
-        if (moves.includes(square) && settings.highlightMoves) {
+        if (moves.includes(square)) {
           return (
             <group position={position} key={square}>
               <InvisibleClickable

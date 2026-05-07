@@ -18,6 +18,6 @@ export default defineConfig({
       },
     },
   },
-  base: './',
+  base: '/',
   assetsInclude: ['**/*.glb'], // <-- add this
 })

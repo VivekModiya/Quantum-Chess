@@ -41,6 +41,8 @@ export interface GameRecord {
   snapshot: BoardSnapshot | null
   /** PGN string built incrementally from moves */
   pgn: string
+  /** Pending rematch request */
+  rematchRequest: { from: PlayerColor } | null
   createdAt: number
 }
 

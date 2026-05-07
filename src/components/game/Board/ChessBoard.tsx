@@ -96,11 +96,11 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       {/* Border - Top */}
       <mesh
-        position={[0, 0, -borderOffset]}
+        position={[0, 0.2, -borderOffset]}
         castShadow={shadowConfig}
         receiveShadow={shadowConfig}
       >
-        <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
+        <boxGeometry args={[totalBoardSize - 5, 5.8, 0.5]} />
         <meshStandardMaterial
           color={BOARD.FRAME_COLOR}
           map={borderTextures.map}
@@ -112,11 +112,11 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       {/* Border - Bottom */}
       <mesh
-        position={[0, 0, borderOffset]}
+        position={[0, 0.2, borderOffset]}
         castShadow={shadowConfig}
         receiveShadow={shadowConfig}
       >
-        <boxGeometry args={[totalBoardSize - 5, 5.5, 0.5]} />
+        <boxGeometry args={[totalBoardSize - 5, 5.8, 0.5]} />
         <meshStandardMaterial
           color={BOARD.FRAME_COLOR}
           map={borderTextures.map}
@@ -128,11 +128,11 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       {/* Border - Left */}
       <mesh
-        position={[-borderOffset, 0, 0]}
+        position={[-borderOffset, 0.2, 0]}
         castShadow={shadowConfig}
         receiveShadow={shadowConfig}
       >
-        <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
+        <boxGeometry args={[0.5, 5.8, totalBoardSize - 5]} />
         <meshStandardMaterial
           color={BOARD.FRAME_COLOR}
           map={borderTextures.map}
@@ -144,11 +144,11 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       {/* Border - Right */}
       <mesh
-        position={[borderOffset, 0, 0]}
+        position={[borderOffset, 0.2, 0]}
         castShadow={shadowConfig}
         receiveShadow={shadowConfig}
       >
-        <boxGeometry args={[0.5, 5.5, totalBoardSize - 5]} />
+        <boxGeometry args={[0.5, 5.8, totalBoardSize - 5]} />
         <meshStandardMaterial
           color={BOARD.FRAME_COLOR}
           map={borderTextures.map}
@@ -160,11 +160,11 @@ export const Board: React.FC<ChessBoardProps> = ({
 
       {/* Board top with tile texture - keep at 80x80 */}
       <mesh
-        position={[0, BOARD.Y_OFFSET, 0]}
+        position={[0, 2.7, 0]}
         receiveShadow={shadowConfig}
         castShadow={shadowConfig}
       >
-        <boxGeometry args={[BOARD.SIZE, 1, BOARD.SIZE]} />
+        <boxGeometry args={[BOARD.SIZE, 0.4, BOARD.SIZE]} />
         <meshStandardMaterial
           map={tileTextures.map}
           normalMap={tileTextures.normalMap}
@@ -173,20 +173,6 @@ export const Board: React.FC<ChessBoardProps> = ({
       </mesh>
 
       {/* Board frame - adjusted to use totalBoardSize */}
-      <mesh
-        position={[0, 2.52, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow={shadowConfig}
-      >
-        <planeGeometry args={[totalBoardSize, totalBoardSize]} />
-        <meshStandardMaterial
-          color={BOARD.FRAME_COLOR}
-          map={borderTextures.map}
-          normalMap={borderTextures.normalMap}
-          roughnessMap={borderTextures.roughnessMap}
-          aoMap={borderTextures.aoMap}
-        />
-      </mesh>
       <BoardCoordinates />
     </group>
   )

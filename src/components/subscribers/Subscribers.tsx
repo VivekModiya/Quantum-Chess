@@ -10,8 +10,13 @@ import {
   isInsufficientMaterial,
   assetUrl,
 } from '../../utils'
-import { PieceColor, PromotablePiece, Square } from '../../types'
-import type { BoardSnapshot } from '../../../shared/socketEvents'
+import { PromotablePiece, Square } from '../../types'
+import type {
+  BoardSnapshot,
+  GameResult,
+  PlayerColor,
+} from '../../../shared/socketEvents'
+import { sendReportGameOver } from '../../services/socketService'
 
 export const Subscribers = React.memo(() => {
   const { subscribe, publish } = usePubSub()
@@ -302,30 +307,22 @@ export const Subscribers = React.memo(() => {
           )
 
           if (isInCheckmate) {
-            publish('game_over', {
+            const result: GameResult = {
               type: 'win',
-              subType: 'checkmate',
-              winner: pieceColor as PieceColor,
-            })
+              winner: pieceColor as PlayerColor,
+              reason: 'checkmate',
+            }
+            sendReportGameOver(result)
           } else if (isInStalemate) {
-            publish('game_over', {
-              type: 'stalemate',
-              subType: 'stalemate',
-            })
+            sendReportGameOver({ type: 'stalemate' })
           } else if (isThreefoldRepetition(positionHistory)) {
-            publish('game_over', {
-              type: 'draw',
-              subType: 'repetition',
-            })
+            sendReportGameOver({ type: 'draw', reason: 'repetition' })
           } else if (isFiftyMoveRule(halfMoveClock)) {
-            publish('game_over', {
-              type: 'draw',
-              subType: '50 moves',
-            })
+            sendReportGameOver({ type: 'draw', reason: '50 moves' })
           } else if (isInsufficientMaterial(boardMap)) {
-            publish('game_over', {
+            sendReportGameOver({
               type: 'draw',
-              subType: 'insufficient material',
+              reason: 'insufficient material',
             })
           }
         }

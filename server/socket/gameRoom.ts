@@ -7,6 +7,7 @@ import type {
   PlayerColor,
 } from '../../shared/socketEvents.js'
 import { getGame, persistGame } from '../services/gameCache.js'
+import { createGame } from '../services/gameService.js'
 import {
   startTimer,
   switchTimer,
@@ -21,6 +22,7 @@ import {
   removeSpectatorSocket,
 } from './socketHandler.js'
 import type { GameRecord } from '../types/game.js'
+import { generateId } from '../utils/idGenerator.js'
 
 type IOServer = Server<ClientToServerEvents, ServerToClientEvents>
 type IOSocket = Socket<ClientToServerEvents, ServerToClientEvents>
@@ -85,6 +87,16 @@ const connectedPlayers = new Map<
   { gameId: string; playerId: string; color: PlayerColor }
 >()
 
+function findSocketForPlayer(
+  gameId: string,
+  color: PlayerColor
+): string | null {
+  for (const [sid, info] of connectedPlayers.entries()) {
+    if (info.gameId === gameId && info.color === color) return sid
+  }
+  return null
+}
+
 function endGame(io: IOServer, game: GameRecord, result: GameResult): void {
   game.status = 'completed'
   game.result = result
@@ -114,10 +126,27 @@ export function handleGameRoom(io: IOServer, socket: IOSocket): void {
     // Join the Socket.IO room
     socket.join(gameId)
     setPlayerSocket(socket.id, { gameId, playerId, color: playerColor })
+
+    // Determine if this is a first-time join or a reconnection
+    let isFirstConnection = true
+    for (const [sid, info] of connectedPlayers.entries()) {
+      if (
+        sid !== socket.id &&
+        info.gameId === gameId &&
+        info.playerId === playerId
+      ) {
+        isFirstConnection = false
+        break
+      }
+    }
     connectedPlayers.set(socket.id, { gameId, playerId, color: playerColor })
 
-    // Notify others of reconnection/join
-    socket.to(gameId).emit('player_reconnected', { color: playerColor })
+    // Notify others of join vs reconnection
+    if (isFirstConnection) {
+      socket.to(gameId).emit('player_joined', { color: playerColor })
+    } else {
+      socket.to(gameId).emit('player_reconnected', { color: playerColor })
+    }
 
     // Send full game state to the joining player
     const state = buildGameState(game, connectedPlayers)
@@ -298,6 +327,105 @@ export function handleGameRoom(io: IOServer, socket: IOSocket): void {
     }
 
     endGame(io, game, { type: 'aborted' })
+  })
+
+  socket.on('report_game_over', result => {
+    const playerInfo = getPlayerBySocket(socket.id)
+    if (!playerInfo) return
+
+    const game = getGame(playerInfo.gameId)
+    if (!game || game.status !== 'active') return
+
+    endGame(io, game, result)
+  })
+
+  socket.on('request_rematch', () => {
+    const playerInfo = getPlayerBySocket(socket.id)
+    if (!playerInfo) return
+
+    const game = getGame(playerInfo.gameId)
+    if (!game || game.status !== 'completed') return
+
+    game.rematchRequest = { from: playerInfo.color }
+    persistGame(game)
+
+    socket
+      .to(playerInfo.gameId)
+      .emit('rematch_requested', { from: playerInfo.color })
+  })
+
+  socket.on('accept_rematch', () => {
+    const playerInfo = getPlayerBySocket(socket.id)
+    if (!playerInfo) return
+
+    const game = getGame(playerInfo.gameId)
+    if (!game || game.status !== 'completed' || !game.rematchRequest) return
+
+    // Only the opponent of the requester can accept
+    if (game.rematchRequest.from === playerInfo.color) return
+
+    // Create new game with swapped colors and same time control
+    const requesterColor = game.rematchRequest.from
+    const accepterColor = playerInfo.color
+
+    // Swap colors for rematch
+    const requesterNewColor: PlayerColor =
+      requesterColor === 'white' ? 'black' : 'white'
+    const accepterNewColor: PlayerColor =
+      accepterColor === 'white' ? 'black' : 'white'
+
+    const newGameResult = createGame({
+      timeControl: game.timeControl,
+      color: requesterNewColor,
+    })
+
+    // Join the accepter into the new game
+    const newGame = getGame(newGameResult.gameId)
+    if (!newGame) return
+
+    const accepterPlayerId = generateId()
+    newGame.players[accepterNewColor] = {
+      playerId: accepterPlayerId,
+      joinedAt: Date.now(),
+    }
+    newGame.status = 'active'
+    persistGame(newGame)
+
+    // Notify the requester
+    const requesterSocketId = findSocketForPlayer(
+      playerInfo.gameId,
+      requesterColor
+    )
+    if (requesterSocketId) {
+      const requesterSock = io.sockets.sockets.get(requesterSocketId)
+      requesterSock?.emit('rematch_accepted', {
+        newGameId: newGameResult.gameId,
+        playerId: newGameResult.playerId,
+        assignedColor: requesterNewColor,
+      })
+    }
+
+    // Notify the accepter
+    socket.emit('rematch_accepted', {
+      newGameId: newGameResult.gameId,
+      playerId: accepterPlayerId,
+      assignedColor: accepterNewColor,
+    })
+  })
+
+  socket.on('decline_rematch', () => {
+    const playerInfo = getPlayerBySocket(socket.id)
+    if (!playerInfo) return
+
+    const game = getGame(playerInfo.gameId)
+    if (!game || !game.rematchRequest) return
+
+    if (game.rematchRequest.from === playerInfo.color) return
+
+    game.rematchRequest = null
+    persistGame(game)
+
+    socket.to(playerInfo.gameId).emit('rematch_declined')
   })
 
   socket.on('disconnect', () => {

@@ -1,0 +1,25 @@
+{
+  "id": "71f05e7c-c8d8-4c86-86ac-63a2b4b16779",
+  "status": "waiting",
+  "timeControl": 10,
+  "players": {
+    "white": null,
+    "black": {
+      "playerId": "67a58d26-1f6d-42ab-af0e-a83168222b0d",
+      "joinedAt": 1778142326987
+    }
+  },
+  "moves": [],
+  "timers": {
+    "white": 600000,
+    "black": 600000
+  },
+  "currentTurn": "white",
+  "lastMoveTimestamp": null,
+  "result": null,
+  "drawOffer": null,
+  "snapshot": null,
+  "pgn": "",
+  "rematchRequest": null,
+  "createdAt": 1778142326987
+}

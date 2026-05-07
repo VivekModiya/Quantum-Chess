@@ -80,6 +80,10 @@ export interface ClientToServerEvents {
   accept_draw: () => void
   decline_draw: () => void
   abort_game: () => void
+  report_game_over: (payload: GameResult) => void
+  request_rematch: () => void
+  accept_rematch: () => void
+  decline_rematch: () => void
 }
 
 // Server → Client events
@@ -99,5 +103,12 @@ export interface ServerToClientEvents {
   player_reconnected: (payload: { color: PlayerColor }) => void
   draw_offered: (payload: { from: PlayerColor }) => void
   draw_declined: () => void
+  rematch_requested: (payload: { from: PlayerColor }) => void
+  rematch_accepted: (payload: {
+    newGameId: string
+    playerId: string
+    assignedColor: PlayerColor
+  }) => void
+  rematch_declined: () => void
   error: (payload: { message: string }) => void
 }

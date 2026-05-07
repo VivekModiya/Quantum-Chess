@@ -154,7 +154,6 @@ export const PawnPromotion3D: React.FC = () => {
               pieceRotation={0}
               scale={1}
               interactive={true}
-              showRim={true}
               handleClick={(e: ThreeEvent<MouseEvent>) => {
                 e.stopPropagation()
                 handlePieceClick(piece)

@@ -103,7 +103,6 @@ export const CapturedPieces3D: React.FC = () => {
             pieceRotation={getPieceRotation(p.color, p.piece)}
             scale={CAPTURED_PIECE_SCALE}
             interactive={false}
-            showRim={true}
           />
         )
       })}
@@ -119,7 +118,6 @@ export const CapturedPieces3D: React.FC = () => {
             pieceRotation={getPieceRotation(p.color, p.piece)}
             scale={CAPTURED_PIECE_SCALE}
             interactive={false}
-            showRim={true}
           />
         )
       })}

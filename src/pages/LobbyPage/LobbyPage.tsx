@@ -25,11 +25,12 @@ export const LobbyPage = () => {
       {showcaseComplete && (
         <>
           {/* Keep showcase scene in background */}
-          <OnboardingShowcase onShowcaseComplete={() => {}} />
-          <LobbyDialog
-            isVisible={dialogVisible}
-            onClose={() => setDialogVisible(false)}
+          <OnboardingShowcase
+            onShowcaseComplete={() => {}}
+            playTour={false}
+            showOverlay={false}
           />
+          <LobbyDialog isVisible={dialogVisible} />
         </>
       )}
     </div>

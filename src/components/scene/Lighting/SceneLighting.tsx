@@ -10,10 +10,7 @@ export const SceneLighting: React.FC = () => {
       <object3D ref={targetRef} position={[0, 2.5, 0]} />
 
       {/* Ambient light */}
-      <ambientLight
-        color={lightingConfig.ambient.color}
-        intensity={lightingConfig.ambient.intensity}
-      />
+      <ambientLight color={'#ffffff'} intensity={0.0} />
 
       {/* Primary spotlight for chess board */}
       <spotLight
@@ -81,12 +78,19 @@ export const SceneLighting: React.FC = () => {
         />
       ))}
 
+      {/* Soft sunrise directional light from the side */}
+      <directionalLight
+        position={lightingConfig.sunriseSideLight.position}
+        color={lightingConfig.sunriseSideLight.color}
+        intensity={lightingConfig.sunriseSideLight.intensity}
+      />
+
       {/* Hemisphere light */}
       <hemisphereLight
-        color={lightingConfig.hemisphere.skyColor}
-        groundColor={lightingConfig.hemisphere.skyColor}
-        intensity={lightingConfig.hemisphere.intensity}
-        position={[0, 20, 0]}
+        color={'#000000'}
+        groundColor={'#0033ff'}
+        intensity={2}
+        position={[0, 400, 0]}
       />
     </group>
   )

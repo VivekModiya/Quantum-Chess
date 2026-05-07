@@ -21,7 +21,7 @@ export const Skybox: React.FC = React.memo(() => {
   return (
     <mesh>
       <sphereGeometry args={SPHERE_ARGS} />
-      <meshBasicMaterial
+      <meshStandardMaterial
         map={cloudTexture}
         side={THREE.BackSide}
         transparent={true}

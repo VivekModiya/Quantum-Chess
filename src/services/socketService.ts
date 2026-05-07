@@ -4,6 +4,7 @@ import type {
   ServerToClientEvents,
   MoveData,
   BoardSnapshot,
+  GameResult,
 } from '../../shared/socketEvents'
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>
@@ -79,6 +80,22 @@ export function sendDeclineDraw(): void {
 
 export function sendAbort(): void {
   socket?.emit('abort_game')
+}
+
+export function sendReportGameOver(result: GameResult): void {
+  socket?.emit('report_game_over', result)
+}
+
+export function sendRematchRequest(): void {
+  socket?.emit('request_rematch')
+}
+
+export function sendAcceptRematch(): void {
+  socket?.emit('accept_rematch')
+}
+
+export function sendDeclineRematch(): void {
+  socket?.emit('decline_rematch')
 }
 
 export function disconnectSocket(): void {
