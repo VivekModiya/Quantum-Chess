@@ -18,7 +18,7 @@ export const lightingConfig = {
   },
   underBoardDirectional: {
     color: 0xffffff,
-    intensity: 1,
+    intensity: 0,
     position: [0, -50, 0] as [number, number, number],
   },
   pieceDetail: {
@@ -39,11 +39,11 @@ export const lightingConfig = {
       intensity: 0.28,
     },
   ],
-  // Soft sunrise directional light from the side
+  // Soft sunrise directional light from the side (disabled — intensity 0 to save fragment work)
   sunriseSideLight: {
-    color: 0xffaa66, // warm golden-orange
-    intensity: 5,
-    position: [120, 100, 0] as [number, number, number], // low angle from the side
+    color: 0xffaa66,
+    intensity: 0,
+    position: [120, 100, 0] as [number, number, number],
   },
   hemisphere: {
     skyColor: '#FFD4A0', // Warm sunrise sky tone

@@ -15,6 +15,9 @@ interface HighlightData {
   type: 'selected' | 'move' | 'capture' | 'lastMove' | 'check'
 }
 
+// Stable reference — prevents R3F from recreating the geometry on each re-render
+const HIGHLIGHT_PLANE_ARGS: [number, number] = [BOARD_SIZE, BOARD_SIZE]
+
 export const CanvasHighlights: React.FC = () => {
   const {
     selectedPiece,
@@ -191,7 +194,7 @@ export const CanvasHighlights: React.FC = () => {
           position={[0, BOARD.Y_OFFSET + 0.1, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
-          <planeGeometry args={[BOARD_SIZE, BOARD_SIZE]} />
+          <planeGeometry args={HIGHLIGHT_PLANE_ARGS} />
           <meshBasicMaterial
             map={textureRef.current}
             transparent={true}

@@ -114,22 +114,13 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
     const emissiveIntensityRef = React.useRef(BASE_EMISSIVE)
     const pulseTimeRef = React.useRef(0)
 
-    // Load color-specific textures for white and black pieces
-    const whiteTextures = useTexture({
+    // Both piece colors share the same texture set; color distinction is via material.color tint
+    const pieceTextures = useTexture({
       map: assetUrl('textures/Texture_White__Color.jpg'),
       normalMap: assetUrl('textures/Texture_White_NormalGL.jpg'),
       roughnessMap: assetUrl('textures/Texture_White_Roughness.jpg'),
       aoMap: assetUrl('textures/Texture_White_AmbientOcclusion.jpg'),
-      displacementMap: assetUrl('textures/Texture_White_Displacement.jpg'),
     })
-    const blackTextures = useTexture({
-      map: assetUrl('textures/Texture_White__Color.jpg'),
-      normalMap: assetUrl('textures/Texture_White_NormalGL.jpg'),
-      roughnessMap: assetUrl('textures/Texture_White_Roughness.jpg'),
-      aoMap: assetUrl('textures/Texture_White_AmbientOcclusion.jpg'),
-      displacementMap: assetUrl('textures/Texture_White_Displacement.jpg'),
-    })
-    const pieceTextures = color === 'white' ? whiteTextures : blackTextures
 
     // Configure texture wrapping once (no-op after first call since same texture objects are reused by useTexture)
     React.useMemo(() => {
@@ -182,10 +173,6 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
             newMaterial.roughnessMap = pieceTextures.roughnessMap
             newMaterial.emissive.set(PIECE_EMISSIVE[color].color)
             newMaterial.emissiveIntensity = PIECE_EMISSIVE[color].intensity
-            newMaterial.displacementScale = PIECE_MATERIAL.displacementScale
-            newMaterial.displacementMap = (
-              pieceTextures as typeof whiteTextures
-            ).displacementMap
 
             if (!newMaterial.userData.originalColor) {
               newMaterial.userData.originalColor = newMaterial.color.clone()
@@ -265,9 +252,22 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
       }
     }, [modifiedScene, outlineScene])
 
+    // Pre-collect material refs once when scene is ready — avoids traverse() on every frame
+    const materialsRef = React.useRef<THREE.MeshStandardMaterial[]>([])
+    React.useEffect(() => {
+      if (!modifiedScene) return
+      const collected: THREE.MeshStandardMaterial[] = []
+      modifiedScene.traverse(child => {
+        if (child instanceof THREE.Mesh && child.material) {
+          collected.push(child.material as THREE.MeshStandardMaterial)
+        }
+      })
+      materialsRef.current = collected
+    }, [modifiedScene])
+
     // Pulsing brightness loop while hovered, smooth fade-out when not
     useFrame((_, delta) => {
-      if (!interactive || !modifiedScene) return
+      if (!interactive || materialsRef.current.length === 0) return
 
       let next: number
       if (hoveredRef.current) {
@@ -290,13 +290,10 @@ export const PieceModel: React.FC<PieceModelProps> = React.memo(
           next = BASE_EMISSIVE
       }
       emissiveIntensityRef.current = next
-      modifiedScene.traverse(child => {
-        if (child instanceof THREE.Mesh && child.material) {
-          const mat = child.material as THREE.MeshStandardMaterial
-          mat.emissive.set(PIECE_EMISSIVE[color].color)
-          mat.emissiveIntensity = next * PIECE_HOVER_ANIM.emissiveScale
-        }
-      })
+      const intensity = next * PIECE_HOVER_ANIM.emissiveScale
+      for (const mat of materialsRef.current) {
+        mat.emissiveIntensity = intensity
+      }
     })
 
     // Calculate final positioning — yOffset is derived from model geometry

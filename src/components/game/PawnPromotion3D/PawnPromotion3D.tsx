@@ -21,7 +21,7 @@ interface PromotionData {
   pieceId: string
 }
 
-export const PawnPromotion3D: React.FC = () => {
+export const PawnPromotion3D: React.FC = React.memo(() => {
   const [promotionData, setPromotionData] = useState<PromotionData | null>(null)
   const groupRef = useRef<THREE.Group>(null)
   const scaleRef = useRef(0)
@@ -164,4 +164,4 @@ export const PawnPromotion3D: React.FC = () => {
       </group>
     </>
   )
-}
+})

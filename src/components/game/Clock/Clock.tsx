@@ -1,6 +1,10 @@
+import React from 'react'
 import type { PlayerColor } from '../../../../shared/socketEvents'
 import { CLOCK_CONFIG } from '../../../constants'
 import { Digits } from './Digits'
+
+// Stable reference so R3F doesn't recreate the geometry on each re-render
+const CLOCK_BOX_ARGS: [number, number, number] = [0.2, 15, 30]
 
 export interface ClockProps {
   whiteTime?: number // remaining ms
@@ -15,63 +19,65 @@ function formatTime(ms: number): string {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
-export const Clock = ({ whiteTime, blackTime, activeSide }: ClockProps) => {
-  const whiteDisplay = whiteTime != null ? formatTime(whiteTime) : '--:--'
-  const blackDisplay = blackTime != null ? formatTime(blackTime) : '--:--'
+export const Clock = React.memo(
+  ({ whiteTime, blackTime, activeSide }: ClockProps) => {
+    const whiteDisplay = whiteTime != null ? formatTime(whiteTime) : '--:--'
+    const blackDisplay = blackTime != null ? formatTime(blackTime) : '--:--'
 
-  const whiteColor =
-    activeSide === 'white' ? CLOCK_CONFIG.activeColor : CLOCK_CONFIG.idleColor
-  const blackColor =
-    activeSide === 'black' ? CLOCK_CONFIG.activeColor : CLOCK_CONFIG.idleColor
+    const whiteColor =
+      activeSide === 'white' ? CLOCK_CONFIG.activeColor : CLOCK_CONFIG.idleColor
+    const blackColor =
+      activeSide === 'black' ? CLOCK_CONFIG.activeColor : CLOCK_CONFIG.idleColor
 
-  return (
-    <>
-      {/* White clock (negative Z side) */}
-      <mesh
-        position={[50, 10, -20]}
-        rotation={[0, 0, Math.PI / 1.5]}
-        renderOrder={100}
-      >
-        <boxGeometry args={[0.2, 15, 30]} />
-        <meshStandardMaterial
-          color={CLOCK_CONFIG.bgColor}
-          emissive={'#000000'}
-          emissiveIntensity={CLOCK_CONFIG.emissiveIntensity}
-          opacity={CLOCK_CONFIG.opacity}
-          transparent={true}
-          depthWrite={false}
-        />
-        <Digits
-          value={whiteDisplay}
-          size={8}
-          height={0.05}
-          position={[0.15, 0, 0]}
-          color={whiteColor}
-        />
-      </mesh>
-      {/* Black clock (positive Z side) */}
-      <mesh
-        position={[50, 10, 20]}
-        rotation={[0, 0, Math.PI / 1.5]}
-        renderOrder={100}
-      >
-        <boxGeometry args={[0.2, 15, 30]} />
-        <meshStandardMaterial
-          color={CLOCK_CONFIG.bgColor}
-          emissive={'#000000'}
-          emissiveIntensity={CLOCK_CONFIG.emissiveIntensity}
-          opacity={CLOCK_CONFIG.opacity}
-          transparent={true}
-          depthWrite={false}
-        />
-        <Digits
-          value={blackDisplay}
-          size={8}
-          height={0.05}
-          position={[0.15, 0, 0]}
-          color={blackColor}
-        />
-      </mesh>
-    </>
-  )
-}
+    return (
+      <>
+        {/* White clock (negative Z side) */}
+        <mesh
+          position={[50, 10, -20]}
+          rotation={[0, 0, Math.PI / 1.5]}
+          renderOrder={100}
+        >
+          <boxGeometry args={CLOCK_BOX_ARGS} />
+          <meshStandardMaterial
+            color={CLOCK_CONFIG.bgColor}
+            emissive={'#000000'}
+            emissiveIntensity={CLOCK_CONFIG.emissiveIntensity}
+            opacity={CLOCK_CONFIG.opacity}
+            transparent={true}
+            depthWrite={false}
+          />
+          <Digits
+            value={whiteDisplay}
+            size={8}
+            height={0.05}
+            position={[0.15, 0, 0]}
+            color={whiteColor}
+          />
+        </mesh>
+        {/* Black clock (positive Z side) */}
+        <mesh
+          position={[50, 10, 20]}
+          rotation={[0, 0, Math.PI / 1.5]}
+          renderOrder={100}
+        >
+          <boxGeometry args={CLOCK_BOX_ARGS} />
+          <meshStandardMaterial
+            color={CLOCK_CONFIG.bgColor}
+            emissive={'#000000'}
+            emissiveIntensity={CLOCK_CONFIG.emissiveIntensity}
+            opacity={CLOCK_CONFIG.opacity}
+            transparent={true}
+            depthWrite={false}
+          />
+          <Digits
+            value={blackDisplay}
+            size={8}
+            height={0.05}
+            position={[0.15, 0, 0]}
+            color={blackColor}
+          />
+        </mesh>
+      </>
+    )
+  }
+)

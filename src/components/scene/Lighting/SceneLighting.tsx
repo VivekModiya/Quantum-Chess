@@ -23,12 +23,6 @@ export const SceneLighting: React.FC = () => {
         distance={lightingConfig.primarySpotlight.distance}
         decay={lightingConfig.primarySpotlight.decay}
         castShadow={shadowConfig}
-        shadow-mapSize={[1048, 1048]}
-        shadow-camera-near={30}
-        shadow-camera-far={150}
-        shadow-bias={-0.00001}
-        shadow-normalBias={10}
-        shadow-radius={8}
       />
 
       {/* Chess board directional light - static position */}
@@ -38,16 +32,6 @@ export const SceneLighting: React.FC = () => {
         color={lightingConfig.chessBoardDirectional.color}
         intensity={lightingConfig.chessBoardDirectional.intensity}
         castShadow={shadowConfig}
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-60}
-        shadow-camera-right={60}
-        shadow-camera-top={60}
-        shadow-camera-bottom={-60}
-        shadow-camera-near={5}
-        shadow-camera-far={120}
-        shadow-bias={-0.00005}
-        shadow-normalBias={0.08}
-        shadow-radius={8}
       />
 
       {/* Piece detail light */}

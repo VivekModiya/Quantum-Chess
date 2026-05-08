@@ -110,7 +110,7 @@ export const App = () => {
         <Subscribers />
         <Canvas
           camera={{ ...playerCameraConfig, zoom: 1 }}
-          gl={{ ...renderConfig, logarithmicDepthBuffer: true }}
+          gl={renderConfig}
           shadows={shadowConfig}
           style={{ background: 'transparent' }}
           performance={{ min: 0.5 }}

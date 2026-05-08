@@ -1,6 +1,5 @@
 import React, { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import * as THREE from 'three'
 
 interface GameIntroAnimationProps {
   initialPosition: [number, number, number]
@@ -17,6 +16,12 @@ export const GameIntroAnimation: React.FC<GameIntroAnimationProps> = ({
 
   // Captured on the very first frame from the actual camera position
   const startAngleRef = useRef<number | null>(null)
+
+  // Pre-compute end angle and radius once from the stable initialPosition prop
+  const endAngleRef = useRef(Math.atan2(initialPosition[2], initialPosition[0]))
+  const horizontalRadiusRef = useRef(
+    Math.sqrt(initialPosition[0] ** 2 + initialPosition[2] ** 2)
+  )
 
   const DURATION = 4 // seconds
 
@@ -38,12 +43,8 @@ export const GameIntroAnimation: React.FC<GameIntroAnimationProps> = ({
     const t =
       raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.pow(-2 * raw + 2, 3) / 2
 
-    const endVec = new THREE.Vector3(...initialPosition)
-    const endAngle = Math.atan2(endVec.z, endVec.x)
-    // Use only the horizontal (XZ) radius — Y is handled separately
-    const horizontalRadius = Math.sqrt(
-      endVec.x * endVec.x + endVec.z * endVec.z
-    )
+    const endAngle = endAngleRef.current
+    const horizontalRadius = horizontalRadiusRef.current
     const startAngle = startAngleRef.current!
 
     // Sweep a full circle and land exactly on endAngle:
@@ -53,7 +54,7 @@ export const GameIntroAnimation: React.FC<GameIntroAnimationProps> = ({
 
     camera.position.set(
       Math.cos(angle) * horizontalRadius,
-      endVec.y,
+      initialPosition[1],
       Math.sin(angle) * horizontalRadius
     )
     camera.lookAt(0, 0, 0)

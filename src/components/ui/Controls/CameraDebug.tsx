@@ -100,8 +100,10 @@ export const CameraDebug: React.FC = () => {
     camera.position.set(v.posX, v.posY, v.posZ)
 
     const perspCam = camera as THREE.PerspectiveCamera
-    perspCam.fov = v.fov
-    perspCam.updateProjectionMatrix()
+    if (perspCam.fov !== v.fov) {
+      perspCam.fov = v.fov
+      perspCam.updateProjectionMatrix()
+    }
 
     if (controlsRef.current?.target) {
       controlsRef.current.target.set(v.lookAtX, v.lookAtY, v.lookAtZ)
